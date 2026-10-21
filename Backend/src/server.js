@@ -129,7 +129,7 @@ app.post('/api/auth/register', authLimiter, asyncRoute(async (req, res) => {
 }));
 app.post('/api/auth/login', authLimiter, asyncRoute(async (req, res) => {
  const data = valid(z.object({ email, password: z.string().min(1) }), req.body);
- const result = await db.query('SELECT * FROM users WHERE email=$1', [data.email]);
+ const result = await db.query('SELECT * FROM users WHERE LOWER(email)=LOWER($1)', [data.email]);
  const user = result.rows[0];
  if (!user || !(await bcrypt.compare(data.password, user.password_hash))) return res.status(401).json({ message: 'Invalid email or password' });
  if (process.env.REQUIRE_VERIFIED_EMAIL === 'true' && !user.email_verified) return res.status(403).json({message:'Please verify your email before signing in'});

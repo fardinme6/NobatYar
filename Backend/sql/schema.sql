@@ -138,3 +138,5 @@ CREATE TABLE IF NOT EXISTS doctor_days_off (
  date VARCHAR(10) NOT NULL,
  PRIMARY KEY(doctor_id,date)
 );
+
+CREATE UNIQUE INDEX IF NOT EXISTS users_email_lower_unique ON users (LOWER(email));

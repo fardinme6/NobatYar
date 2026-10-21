@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { api, API_URL } from "../api";
 import { translations } from "../data/translations";
-import { ShieldCheck, Mail, CalendarDays, ClipboardCheck, RefreshCw, Building2 } from "lucide-react";
+import { ShieldCheck, Mail, CalendarDays, ClipboardCheck, RefreshCw, Building2, Stethoscope, Tags, Pencil, Trash2, Save, X } from "lucide-react";
 
 export default function AdminDashboard({ language }) {
   const t = translations[language];
@@ -10,6 +10,11 @@ export default function AdminDashboard({ language }) {
   const [appointments, setAppointments] = useState([]);
   const [contacts, setContacts] = useState([]);
   const [providers, setProviders] = useState([]);
+  const [doctors, setDoctors] = useState([]);
+  const [hospitals, setHospitals] = useState([]);
+  const [specialtiesList, setSpecialtiesList] = useState([]);
+  const [editing, setEditing] = useState(null);
+  const [form, setForm] = useState({});
   const [notes, setNotes] = useState({});
   const [replies, setReplies] = useState({});
   const [documents, setDocuments] = useState({});
@@ -18,8 +23,8 @@ export default function AdminDashboard({ language }) {
   const load = async () => {
     setError(""); setLoading(true);
     try {
-      const [r, a, c, p] = await Promise.all([api("/admin/provider-requests"), api("/admin/appointments"), api("/admin/contacts"), api("/admin/providers")]);
-      setRequests(r); setAppointments(a); setContacts(c); setProviders(p);
+      const [r, a, c, p, d, h, sp] = await Promise.all([api("/admin/provider-requests"), api("/admin/appointments"), api("/admin/contacts"), api("/admin/providers"), api("/admin/doctors"), api("/admin/hospitals"), api("/specialties")]);
+      setRequests(r); setAppointments(a); setContacts(c); setProviders(p); setDoctors(d); setHospitals(h); setSpecialtiesList(sp);
     } catch (e) { setError(e.message); }
     finally { setLoading(false); }
   };
@@ -54,24 +59,53 @@ export default function AdminDashboard({ language }) {
     try { await api(`/admin/providers/${p.id}`, { method: "PATCH", body: JSON.stringify({ active: !p.active }) }); await load(); }
     catch (e) { setError(e.message); }
   };
+  const startEdit = (kind, item) => {
+    setEditing(`${kind}-${item.id}`);
+    setForm(kind === "doctor" ? {name:item.name,specialty:item.specialty_value,hospitalId:hospitals.find(h=>h.name===item.hospital)?.id || "",city:item.city,about:item.about || ""} : kind === "hospital" ? {name:item.name,city:item.city,location:item.location,description:item.description || ""} : {name:item.name,value:item.value});
+  };
+  const saveItem = async (kind, id) => {
+    try { await api(`/admin/${kind === "doctor" ? "doctors" : kind === "hospital" ? "hospitals" : "specialties"}/${id}`, {method:"PATCH",body:JSON.stringify(form)});setEditing(null);await load(); }
+    catch(e){setError(e.message);}
+  };
+  const deleteItem = async (kind, id) => {
+    if (!window.confirm("Delete this item? This action cannot be undone.")) return;
+    try {await api(`/admin/${kind === "doctor" ? "doctors" : kind === "hospital" ? "hospitals" : "specialties"}/${id}`,{method:"DELETE"});await load();}
+    catch(e){setError(e.message);}
+  };
+  const addSpecialty = async () => {
+    try {await api("/admin/specialties",{method:"POST",body:JSON.stringify(form)});setEditing(null);setForm({});await load();}
+    catch(e){setError(e.message);}
+  };
+  const field = (name, label, type="text", options=[]) => <label key={name} className="block text-sm font-medium">{label}
+    {type === "select" ? <select value={form[name] ?? ""} onChange={e=>setForm({...form,[name]:e.target.value})} className="mt-1 w-full p-3 rounded-xl border text-gray-900"><option value="">Select</option>{options.map(o=><option key={o.value} value={o.value}>{o.label}</option>)}</select>
+      : <input value={form[name] ?? ""} onChange={e=>setForm({...form,[name]:e.target.value})} className="mt-1 w-full p-3 rounded-xl border text-gray-900" />}
+  </label>;
   const detailsOf = r => { try { return JSON.parse(r.details) || {}; } catch { return {}; } };
   const title = r => {
     let d = {}; try { d = JSON.parse(r.details); } catch {}
     return `${r.provider_type === "clinic" || d.type === "clinic" ? t.registerClinic : r.provider_type === "hospital" || d.type === "hospital" ? t.registerHospital : t.registerDoctor} ${r.name}`;
   };
-  const tabs = [{ id: "rejected", name: language === "Persian" ? "ردشده‌ها" : language === "Pashto" ? "رد شوې غوښتنې" : "Rejected", icon: ClipboardCheck, count: requests.filter(r=>r.status==="rejected").length }, { id: "requests", name: t.adminRequests, icon: ClipboardCheck, count: requests.filter(r=>r.status==="pending").length }, { id: "contacts", name: t.adminMessages, icon: Mail, count: contacts.filter(c=>c.status==="unread").length }, { id: "appointments", name: t.adminAppointments, icon: CalendarDays, count: appointments.length }, { id: "providers", name: t.adminProviders, icon: Building2, count: providers.length }];
+  const tabs = [
+    {id:"requests",name:t.adminRequests,icon:ClipboardCheck,count:requests.length},
+    {id:"doctors",name:language==="Persian"?"مدیریت داکتران":"Manage Doctors",icon:Stethoscope,count:doctors.length},
+    {id:"hospitals",name:language==="Persian"?"مدیریت شفاخانه‌ها":"Manage Hospitals",icon:Building2,count:hospitals.length},
+    {id:"specialties",name:language==="Persian"?"تخصص‌ها":"Specialties",icon:Tags,count:specialtiesList.length},
+    {id:"contacts",name:t.adminMessages,icon:Mail,count:contacts.filter(c=>c.status==="unread").length},
+    {id:"appointments",name:t.adminAppointments,icon:CalendarDays,count:appointments.length},
+    {id:"providers",name:t.adminProviders,icon:Building2,count:providers.length}
+  ];
   return <main className="min-h-screen bg-teal-50/60 dark:bg-slate-900 px-4 py-12">
     <div className="max-w-6xl mx-auto">
       <div className="rounded-3xl bg-gradient-to-r from-teal-700 to-cyan-600 text-white p-8 shadow-lg flex flex-wrap justify-between gap-4 items-center">
         <div><ShieldCheck size={36}/><h1 className="text-3xl font-bold mt-3">{t.adminTitle}</h1><p className="text-teal-50 mt-2">{t.adminSubtitle}</p></div>
         <button onClick={load} className="flex items-center gap-2 bg-white/20 hover:bg-white/30 rounded-xl px-5 py-3 transition cursor-pointer"><RefreshCw size={18}/>{t.adminRefresh}</button>
       </div>
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mt-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mt-6">
         {tabs.map(item => <button key={item.id} onClick={()=>setTab(item.id)} className={`rounded-2xl p-4 text-start shadow-sm border transition hover:-translate-y-1 cursor-pointer ${tab===item.id?"bg-teal-600 text-white border-teal-600":"bg-white dark:bg-slate-800 dark:text-white border-gray-100 dark:border-slate-700"}`}><item.icon size={24}/><p className="font-semibold mt-3">{item.name}</p><p className="text-2xl font-bold mt-1">{item.count}</p></button>)}
       </div>
       {error && <p role="alert" className="bg-red-50 text-red-700 rounded-xl p-4 mt-5">{error}</p>}
       {loading ? <p className="p-6 dark:text-white">{t.loadingText}</p> : <div className="mt-7 space-y-4">
-        {["requests", "rejected"].includes(tab) && (requests.filter(r=>r.status === (tab === "requests" ? "pending" : "rejected")).length ? requests.filter(r=>r.status === (tab === "requests" ? "pending" : "rejected")).map(r=><article key={r.id} className="bg-white dark:bg-slate-800 dark:text-white rounded-2xl shadow-sm p-6 transition hover:shadow-lg">
+        {tab === "requests" && (requests.length ? requests.map(r=><article key={r.id} className="bg-white dark:bg-slate-800 dark:text-white rounded-2xl shadow-sm p-6 transition hover:shadow-lg">
           <div className="flex justify-between flex-wrap gap-3"><div><h3 className="font-bold text-lg">{title(r)}</h3><p className="text-sm text-gray-500 dark:text-gray-300 mt-1">{r.email} · {r.phone}</p></div><span className={`rounded-full px-4 py-2 h-fit text-sm ${r.status==="approved"?"bg-green-100 text-green-700":r.status==="rejected"?"bg-red-100 text-red-700":"bg-amber-100 text-amber-700"}`}>{r.status==="approved"?t.requestApproved:r.status==="rejected"?t.requestRejected:t.requestPending}</span></div>
           {detailsOf(r).photoUrl && <img src={detailsOf(r).photoUrl} alt={r.name} className="mt-4 w-32 h-32 rounded-xl object-cover" />}
           <div className="grid sm:grid-cols-2 gap-3 mt-4 text-sm text-gray-600 dark:text-gray-300">
@@ -79,7 +113,7 @@ export default function AdminDashboard({ language }) {
           </div>
           <button onClick={()=>showDocuments(r.id)} className="mt-4 text-teal-600 underline cursor-pointer">{t.adminDocuments}</button>
           {documents[r.id]?.map(d=><button key={d.id} onClick={()=>downloadDocument(d)} className="block text-sm mt-2 text-teal-600 underline cursor-pointer">{d.original_name} — {t.adminDownloadHint} #{d.id}</button>)}
-          {tab === "requests" && <><label className="block mt-5 mb-2 text-sm font-semibold">{t.adminReviewNote}</label><textarea value={notes[r.id] ?? r.review_note ?? ""} onChange={e=>setNotes({...notes,[r.id]:e.target.value})} rows={2} className="w-full rounded-xl border p-3 dark:bg-slate-700 dark:border-slate-600" placeholder={t.adminReviewPlaceholder}/>
+          {<><label className="block mt-5 mb-2 text-sm font-semibold">{t.adminReviewNote}</label><textarea value={notes[r.id] ?? r.review_note ?? ""} onChange={e=>setNotes({...notes,[r.id]:e.target.value})} rows={2} className="w-full rounded-xl border p-3 dark:bg-slate-700 dark:border-slate-600" placeholder={t.adminReviewPlaceholder}/>
           <div className="flex gap-3 mt-3"><button onClick={()=>decide(r,"approved")} className="bg-teal-600 hover:bg-teal-700 text-white rounded-xl px-5 py-2 transition cursor-pointer">{t.adminApprove}</button><button onClick={()=>decide(r,"rejected")} className="bg-red-100 hover:bg-red-200 text-red-700 rounded-xl px-5 py-2 transition cursor-pointer">{t.adminReject}</button></div></>}
         </article>) : <p className="dark:text-white">{t.adminEmpty}</p>)}
         {tab === "contacts" && (contacts.length ? contacts.map(c=><article key={c.id} className="bg-white dark:bg-slate-800 dark:text-white rounded-2xl shadow-sm p-6">
@@ -89,6 +123,29 @@ export default function AdminDashboard({ language }) {
         </article>) : <p className="dark:text-white">{t.adminEmpty}</p>)}
         {tab === "appointments" && (appointments.length ? appointments.map(a=><article key={a.id} className="bg-white dark:bg-slate-800 dark:text-white rounded-2xl p-5 shadow-sm flex flex-wrap justify-between gap-4 items-center"><div><h3 className="font-bold">{a.patient_name}</h3><p className="text-sm text-gray-500 dark:text-gray-300">#{a.doctor_id} · {a.date} · {a.time} · {a.status}</p></div><div className="flex gap-2"><button onClick={()=>changeAppointment(a.id,"confirmed")} className="bg-teal-600 text-white px-4 py-2 rounded-lg cursor-pointer">{t.adminConfirm}</button><button onClick={()=>changeAppointment(a.id,"cancelled")} className="bg-red-100 text-red-700 px-4 py-2 rounded-lg cursor-pointer">{t.adminCancel}</button></div></article>) : <p className="dark:text-white">{t.adminEmpty}</p>)}
 
+        {(["doctors","hospitals","specialties"].includes(tab)) && <>
+          {tab === "specialties" && <button onClick={()=>{setEditing("new-specialty");setForm({name:"",value:""});}} className="bg-teal-600 text-white rounded-xl px-4 py-2">+ Add Specialty</button>}
+          {editing === "new-specialty" && <div className="bg-white rounded-xl p-5 grid gap-3">{field("name","Specialty name")}{field("value","Code (lowercase, e.g. cardiology)")}<button onClick={addSpecialty} className="bg-teal-600 text-white rounded-xl p-2">Save</button></div>}
+          {(tab === "doctors" ? doctors : tab === "hospitals" ? hospitals : specialtiesList).map(item => {
+            const kind = tab === "doctors" ? "doctor" : tab === "hospitals" ? "hospital" : "specialty";
+            const active = editing === `${kind}-${item.id}`;
+            return <article key={item.id} className="bg-white dark:bg-slate-800 dark:text-white rounded-2xl p-5 shadow-sm">
+              <div className="flex items-center gap-4 flex-wrap">
+                {item.image && <img src={item.image} alt={item.name} className="w-20 h-20 object-cover rounded-xl" />}
+                <div className="flex-1"><h3 className="font-bold">{item.name}</h3><p className="text-sm text-gray-500">{kind === "doctor" ? `${item.specialty} · ${item.hospital} · ${item.city}` : kind === "hospital" ? `${item.city} · ${item.location}` : item.value}</p></div>
+                <button onClick={()=>active?setEditing(null):startEdit(kind,item)} className="flex gap-1 items-center border rounded-lg px-3 py-2"><Pencil size={16}/> {active?"Cancel":"Edit"}</button>
+                <button onClick={()=>deleteItem(kind,item.id)} className="flex gap-1 items-center bg-red-100 text-red-700 rounded-lg px-3 py-2"><Trash2 size={16}/> Delete</button>
+              </div>
+              {active && <div className="grid sm:grid-cols-2 gap-3 mt-5">
+                {field("name","Name")}
+                {kind === "doctor" && <>{field("specialty","Specialty","select",specialtiesList.map(x=>({value:x.value,label:x.name})))}{field("hospitalId","Hospital","select",hospitals.map(x=>({value:x.id,label:x.name})))}{field("city","City")}{field("about","About")}</>}
+                {kind === "hospital" && <>{field("city","City")}{field("location","Address")}{field("description","Description")}</>}
+                {kind === "specialty" && field("value","Code")}
+                <button onClick={()=>saveItem(kind,item.id)} className="bg-teal-600 text-white rounded-xl px-4 py-2 flex items-center justify-center gap-2"><Save size={17}/> Save changes</button>
+              </div>}
+            </article>;
+          })}
+        </>}
         {tab === "providers" && (providers.length ? providers.map(p=><article key={p.id} className="bg-white dark:bg-slate-800 dark:text-white rounded-2xl p-5 shadow-sm flex flex-wrap justify-between gap-4 items-center"><div><h3 className="font-bold">{p.provider_type==="doctor"?t.registerDoctor:p.provider_type==="clinic"?t.registerClinic:t.registerHospital} {p.name}</h3><p className="text-sm text-gray-500 dark:text-gray-300">{p.city} · {p.phone}</p></div><button onClick={()=>toggleProvider(p)} className={`px-4 py-2 rounded-xl cursor-pointer ${p.active?"bg-red-100 text-red-700":"bg-green-100 text-green-700"}`}>{p.active?t.adminDeactivate:t.adminActivate}</button></article>) : <p className="dark:text-white">{t.adminEmpty}</p>)}
       </div>}
     </div>

@@ -15,6 +15,12 @@ export default function ProviderRegistration({ language, user }) {
   const [saving, setSaving] = useState(false);
   const [requests, setRequests] = useState([]);
   const [doctorPhoto, setDoctorPhoto] = useState(null);
+  const [hospitalOptions, setHospitalOptions] = useState([]);
+  const [specialtyOptions, setSpecialtyOptions] = useState(specialties);
+  useEffect(() => {
+    api("/hospitals").then(setHospitalOptions).catch(() => {});
+    api("/specialties").then(setSpecialtyOptions).catch(() => {});
+  }, []);
   useEffect(() => { if (user) api("/provider-requests/mine").then(setRequests).catch(()=>{}); }, [user]);
 
   const inputStyle =
@@ -35,7 +41,7 @@ export default function ProviderRegistration({ language, user }) {
         photoUrl = uploaded.photoUrl;
       }
     } catch (err) { setError(err.message); setSaving(false); return; }
-    const details = JSON.stringify({ photoUrl, type: providerType, city: data.city, specialty: data.specialty || "", hospitalType: data.hospitalType || "", license: data.license || "", address: data.address || "", information: data.information || "" });
+    const details = JSON.stringify({ photoUrl, type: providerType, city: data.city, specialty: data.specialty || "", hospitalId: data.hospitalId || null, hospitalType: data.hospitalType || "", license: data.license || "", address: data.address || "", information: data.information || "" });
     try {
       const created = await api("/provider-requests", { method: "POST", body: JSON.stringify({ name: data.name, email: data.email, phone: data.phone, providerType, details }) });
 
@@ -251,7 +257,7 @@ export default function ProviderRegistration({ language, user }) {
                           {t.selectSpecialty}
                         </option>
 
-                        {specialties.map((specialty) => (
+                        {specialtyOptions.map((specialty) => (
                           <option
                             key={specialty.id}
                             value={specialty.value}
@@ -262,6 +268,14 @@ export default function ProviderRegistration({ language, user }) {
                       </select>
                     </div>
 
+                    <div>
+                      <label className="block mb-2 font-medium text-gray-700 dark:text-gray-200">{t.hospital || "Hospital"} *</label>
+                      <select name="hospitalId" required defaultValue="" className={inputStyle}>
+                        <option value="" disabled>Select a hospital / انتخاب شفاخانه</option>
+                        {hospitalOptions.map(h => <option key={h.id} value={h.id}>{h.name} — {h.city}</option>)}
+                      </select>
+                      {!hospitalOptions.length && <p className="text-sm text-amber-600 mt-2">No hospitals available. An admin must add a hospital first.</p>}
+                    </div>
                     <div>
                       <label className="block mb-2 font-medium text-gray-700 dark:text-gray-200">
                         {t.licenseNumber}

@@ -1,15 +1,15 @@
 import jwt from 'jsonwebtoken';
 import { db } from './db.js';
-export const cookieOptions = () => ({
+export const cookieOptions = (remember = false) => ({
  httpOnly: true,
  secure: process.env.COOKIE_SECURE === 'true' || process.env.NODE_ENV === 'production',
  sameSite: process.env.COOKIE_SAMESITE || 'lax',
  path: '/',
- maxAge: 7 * 24 * 60 * 60 * 1000
+ ...(remember ? { maxAge: 7 * 24 * 60 * 60 * 1000 } : {})
 });
-export const setSession = (res, userId) => {
- const token = jwt.sign({ id: String(userId) }, process.env.JWT_SECRET, { expiresIn: '7d' });
- res.cookie('nobatyar_session', token, cookieOptions());
+export const setSession = (res, userId, remember = false) => {
+ const token = jwt.sign({ id: String(userId) }, process.env.JWT_SECRET, { expiresIn: remember ? '7d' : '12h' });
+ res.cookie('nobatyar_session', token, cookieOptions(remember));
 };
 export async function requireAuth(req, res, next) {
  try {

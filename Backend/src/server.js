@@ -6,7 +6,7 @@ import cookieParser from 'cookie-parser';
 import rateLimit from 'express-rate-limit';
 import bcrypt from 'bcryptjs';
 import multer from 'multer';
-import { uploadAvatarToCloudinary, deleteCloudinaryAvatar, cloudinaryEnabled } from './cloudinary.js';
+import { uploadAvatarToCloudinary, deleteCloudinaryAvatar, cloudinaryEnabled, uploadProviderPhotoToCloudinary } from './cloudinary.js';
 import path from 'node:path';
 import fs from 'node:fs';
 import crypto from 'node:crypto';
@@ -129,12 +129,12 @@ app.post('/api/auth/register', authLimiter, asyncRoute(async (req, res) => {
  }
 }));
 app.post('/api/auth/login', authLimiter, asyncRoute(async (req, res) => {
- const data = valid(z.object({ email, password: z.string().min(1) }), req.body);
+ const data = valid(z.object({ email, password: z.string().min(1), rememberMe: z.boolean().optional().default(false) }), req.body);
  const result = await db.query('SELECT * FROM users WHERE LOWER(email)=LOWER($1)', [data.email]);
  const user = result.rows[0];
  if (!user || !(await bcrypt.compare(data.password, user.password_hash))) return res.status(401).json({ message: 'Invalid email or password' });
  if (process.env.REQUIRE_VERIFIED_EMAIL === 'true' && !user.email_verified) return res.status(403).json({message:'Please verify your email before signing in'});
- setSession(res, user.id);
+ setSession(res, user.id, data.rememberMe);
  res.json({ user: publicUser(user) });
 }));
 app.post('/api/auth/logout', (req, res) => {
@@ -151,7 +151,7 @@ app.patch('/api/profile', requireAuth, asyncRoute(async (req, res) => {
 }));
 
 app.patch("/api/profile/email", requireAuth, authLimiter, asyncRoute(async (req, res) => {
- const data = valid(z.object({ email, password: z.string().min(1) }), req.body);
+ const data = valid(z.object({ email, password: z.string().min(1), rememberMe: z.boolean().optional().default(false) }), req.body);
  const current = await db.query("SELECT password_hash FROM users WHERE id=$1", [req.user.id]);
  if (!current.rows[0] || !(await bcrypt.compare(data.password, current.rows[0].password_hash))) return res.status(401).json({ message: "Incorrect password" });
  try {
@@ -198,6 +198,9 @@ app.delete('/api/profile/avatar', requireAuth, asyncRoute(async (req, res) => {
  res.json({ avatar: '' });
 }));
 
+app.get('/api/specialties', asyncRoute(async (req,res) => {
+ const r = await db.query('SELECT id,name,value FROM medical_specialties ORDER BY name'); res.json(r.rows);
+}));
 app.get('/api/doctors', asyncRoute(async (req, res) => {
  const result = await db.query('SELECT id,name,specialty,specialty_value AS "specialtyValue",hospital,city,city_value AS "cityValue",image,experience,education,about FROM doctors ORDER BY id');
  const search = String(req.query.search || '').toLowerCase();
@@ -267,10 +270,66 @@ app.post('/api/contact', asyncRoute(async (req, res) => {
  await db.query('INSERT INTO contacts(name,email,message) VALUES($1,$2,$3)', [data.name, data.email, data.message]);
  res.status(201).json({ message: 'Message received' });
 }));
+const providerPhotoUpload = multer({
+ storage: multer.memoryStorage(),
+ limits: { fileSize: 3 * 1024 * 1024 },
+ fileFilter: (req, file, cb) => cb(null, ['image/jpeg', 'image/png', 'image/webp'].includes(file.mimetype))
+});
+app.post('/api/provider-requests/photo', requireAuth, providerPhotoUpload.single('photo'), asyncRoute(async (req, res) => {
+ if (!cloudinaryEnabled()) return res.status(503).json({ message: 'Cloudinary is not configured' });
+ if (!req.file) return res.status(400).json({ message: 'Select a JPG, PNG or WebP photo under 3 MB' });
+ const b = req.file.buffer;
+ const validImage = (b[0]===255 && b[1]===216 && b[2]===255) || b.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])) || (b.toString('ascii',0,4)==='RIFF' && b.toString('ascii',8,12)==='WEBP');
+ if (!validImage) return res.status(400).json({ message: 'Invalid image file' });
+ const photoUrl = await uploadProviderPhotoToCloudinary(b, req.user.id);
+ res.json({ photoUrl });
+}));
+const validProviderPhoto = (url, userId) => {
+ const prefix = `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload/`;
+ return cloudinaryEnabled() && typeof url === 'string' && url.startsWith(prefix) && url.includes(`/nobatyar/provider-requests/user_${userId}_`);
+};
+
+async function addProviderCard(client, request, details, providerId = null) {
+ await client.query('SELECT pg_advisory_xact_lock(728319)');
+ if (request.provider_type === 'doctor') {
+  const hospital = await client.query('SELECT name FROM hospitals WHERE id=$1', [details.hospitalId]);
+  if (!hospital.rowCount) { const error=new Error('Select an existing hospital');error.status=400;throw error; }
+  const next = await client.query('SELECT COALESCE(MAX(id),0)+1 AS id FROM doctors');
+  const doctorId = next.rows[0].id;
+  await client.query('INSERT INTO doctors(id,name,specialty,specialty_value,hospital,city,city_value,image,about) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)', [doctorId,request.name,details.specialty || 'General',details.specialty || 'General',hospital.rows[0].name,details.city || '',details.city || '',details.photoUrl,details.information || '']);
+  if (providerId) await client.query('INSERT INTO provider_doctors(provider_id,doctor_id) VALUES($1,$2)',[providerId,doctorId]);
+ } else {
+  const next = await client.query('SELECT COALESCE(MAX(id),0)+1 AS id FROM hospitals');
+  await client.query('INSERT INTO hospitals(id,name,type,type_value,city,city_value,location,image,description) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)',[next.rows[0].id,request.name,request.provider_type,request.provider_type,details.city || '',details.city || '',details.address || '',details.photoUrl,details.information || '']);
+ }
+}
+
 app.post('/api/provider-requests', requireAuth, asyncRoute(async (req, res) => {
  const data = valid(z.object({ name: text(), email, phone: text(40), details: text(3000), providerType: z.enum(['doctor','hospital','clinic']) }), req.body);
- const result=await db.query('INSERT INTO provider_requests(user_id,name,email,phone,details,provider_type) VALUES($1,$2,$3,$4,$5,$6) RETURNING id', [req.user.id, data.name, data.email, data.phone, data.details, data.providerType]);
- res.status(201).json({ message: 'Request received', id: result.rows[0].id });
+ let details;
+ try { details = JSON.parse(data.details); } catch { return res.status(400).json({ message: 'Invalid provider details' }); }
+ if (!details || !validProviderPhoto(details.photoUrl, req.user.id)) return res.status(400).json({ message: 'A valid photo is required for every doctor, hospital and clinic' });
+ if (!details.city || !details.address) return res.status(400).json({message:'City and address are required'});
+ if (data.providerType === 'doctor' && !details.specialty) return res.status(400).json({message:'Medical specialty is required'});
+ if (data.providerType === 'doctor' && !Number.isInteger(Number(details.hospitalId))) return res.status(400).json({message:'Select an existing hospital'});
+ if (data.providerType === 'doctor') {
+  const hospital = await db.query('SELECT id FROM hospitals WHERE id=$1',[details.hospitalId]);
+  if (!hospital.rowCount) return res.status(400).json({message:'Selected hospital does not exist'});
+  const specialty = await db.query('SELECT id FROM medical_specialties WHERE value=$1',[details.specialty]);
+  if (!specialty.rowCount) return res.status(400).json({message:'Selected specialty does not exist'});
+ }
+ const existing = await db.query("SELECT id FROM provider_requests WHERE user_id=$1 AND status='pending' LIMIT 1", [req.user.id]);
+ if (existing.rowCount && req.user.role !== 'admin') return res.status(409).json({ message: 'You already have a pending provider request' });
+ const client = await db.connect();
+ try {
+  await client.query('BEGIN');
+  const admin = req.user.role === 'admin';
+  const result = await client.query('INSERT INTO provider_requests(user_id,name,email,phone,details,provider_type,status,reviewed_by,reviewed_at) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id', [req.user.id,data.name,data.email,data.phone,data.details,data.providerType,admin?'approved':'pending',admin?req.user.id:null,admin?new Date():null]);
+  if (admin) await addProviderCard(client,{name:data.name,provider_type:data.providerType},details);
+  await client.query('COMMIT');
+  res.status(201).json({message:admin?'Provider published':'Request received',id:result.rows[0].id,status:admin?'approved':'pending'});
+ } catch (err) { await client.query('ROLLBACK'); throw err; }
+ finally { client.release(); }
 }));
 app.get('/api/provider-requests/mine', requireAuth, asyncRoute(async (req, res) => {
  const result = await db.query('SELECT id,name,email,phone,details,provider_type AS "providerType",status,review_note AS "reviewNote",created_at AS "createdAt" FROM provider_requests WHERE user_id=$1 ORDER BY created_at DESC', [req.user.id]);
@@ -292,7 +351,7 @@ app.patch('/api/admin/appointments/:id/status', requireAuth, requireAdmin, async
  }
 }));
 app.get('/api/admin/provider-requests', requireAuth, requireAdmin, asyncRoute(async (req, res) => {
- const result = await db.query('SELECT * FROM provider_requests ORDER BY created_at DESC LIMIT 500');
+ const result = await db.query('SELECT * FROM provider_requests WHERE status=\'pending\' ORDER BY created_at DESC LIMIT 500');
  res.json(result.rows);
 }));
 app.patch('/api/admin/provider-requests/:id', requireAuth, requireAdmin, asyncRoute(async (req, res) => {
@@ -301,25 +360,21 @@ app.patch('/api/admin/provider-requests/:id', requireAuth, requireAdmin, asyncRo
  const client = await db.connect();
  try {
   await client.query('BEGIN');
-  const result = await client.query('UPDATE provider_requests SET status=$1,review_note=$2,reviewed_at=NOW(),reviewed_by=$3 WHERE id=$4 RETURNING *', [data.status,data.note,req.user.id,req.params.id]);
+  const result = await client.query("UPDATE provider_requests SET status=$1,review_note=$2,reviewed_at=NOW(),reviewed_by=$3 WHERE id=$4 AND status='pending' RETURNING *", [data.status,data.note,req.user.id,req.params.id]);
   const request = result.rows[0];
-  if (!request) { await client.query('ROLLBACK'); return res.status(404).json({ message: 'Not found' }); }
+  if (!request) { await client.query('ROLLBACK'); return res.status(409).json({ message: 'Request not found or already reviewed' }); }
+  if (request.status !== 'pending' && request.status !== data.status) { await client.query('ROLLBACK'); return res.status(409).json({ message: 'Request has already been reviewed' }); }
   if (data.status === 'approved' && request.user_id) {
    let details = {}; try { details = JSON.parse(request.details); } catch {}
-   await client.query('INSERT INTO provider_profiles(user_id,request_id,provider_type,name,specialty,city,address,phone,description) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) ON CONFLICT(request_id) DO NOTHING', [request.user_id,request.id,request.provider_type,request.name,details.specialty||'',details.city||'',details.address||'',request.phone,details.information||'']);
-   if (request.provider_type === 'doctor') {
-    const provider = await client.query('SELECT id FROM provider_profiles WHERE request_id=$1', [request.id]);
-    if (provider.rowCount) {
-      const existing = await client.query('SELECT doctor_id FROM provider_doctors WHERE provider_id=$1 LIMIT 1', [provider.rows[0].id]);
-      if (!existing.rowCount) {
-        await client.query('SELECT pg_advisory_xact_lock(728319)');
-        const nextId = await client.query('SELECT COALESCE(MAX(id),0)+1 AS id FROM doctors');
-        const doctorId = nextId.rows[0].id;
-        await client.query('INSERT INTO doctors(id,name,specialty,specialty_value,hospital,city,city_value,image) VALUES($1,$2,$3,$4,$5,$6,$7,$8)', [doctorId,request.name,details.specialty||'General',details.specialty||'General','Independent',details.city||'',details.city||'','']);
-        await client.query('INSERT INTO provider_doctors(provider_id,doctor_id) VALUES($1,$2)', [provider.rows[0].id,doctorId]);
-      }
-    }
+   if (!validProviderPhoto(details.photoUrl, request.user_id)) {
+    await client.query('ROLLBACK'); return res.status(400).json({ message: 'A valid provider photo is required. Ask the applicant to submit a new request.' });
    }
+   const currentProfile = await client.query('SELECT id FROM provider_profiles WHERE user_id=$1', [request.user_id]);
+   if (currentProfile.rowCount) {
+    await client.query('ROLLBACK'); return res.status(409).json({message:'This account already owns a provider profile. Use a separate account for another provider.'});
+   }
+   const profile = await client.query('INSERT INTO provider_profiles(user_id,request_id,provider_type,name,specialty,city,address,phone,description) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id', [request.user_id,request.id,request.provider_type,request.name,details.specialty||'',details.city||'',details.address||'',request.phone,details.information||'']);
+   await addProviderCard(client,request,details,profile.rows[0].id);
    await client.query("UPDATE users SET role='provider' WHERE id=$1 AND role='patient'", [request.user_id]);
   }
   await client.query('COMMIT');
@@ -413,15 +468,62 @@ app.patch('/api/provider/appointments/:id',requireAuth,requireProvider,asyncRout
 app.get('/api/admin/doctors',requireAuth,requireAdmin,asyncRoute(async(req,res)=>{const r=await db.query('SELECT * FROM doctors ORDER BY id');res.json(r.rows);}));
 app.get('/api/admin/hospitals',requireAuth,requireAdmin,asyncRoute(async(req,res)=>{const r=await db.query('SELECT * FROM hospitals ORDER BY id');res.json(r.rows);}));
 app.patch('/api/admin/doctors/:id',requireAuth,requireAdmin,asyncRoute(async(req,res)=>{
- const d=valid(z.object({name:text(),specialty:text(),hospital:text(),city:text()}),req.body);
- const r=await db.query('UPDATE doctors SET name=$1,specialty=$2,hospital=$3,city=$4 WHERE id=$5 RETURNING *',[d.name,d.specialty,d.hospital,d.city,req.params.id]);if(!r.rows[0])return res.status(404).json({message:'Not found'});res.json(r.rows[0]);
+ const d=valid(z.object({name:text(),specialty:text(),hospitalId:z.coerce.number().int().positive(),city:text(),about:z.string().max(3000).default('')}),req.body);
+ const h=await db.query('SELECT name FROM hospitals WHERE id=$1',[d.hospitalId]);
+ if(!h.rowCount)return res.status(400).json({message:'Hospital not found'});
+ const sp=await db.query('SELECT value FROM medical_specialties WHERE value=$1',[d.specialty]);
+ if(!sp.rowCount)return res.status(400).json({message:'Specialty not found'});
+ const r=await db.query('UPDATE doctors SET name=$1,specialty=$2,specialty_value=$2,hospital=$3,city=$4,city_value=$4,about=$5 WHERE id=$6 RETURNING *',[d.name,d.specialty,h.rows[0].name,d.city,d.about,req.params.id]);
+ if(!r.rowCount)return res.status(404).json({message:'Doctor not found'});res.json(r.rows[0]);
+}));
+app.delete('/api/admin/doctors/:id',requireAuth,requireAdmin,asyncRoute(async(req,res)=>{
+ const booked=await db.query('SELECT 1 FROM appointments WHERE doctor_id=$1 LIMIT 1',[req.params.id]);
+ if(booked.rowCount)return res.status(409).json({message:'This doctor has appointment history and cannot be deleted safely'});
+ const r=await db.query('DELETE FROM doctors WHERE id=$1 RETURNING id',[req.params.id]);
+ if(!r.rowCount)return res.status(404).json({message:'Doctor not found'});res.json({ok:true});
 }));
 app.patch('/api/admin/hospitals/:id',requireAuth,requireAdmin,asyncRoute(async(req,res)=>{
  const d=valid(z.object({name:text(),location:text(),city:text(),description:z.string().max(3000)}),req.body);
- const r=await db.query('UPDATE hospitals SET name=$1,location=$2,city=$3,description=$4 WHERE id=$5 RETURNING *',[d.name,d.location,d.city,d.description,req.params.id]);if(!r.rows[0])return res.status(404).json({message:'Not found'});res.json(r.rows[0]);
+ const client=await db.connect();
+ try {await client.query('BEGIN');
+  const old=await client.query('SELECT name FROM hospitals WHERE id=$1 FOR UPDATE',[req.params.id]);
+  if(!old.rowCount){await client.query('ROLLBACK');return res.status(404).json({message:'Hospital not found'});}
+  const r=await client.query('UPDATE hospitals SET name=$1,location=$2,city=$3,city_value=$3,description=$4 WHERE id=$5 RETURNING *',[d.name,d.location,d.city,d.description,req.params.id]);
+  await client.query('UPDATE doctors SET hospital=$1 WHERE hospital=$2',[d.name,old.rows[0].name]);
+  await client.query('COMMIT');res.json(r.rows[0]);
+ }catch(e){await client.query('ROLLBACK');throw e;}finally{client.release();}
+}));
+app.delete('/api/admin/hospitals/:id',requireAuth,requireAdmin,asyncRoute(async(req,res)=>{
+ const h=await db.query('SELECT name FROM hospitals WHERE id=$1',[req.params.id]);
+ if(!h.rowCount)return res.status(404).json({message:'Hospital not found'});
+ const linked=await db.query('SELECT 1 FROM doctors WHERE hospital=$1 LIMIT 1',[h.rows[0].name]);
+ if(linked.rowCount)return res.status(409).json({message:'Move or delete the hospital doctors first'});
+ await db.query('DELETE FROM hospitals WHERE id=$1',[req.params.id]);res.json({ok:true});
+}));
+app.post('/api/admin/specialties',requireAuth,requireAdmin,asyncRoute(async(req,res)=>{
+ const d=valid(z.object({name:text(),value:z.string().trim().regex(/^[a-z0-9-]{2,60}$/)}),req.body);
+ const r=await db.query('INSERT INTO medical_specialties(name,value) VALUES($1,$2) RETURNING *',[d.name,d.value]);res.status(201).json(r.rows[0]);
+}));
+app.patch('/api/admin/specialties/:id',requireAuth,requireAdmin,asyncRoute(async(req,res)=>{
+ const d=valid(z.object({name:text(),value:z.string().trim().regex(/^[a-z0-9-]{2,60}$/)}),req.body);
+ const old=await db.query('SELECT value FROM medical_specialties WHERE id=$1',[req.params.id]);
+ if(!old.rowCount)return res.status(404).json({message:'Specialty not found'});
+ const client=await db.connect();try{await client.query('BEGIN');
+  const r=await client.query('UPDATE medical_specialties SET name=$1,value=$2 WHERE id=$3 RETURNING *',[d.name,d.value,req.params.id]);
+  await client.query('UPDATE doctors SET specialty=$1,specialty_value=$1 WHERE specialty_value=$2',[d.value,old.rows[0].value]);
+  await client.query('COMMIT');res.json(r.rows[0]);
+ }catch(e){await client.query('ROLLBACK');throw e;}finally{client.release();}
+}));
+app.delete('/api/admin/specialties/:id',requireAuth,requireAdmin,asyncRoute(async(req,res)=>{
+ const r=await db.query('SELECT value FROM medical_specialties WHERE id=$1',[req.params.id]);
+ if(!r.rowCount)return res.status(404).json({message:'Specialty not found'});
+ const used=await db.query('SELECT 1 FROM doctors WHERE specialty_value=$1 LIMIT 1',[r.rows[0].value]);
+ if(used.rowCount)return res.status(409).json({message:'This specialty is used by doctors'});
+ await db.query('DELETE FROM medical_specialties WHERE id=$1',[req.params.id]);res.json({ok:true});
 }));
 app.use((error, req, res, next) => {
  if (error instanceof multer.MulterError) return res.status(400).json({ message: error.message });
+ if (error.code === '23505') return res.status(409).json({ message: 'This value already exists' });
  if (error.code === '22P02') return res.status(400).json({ message: 'Invalid ID' });
  if (error instanceof SyntaxError && 'body' in error) return res.status(400).json({ message: 'Invalid JSON' });
  console.error(error);

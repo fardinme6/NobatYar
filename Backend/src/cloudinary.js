@@ -37,3 +37,17 @@ export async function deleteCloudinaryAvatar(url) {
  configure();
  await cloudinary.uploader.destroy(match[1], { resource_type: 'image' });
 }
+
+export async function uploadProviderPhotoToCloudinary(buffer, userId) {
+ configure();
+ return new Promise((resolve, reject) => {
+  const stream = cloudinary.uploader.upload_stream({
+   folder: 'nobatyar/provider-requests',
+   public_id: `user_${userId}_${Date.now()}`,
+   resource_type: 'image',
+   overwrite: false,
+   transformation: [{ width: 1000, height: 1000, crop: 'limit' }]
+  }, (error, result) => error ? reject(error) : resolve(result.secure_url));
+  stream.end(buffer);
+ });
+}

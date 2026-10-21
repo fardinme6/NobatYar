@@ -20,6 +20,8 @@ export default function HospitalDoctors({ language }) {
   const { id } = useParams();
 
   const [onlineHospital, setOnlineHospital] = useState(null);
+  const [onlineDoctors, setOnlineDoctors] = useState([]);
+  useEffect(() => { api("/doctors").then(setOnlineDoctors).catch(() => {}); }, []);
   useEffect(() => { api(`/hospitals/${id}`).then(setOnlineHospital).catch(()=>{}); }, [id]);
   const hospital = onlineHospital || hospitals.find((item) => item.id === Number(id));
   const label = value => t[value] || value || "";
@@ -45,7 +47,7 @@ export default function HospitalDoctors({ language }) {
     );
   }
 
-  const hospitalDoctors = doctors.filter(
+  const hospitalDoctors = [...doctors.filter(d => !onlineDoctors.some(o => o.id === d.id)), ...onlineDoctors].filter(
     (doctor) => doctor.hospital === hospital.name
   );
 

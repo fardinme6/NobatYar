@@ -6,6 +6,7 @@ import cookieParser from 'cookie-parser';
 import rateLimit from 'express-rate-limit';
 import bcrypt from 'bcryptjs';
 import multer from 'multer';
+import { uploadAvatarToCloudinary, deleteCloudinaryAvatar, cloudinaryEnabled } from './cloudinary.js';
 import path from 'node:path';
 import fs from 'node:fs';
 import crypto from 'node:crypto';
@@ -162,33 +163,38 @@ app.patch("/api/profile/email", requireAuth, authLimiter, asyncRoute(async (req,
  }
 }));
 
-const requirePersistentStorage = (req, res, next) => process.env.VERCEL ? res.status(503).json({ message: 'File uploads require private persistent storage; not enabled on Vercel.' }) : next();
+const requirePersistentStorage = (req, res, next) => process.env.VERCEL ? res.status(503).json({ message: 'Private document storage is not configured on Vercel.' }) : next();
 const uploads = path.resolve(process.env.VERCEL ? '/tmp/nobatyar-uploads' : 'uploads');
-fs.mkdirSync(uploads, { recursive: true });
-const upload = multer({
- storage: multer.diskStorage({ destination: uploads, filename: (req, file, cb) => cb(null, `${req.user.id}-${crypto.randomUUID()}.${file.mimetype === 'image/png' ? 'png' : file.mimetype === 'image/webp' ? 'webp' : 'jpg'}`) }),
+if (!process.env.VERCEL) fs.mkdirSync(uploads, { recursive: true });
+const avatarUpload = multer({
+ storage: multer.memoryStorage(),
  limits: { fileSize: 1024 * 1024 },
  fileFilter: (req, file, cb) => cb(null, ['image/jpeg', 'image/png', 'image/webp'].includes(file.mimetype))
 });
 app.use('/uploads', helmet.crossOriginResourcePolicy({ policy: 'cross-origin' }), express.static(uploads, { fallthrough: false }));
-app.post('/api/profile/avatar', requireAuth, requirePersistentStorage, upload.single('avatar'), asyncRoute(async (req, res) => {
+app.post('/api/profile/avatar', requireAuth, avatarUpload.single('avatar'), asyncRoute(async (req, res) => {
+ if (!cloudinaryEnabled()) return res.status(503).json({ message: 'Cloudinary is not configured on the backend.' });
  if (!req.file) return res.status(400).json({ message: 'Choose a JPG, PNG or WebP image under 1 MB' });
- const file = fs.readFileSync(req.file.path);
+ const file = req.file.buffer;
  const isPng = file.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10]));
  const isJpg = file[0] === 255 && file[1] === 216 && file[2] === 255;
  const isWebp = file.toString('ascii',0,4) === 'RIFF' && file.toString('ascii',8,12) === 'WEBP';
- if (!((req.file.mimetype === 'image/png' && isPng) || (req.file.mimetype === 'image/jpeg' && isJpg) || (req.file.mimetype === 'image/webp' && isWebp))) {
-  fs.unlinkSync(req.file.path);
-  return res.status(400).json({ message: 'Invalid image file' });
+ if (!((req.file.mimetype === 'image/png' && isPng) || (req.file.mimetype === 'image/jpeg' && isJpg) || (req.file.mimetype === 'image/webp' && isWebp))) return res.status(400).json({ message: 'Invalid image file' });
+ const avatar = await uploadAvatarToCloudinary(file, req.user.id);
+ try {
+  await db.query('UPDATE users SET avatar=$1 WHERE id=$2', [avatar, req.user.id]);
+ } catch (error) {
+  await deleteCloudinaryAvatar(avatar).catch(console.error);
+  throw error;
  }
- const avatar = `/uploads/${req.file.filename}`;
- await db.query('UPDATE users SET avatar=$1 WHERE id=$2', [avatar, req.user.id]);
  if (req.user.avatar?.startsWith('/uploads/')) fs.promises.unlink(path.join(uploads, path.basename(req.user.avatar))).catch(() => {});
+ if (req.user.avatar?.startsWith('https://res.cloudinary.com/')) deleteCloudinaryAvatar(req.user.avatar).catch(console.error);
  res.json({ avatar });
 }));
 app.delete('/api/profile/avatar', requireAuth, asyncRoute(async (req, res) => {
  await db.query("UPDATE users SET avatar='' WHERE id=$1", [req.user.id]);
  if (req.user.avatar?.startsWith('/uploads/')) fs.promises.unlink(path.join(uploads, path.basename(req.user.avatar))).catch(() => {});
+ if (req.user.avatar?.startsWith('https://res.cloudinary.com/')) deleteCloudinaryAvatar(req.user.avatar).catch(console.error);
  res.json({ avatar: '' });
 }));
 

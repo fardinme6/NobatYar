@@ -134,7 +134,7 @@ export default function Header({
           ) : (
             <div className="relative group">
               <NavLink to="/profile" className="flex items-center justify-center w-10 h-10 bg-teal-50 dark:bg-slate-700 text-teal-600 dark:text-teal-400 rounded-full overflow-hidden">
-                {user?.avatar ? <img src={`${API_URL}${user.avatar}`} alt="Profile" className="w-full h-full object-cover" /> : <UserRound size={21} />}
+                {user?.avatar ? <img src={(user.avatar.startsWith("https://") ? user.avatar : `${API_URL}${user.avatar}`)} alt="Profile" className="w-full h-full object-cover" /> : <UserRound size={21} />}
               </NavLink>
               <div className="absolute end-0 top-full pt-2 hidden group-hover:block group-focus-within:block z-50">
                 <div className="w-52 bg-white dark:bg-slate-800 border dark:border-slate-700 shadow-xl rounded-xl p-2">

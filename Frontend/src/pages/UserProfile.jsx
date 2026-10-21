@@ -73,7 +73,7 @@ export default function UserProfile({ language, user, setUser }) {
           <div className="px-6 md:px-10 pb-10">
             <div className="flex flex-col items-center -mt-16 relative">
               <div className="w-36 h-36 rounded-full bg-teal-100 dark:bg-slate-700 border-4 border-white dark:border-slate-800 overflow-hidden flex items-center justify-center shadow-xl transition-transform duration-300 hover:scale-105">
-                {user.avatar && !imageError ? <img src={`${API_URL}${user.avatar}`} alt="Profile" onError={() => setImageError(true)} className="w-full h-full object-cover" /> : <UserRound size={65} className="text-teal-600" />}
+                {user.avatar && !imageError ? <img src={(user.avatar.startsWith("https://") ? user.avatar : `${API_URL}${user.avatar}`)} alt="Profile" onError={() => setImageError(true)} className="w-full h-full object-cover" /> : <UserRound size={65} className="text-teal-600" />}
               </div>
               <h2 className="mt-4 text-2xl font-bold text-gray-900 dark:text-white">{user.name}</h2>
               <p className="text-gray-500 dark:text-gray-400 mt-1">{user.email}</p>

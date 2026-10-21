@@ -10,6 +10,8 @@ import {
   SearchX,
 } from "lucide-react";
 import { hospitals } from "../data/hospitalData.js";
+import { api } from "../api";
+import { useEffect, useState } from "react";
 import { doctors } from "../data/doctorsData.js";
 import { translations } from "../data/translations.js";
 
@@ -17,7 +19,10 @@ export default function HospitalDoctors({ language }) {
   const t = translations[language];
   const { id } = useParams();
 
-  const hospital = hospitals.find((item) => item.id === Number(id));
+  const [onlineHospital, setOnlineHospital] = useState(null);
+  useEffect(() => { api(`/hospitals/${id}`).then(setOnlineHospital).catch(()=>{}); }, [id]);
+  const hospital = onlineHospital || hospitals.find((item) => item.id === Number(id));
+  const label = value => t[value] || value || "";
 
   const BackIcon = language === "English" ? ArrowLeft : ArrowRight;
 
@@ -59,7 +64,7 @@ export default function HospitalDoctors({ language }) {
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
             <img
               src={hospital.image}
-              alt={t[hospital.name]}
+              alt={label(hospital.name)}
               className="w-full sm:w-48 h-44 object-cover rounded-xl"
             />
 
@@ -69,12 +74,12 @@ export default function HospitalDoctors({ language }) {
               </p>
 
               <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
-                {t[hospital.name]}
+                {label(hospital.name)}
               </h1>
 
               <p className="flex items-center justify-center sm:justify-start gap-2 text-gray-600 dark:text-gray-300 mt-4">
                 <MapPin size={18} className="text-teal-600 shrink-0" />
-                {t[hospital.city]}, {t[hospital.location]}
+                {label(hospital.city)}, {label(hospital.location)}
               </p>
             </div>
           </div>

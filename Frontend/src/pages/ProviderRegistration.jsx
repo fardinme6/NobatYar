@@ -14,7 +14,6 @@ export default function ProviderRegistration({ language, user }) {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [requests, setRequests] = useState([]);
-  const [documentFile, setDocumentFile] = useState(null);
   const [doctorPhoto, setDoctorPhoto] = useState(null);
   useEffect(() => { if (user) api("/provider-requests/mine").then(setRequests).catch(()=>{}); }, [user]);
 
@@ -27,10 +26,10 @@ export default function ProviderRegistration({ language, user }) {
     setSaving(true);
     const form = new FormData(e.currentTarget);
     const data = Object.fromEntries(form.entries());
-    if (providerType === "doctor" && !doctorPhoto) { setError("Doctor photo is required / عکس داکتر ضروری است"); setSaving(false); return; }
+    if (!doctorPhoto) { setError("Doctor photo is required / عکس داکتر ضروری است"); setSaving(false); return; }
     let photoUrl = "";
     try {
-      if (providerType === "doctor") {
+      if (doctorPhoto) {
         const photoBody = new FormData(); photoBody.append("photo", doctorPhoto);
         const uploaded = await api("/provider-requests/photo", { method: "POST", body: photoBody });
         photoUrl = uploaded.photoUrl;
@@ -39,10 +38,7 @@ export default function ProviderRegistration({ language, user }) {
     const details = JSON.stringify({ photoUrl, type: providerType, city: data.city, specialty: data.specialty || "", hospitalType: data.hospitalType || "", license: data.license || "", address: data.address || "", information: data.information || "" });
     try {
       const created = await api("/provider-requests", { method: "POST", body: JSON.stringify({ name: data.name, email: data.email, phone: data.phone, providerType, details }) });
-      if (documentFile && created.id) {
-        const body = new FormData(); body.append("document", documentFile);
-        await api(`/provider-requests/${created.id}/document`, { method: "POST", body });
-      }
+
       setSubmitted(true);
       api("/provider-requests/mine").then(setRequests).catch(()=>{});
     } catch (err) { setError(err.message); }
@@ -137,7 +133,7 @@ export default function ProviderRegistration({ language, user }) {
           </div>
 
           {error && <p role="alert" className="text-red-600 mb-5">{error}</p>}
-          {!user && <Link to="/login" className="block text-center text-teal-600 mb-5 underline">{t.loginToContinue}</Link>}
+          {!user && <div className="flex gap-5 mb-5 text-teal-600"><Link to="/login" className="underline">Login / ورود</Link><Link to="/signup" className="underline">Sign Up / ثبت‌نام</Link></div>}
           {submitted ? (
             <div className="text-center py-12">
               <CheckCircle2
@@ -233,13 +229,11 @@ export default function ProviderRegistration({ language, user }) {
                   </select>
                 </div>
 
-                {providerType === "doctor" && (
-                  <div className="md:col-span-2">
-                    <label className="block mb-2 font-medium text-gray-700 dark:text-gray-200">Doctor photo / عکس داکتر (required)</label>
+                <div className="md:col-span-2">
+                    <label className="block mb-2 font-medium text-gray-700 dark:text-gray-200">Photo / عکس (required)</label>
                     <input type="file" accept="image/jpeg,image/png,image/webp" required onChange={e=>setDoctorPhoto(e.target.files[0] || null)} className={inputStyle} />
                     {doctorPhoto && <p className="text-sm text-teal-600 mt-2">{doctorPhoto.name}</p>}
                   </div>
-                )}
                 {providerType === "doctor" && (
                   <>
                     <div>
@@ -354,7 +348,7 @@ export default function ProviderRegistration({ language, user }) {
                 type="submit"
                 className="w-full mt-8 bg-teal-600 text-white font-semibold py-4 rounded-xl hover:bg-teal-700 transition-colors cursor-pointer"
               >
-                {t.submitRegistration}
+                {user?.role === "admin" ? "Publish directly / ثبت مستقیم" : t.submitRegistration}
               </button>
 
               <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-5">

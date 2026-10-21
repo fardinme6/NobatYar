@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { api } from "../api";
 import { Link } from "react-router-dom";
 import { hospitals } from "../data/hospitalData.js";
 import {
@@ -16,16 +17,20 @@ import { translations } from "../data/translations.js";
 export default function Hospitals({ language, home = false }) {
   const t = translations[language];
 
+  const [onlineHospitals, setOnlineHospitals] = useState([]);
+  useEffect(() => { api("/hospitals").then(setOnlineHospitals).catch(()=>{}); }, []);
+  const allHospitals = [...hospitals.filter(h => !onlineHospitals.some(o => o.id === h.id)), ...onlineHospitals];
+  const label = value => t[value] || value || "";
   const [search, setSearch] = useState("");
   const [city, setCity] = useState("all");
   const [type, setType] = useState("all");
 
-  const filteredHospitals = hospitals.filter((hospital) => {
+  const filteredHospitals = allHospitals.filter((hospital) => {
     const keyword = search.toLowerCase().trim();
 
-    const hospitalName = t[hospital.name].toLowerCase();
-    const hospitalCity = t[hospital.city].toLowerCase();
-    const hospitalLocation = t[hospital.location].toLowerCase();
+    const hospitalName = label(hospital.name).toLowerCase();
+    const hospitalCity = label(hospital.city).toLowerCase();
+    const hospitalLocation = label(hospital.location).toLowerCase();
 
     const matchSearch =
       hospitalName.includes(keyword) ||
@@ -39,7 +44,7 @@ export default function Hospitals({ language, home = false }) {
     return matchSearch && matchCity && matchType;
   });
 
-  const displayedHospitals = home ? hospitals.slice(0, 3) : filteredHospitals;
+  const displayedHospitals = home ? allHospitals.slice(-3) : filteredHospitals;
 
   const resetFilters = () => {
     setSearch("");
@@ -178,12 +183,12 @@ export default function Hospitals({ language, home = false }) {
                 <div className="relative overflow-hidden">
                   <img
                     src={hospital.image}
-                    alt={t[hospital.name]}
+                    alt={label(hospital.name)}
                     className="w-full h-56 object-cover hover:scale-105 transition-transform duration-500"
                   />
 
                   <span className="absolute top-4 start-4 bg-white/95 dark:bg-slate-800/95 text-teal-700 dark:text-teal-400 px-3 py-1.5 rounded-lg text-xs font-semibold shadow-sm">
-                    {t[hospital.type]}
+                    {label(hospital.type)}
                   </span>
                 </div>
 
@@ -194,14 +199,14 @@ export default function Hospitals({ language, home = false }) {
                   </div>
 
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                    {t[hospital.name]}
+                    {label(hospital.name)}
                   </h3>
 
                   <div className="flex items-start gap-2 text-gray-600 dark:text-gray-300 mb-6">
                     <MapPin size={18} className="shrink-0 mt-1 text-teal-600" />
 
                     <span className="text-sm leading-6">
-                      {t[hospital.city]}, {t[hospital.location]}
+                      {label(hospital.city)}, {label(hospital.location)}
                     </span>
                   </div>
 

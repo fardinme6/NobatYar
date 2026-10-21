@@ -9,13 +9,18 @@ import {
   Info,
 } from "lucide-react";
 import { hospitals } from "../data/hospitalData.js";
+import { api } from "../api";
+import { useEffect, useState } from "react";
 import { translations } from "../data/translations.js";
 
 export default function HospitalDetails({ language }) {
   const t = translations[language];
   const { id } = useParams();
 
-  const hospital = hospitals.find((item) => item.id === Number(id));
+  const [onlineHospital, setOnlineHospital] = useState(null);
+  useEffect(() => { api(`/hospitals/${id}`).then(setOnlineHospital).catch(()=>{}); }, [id]);
+  const hospital = onlineHospital || hospitals.find((item) => item.id === Number(id));
+  const label = value => t[value] || value || "";
 
   const BackIcon = language === "English" ? ArrowLeft : ArrowRight;
 
@@ -53,12 +58,12 @@ export default function HospitalDetails({ language }) {
           <div className="relative">
             <img
               src={hospital.image}
-              alt={t[hospital.name]}
+              alt={label(hospital.name)}
               className="w-full h-64 md:h-96 object-cover"
             />
 
             <span className="absolute top-5 start-5 bg-white/95 dark:bg-slate-800/95 text-teal-700 dark:text-teal-400 px-4 py-2 rounded-xl text-sm font-semibold shadow-sm">
-              {t[hospital.type]}
+              {label(hospital.type)}
             </span>
           </div>
 
@@ -69,7 +74,7 @@ export default function HospitalDetails({ language }) {
             </div>
 
             <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white">
-              {t[hospital.name]}
+              {label(hospital.name)}
             </h1>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-8">
@@ -86,7 +91,7 @@ export default function HospitalDetails({ language }) {
                 </div>
 
                 <p className="text-gray-600 dark:text-gray-300 leading-7">
-                  {t[hospital.type]}
+                  {label(hospital.type)}
                 </p>
               </div>
 
@@ -103,7 +108,7 @@ export default function HospitalDetails({ language }) {
                 </div>
 
                 <p className="text-gray-600 dark:text-gray-300 leading-7">
-                  {t[hospital.city]}, {t[hospital.location]}
+                  {label(hospital.city)}, {label(hospital.location)}
                 </p>
               </div>
             </div>
@@ -118,7 +123,7 @@ export default function HospitalDetails({ language }) {
               </div>
 
               <p className="text-gray-600 dark:text-gray-300 leading-8 text-justify">
-                {t[hospital.description] || t.hospitalInformationPending}
+                {label(hospital.description) || t.hospitalInformationPending}
               </p>
             </div>
 

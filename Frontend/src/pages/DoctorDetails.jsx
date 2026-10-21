@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+import { api } from "../api";
 import { useParams, Link } from "react-router-dom";
 import {
   ArrowLeft,
@@ -17,7 +19,10 @@ export default function DoctorDetails({ language }) {
   const t = translations[language];
   const { id } = useParams();
 
-  const doctor = doctors.find((item) => item.id === Number(id));
+  const [onlineDoctor, setOnlineDoctor] = useState(null);
+  useEffect(() => { api(`/doctors/${id}`).then(setOnlineDoctor).catch(()=>{}); }, [id]);
+  const doctor = onlineDoctor || doctors.find((item) => item.id === Number(id));
+  const label = value => t[value] || value || "";
 
   if (!doctor) {
     return (
@@ -54,34 +59,34 @@ export default function DoctorDetails({ language }) {
             <div className="w-full md:w-72 shrink-0 bg-gray-100 dark:bg-slate-700 rounded-2xl overflow-hidden">
               <img
                 src={doctor.image}
-                alt={t[doctor.name]}
+                alt={label(doctor.name)}
                 className="w-full h-90 object-cover object-top"
               />
             </div>
 
             <div className="flex-1">
               <span className="inline-block bg-teal-50 dark:bg-slate-700 text-teal-700 dark:text-teal-400 px-4 py-2 rounded-full text-sm font-semibold">
-                {t[doctor.specialty]}
+                {label(doctor.specialty)}
               </span>
 
               <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mt-5">
-                {t[doctor.name]}
+                {label(doctor.name)}
               </h1>
 
               <div className="space-y-4 mt-7 text-gray-600 dark:text-gray-300">
                 <div className="flex items-center gap-3">
                   <Hospital size={20} className="text-teal-600 shrink-0" />
-                  <span>{t[doctor.hospital]}</span>
+                  <span>{label(doctor.hospital)}</span>
                 </div>
 
                 <div className="flex items-center gap-3">
                   <MapPin size={20} className="text-teal-600 shrink-0" />
-                  <span>{t[doctor.city]}</span>
+                  <span>{label(doctor.city)}</span>
                 </div>
 
                 <div className="flex items-center gap-3">
                   <Stethoscope size={20} className="text-teal-600 shrink-0" />
-                  <span>{t[doctor.specialty]}</span>
+                  <span>{label(doctor.specialty)}</span>
                 </div>
               </div>
 

@@ -30,7 +30,7 @@ export default function Login({ language, onLogin }) {
     try {
       const data = await api("/auth/login", {
         method: "POST",
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, rememberMe }),
       });
       onLogin(data.user);
       navigate("/profile");

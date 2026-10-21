@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { api } from "../api";
 import { Link, useSearchParams } from "react-router-dom";
 import {
   Search,
@@ -16,19 +17,23 @@ import { specialties } from "../data/specialties.js";
 
 export default function Doctors({ language, home = false }) {
   const t = translations[language];
+  const [onlineDoctors, setOnlineDoctors] = useState([]);
+  useEffect(() => { api("/doctors").then(setOnlineDoctors).catch(()=>{}); }, []);
+  const allDoctors = [...doctors.filter(d=>!onlineDoctors.some(o=>o.id===d.id)), ...onlineDoctors];
+  const label = value => t[value] || value || "";
 
   const [search, setSearch] = useState("");
   const [city, setCity] = useState("all");
   const [searchParams, setSearchParams] = useSearchParams();
 
   const specialty = searchParams.get("specialty") || "all";
-  const filteredDoctors = doctors.filter((doctor) => {
+  const filteredDoctors = allDoctors.filter((doctor) => {
     const keyword = search.toLowerCase().trim();
 
     const matchSearch =
-      t[doctor.name].toLowerCase().includes(keyword) ||
-      t[doctor.specialty].toLowerCase().includes(keyword) ||
-      t[doctor.city].toLowerCase().includes(keyword);
+      label(doctor.name).toLowerCase().includes(keyword) ||
+      label(doctor.specialty).toLowerCase().includes(keyword) ||
+      label(doctor.city).toLowerCase().includes(keyword);
 
     const matchCity = city === "all" || doctor.cityValue === city;
 
@@ -38,7 +43,7 @@ export default function Doctors({ language, home = false }) {
     return matchSearch && matchCity && matchSpecialty;
   });
 
-  const displayedDoctors = home ? doctors.slice(0, 3) : filteredDoctors;
+  const displayedDoctors = home ? allDoctors.slice(-3) : filteredDoctors;
 
   const resetFilters = () => {
     setSearch("");
@@ -184,28 +189,28 @@ export default function Doctors({ language, home = false }) {
                 <div className="relative overflow-hidden bg-gray-100 dark:bg-slate-700">
                   <img
                     src={doctor.image}
-                    alt={t[doctor.name]}
+                    alt={label(doctor.name)}
                     className="w-full h-85 object-cover object-top hover:scale-105 transition-transform duration-500"
                   />
 
                   <span className="absolute top-4 start-4 bg-white/95 dark:bg-slate-800/95 text-teal-700 dark:text-teal-400 px-3 py-1.5 rounded-lg text-xs font-semibold shadow-sm">
-                    {t[doctor.specialty]}
+                    {label(doctor.specialty)}
                   </span>
                 </div>
 
                 <div className="flex flex-col flex-1 p-6">
                   <div className="flex items-center gap-2 text-teal-600 dark:text-teal-400 text-sm mb-3">
                     <Hospital size={17} />
-                    {t[doctor.hospital]}
+                    {label(doctor.hospital)}
                   </div>
 
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                    {t[doctor.name]}
+                    {label(doctor.name)}
                   </h3>
 
                   <div className="flex items-start gap-2 text-gray-600 dark:text-gray-300 mb-6">
                     <MapPin size={18} className="shrink-0 mt-1 text-teal-600" />
-                    <span className="text-sm leading-6">{t[doctor.city]}</span>
+                    <span className="text-sm leading-6">{label(doctor.city)}</span>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3 mt-auto">

@@ -15,6 +15,7 @@ export default function ProviderRegistration({ language, user }) {
   const [saving, setSaving] = useState(false);
   const [requests, setRequests] = useState([]);
   const [documentFile, setDocumentFile] = useState(null);
+  const [doctorPhoto, setDoctorPhoto] = useState(null);
   useEffect(() => { if (user) api("/provider-requests/mine").then(setRequests).catch(()=>{}); }, [user]);
 
   const inputStyle =
@@ -26,7 +27,16 @@ export default function ProviderRegistration({ language, user }) {
     setSaving(true);
     const form = new FormData(e.currentTarget);
     const data = Object.fromEntries(form.entries());
-    const details = JSON.stringify({ type: providerType, city: data.city, specialty: data.specialty || "", hospitalType: data.hospitalType || "", license: data.license || "", address: data.address || "", information: data.information || "" });
+    if (providerType === "doctor" && !doctorPhoto) { setError("Doctor photo is required / عکس داکتر ضروری است"); setSaving(false); return; }
+    let photoUrl = "";
+    try {
+      if (providerType === "doctor") {
+        const photoBody = new FormData(); photoBody.append("photo", doctorPhoto);
+        const uploaded = await api("/provider-requests/photo", { method: "POST", body: photoBody });
+        photoUrl = uploaded.photoUrl;
+      }
+    } catch (err) { setError(err.message); setSaving(false); return; }
+    const details = JSON.stringify({ photoUrl, type: providerType, city: data.city, specialty: data.specialty || "", hospitalType: data.hospitalType || "", license: data.license || "", address: data.address || "", information: data.information || "" });
     try {
       const created = await api("/provider-requests", { method: "POST", body: JSON.stringify({ name: data.name, email: data.email, phone: data.phone, providerType, details }) });
       if (documentFile && created.id) {
@@ -223,6 +233,13 @@ export default function ProviderRegistration({ language, user }) {
                   </select>
                 </div>
 
+                {providerType === "doctor" && (
+                  <div className="md:col-span-2">
+                    <label className="block mb-2 font-medium text-gray-700 dark:text-gray-200">Doctor photo / عکس داکتر (required)</label>
+                    <input type="file" accept="image/jpeg,image/png,image/webp" required onChange={e=>setDoctorPhoto(e.target.files[0] || null)} className={inputStyle} />
+                    {doctorPhoto && <p className="text-sm text-teal-600 mt-2">{doctorPhoto.name}</p>}
+                  </div>
+                )}
                 {providerType === "doctor" && (
                   <>
                     <div>

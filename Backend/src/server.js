@@ -20,14 +20,15 @@ for (const key of ['DATABASE_URL', 'JWT_SECRET', 'FRONTEND_URL']) {
 if (process.env.JWT_SECRET.length < 32) throw new Error('JWT_SECRET must have at least 32 characters');
 const app = express();
 if (process.env.NODE_ENV === 'production') app.set('trust proxy', 1);
-const origin = process.env.FRONTEND_URL.replace(/\/$/, '');
+const origins = (process.env.FRONTEND_URL || '').split(',').map(x => x.trim().replace(/\/$/, '')).filter(Boolean);
+const origin = origins[0];
 app.disable('x-powered-by');
 app.use(helmet());
-app.use(cors({ origin, credentials: true }));
+app.use(cors({ origin: (requestOrigin, callback) => callback(null, !requestOrigin || origins.includes(requestOrigin)), credentials: true }));
 app.use(express.json({ limit: '100kb' }));
 app.use(cookieParser());
 app.use((req, res, next) => {
- if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method) && req.headers.origin !== origin) {
+ if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method) && !origins.includes(req.headers.origin)) {
   return res.status(403).json({ message: 'Invalid origin' });
  }
  next();
@@ -161,7 +162,8 @@ app.patch("/api/profile/email", requireAuth, authLimiter, asyncRoute(async (req,
  }
 }));
 
-const uploads = path.resolve('uploads');
+const requirePersistentStorage = (req, res, next) => process.env.VERCEL ? res.status(503).json({ message: 'File uploads require private persistent storage; not enabled on Vercel.' }) : next();
+const uploads = path.resolve(process.env.VERCEL ? '/tmp/nobatyar-uploads' : 'uploads');
 fs.mkdirSync(uploads, { recursive: true });
 const upload = multer({
  storage: multer.diskStorage({ destination: uploads, filename: (req, file, cb) => cb(null, `${req.user.id}-${crypto.randomUUID()}.${file.mimetype === 'image/png' ? 'png' : file.mimetype === 'image/webp' ? 'webp' : 'jpg'}`) }),
@@ -169,7 +171,7 @@ const upload = multer({
  fileFilter: (req, file, cb) => cb(null, ['image/jpeg', 'image/png', 'image/webp'].includes(file.mimetype))
 });
 app.use('/uploads', helmet.crossOriginResourcePolicy({ policy: 'cross-origin' }), express.static(uploads, { fallthrough: false }));
-app.post('/api/profile/avatar', requireAuth, upload.single('avatar'), asyncRoute(async (req, res) => {
+app.post('/api/profile/avatar', requireAuth, requirePersistentStorage, upload.single('avatar'), asyncRoute(async (req, res) => {
  if (!req.file) return res.status(400).json({ message: 'Choose a JPG, PNG or WebP image under 1 MB' });
  const file = fs.readFileSync(req.file.path);
  const isPng = file.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10]));
@@ -308,10 +310,10 @@ app.patch('/api/admin/provider-requests/:id', requireAuth, requireAdmin, asyncRo
 }));
 
 
-const documentUploads = path.resolve('private-documents');
+const documentUploads = path.resolve(process.env.VERCEL ? '/tmp/nobatyar-documents' : 'private-documents');
 fs.mkdirSync(documentUploads,{recursive:true});
 const documentUpload = multer({storage:multer.diskStorage({destination:documentUploads,filename:(req,file,cb)=>cb(null,crypto.randomUUID()+'.pdf')}),limits:{fileSize:5*1024*1024},fileFilter:(req,file,cb)=>cb(null,file.mimetype==='application/pdf')});
-app.post('/api/provider-requests/:id/document',requireAuth,documentUpload.single('document'),asyncRoute(async(req,res)=>{
+app.post('/api/provider-requests/:id/document',requireAuth,requirePersistentStorage,documentUpload.single('document'),asyncRoute(async(req,res)=>{
  const request=await db.query('SELECT id FROM provider_requests WHERE id=$1 AND user_id=$2',[req.params.id,req.user.id]);
  if(!request.rowCount){if(req.file)fs.unlinkSync(req.file.path);return res.status(404).json({message:'Request not found'});}
  if(!req.file)return res.status(400).json({message:'Upload a PDF under 5 MB'});
@@ -390,5 +392,8 @@ app.use((error, req, res, next) => {
  console.error(error);
  res.status(error.status || 500).json({ message: error.status ? error.message : 'Server error' });
 });
-const port = Number(process.env.PORT || 5000);
-app.listen(port, () => console.log(`NobatYar API running on http://localhost:${port}`));
+if (!process.env.VERCEL) {
+ const port = Number(process.env.PORT || 5001);
+ app.listen(port, () => console.log(`NobatYar API running on http://localhost:${port}`));
+}
+export default app;

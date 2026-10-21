@@ -307,6 +307,19 @@ app.patch('/api/admin/provider-requests/:id', requireAuth, requireAdmin, asyncRo
   if (data.status === 'approved' && request.user_id) {
    let details = {}; try { details = JSON.parse(request.details); } catch {}
    await client.query('INSERT INTO provider_profiles(user_id,request_id,provider_type,name,specialty,city,address,phone,description) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) ON CONFLICT(request_id) DO NOTHING', [request.user_id,request.id,request.provider_type,request.name,details.specialty||'',details.city||'',details.address||'',request.phone,details.information||'']);
+   if (request.provider_type === 'doctor') {
+    const provider = await client.query('SELECT id FROM provider_profiles WHERE request_id=$1', [request.id]);
+    if (provider.rowCount) {
+      const existing = await client.query('SELECT doctor_id FROM provider_doctors WHERE provider_id=$1 LIMIT 1', [provider.rows[0].id]);
+      if (!existing.rowCount) {
+        await client.query('SELECT pg_advisory_xact_lock(728319)');
+        const nextId = await client.query('SELECT COALESCE(MAX(id),0)+1 AS id FROM doctors');
+        const doctorId = nextId.rows[0].id;
+        await client.query('INSERT INTO doctors(id,name,specialty,specialty_value,hospital,city,city_value,image) VALUES($1,$2,$3,$4,$5,$6,$7,$8)', [doctorId,request.name,details.specialty||'General',details.specialty||'General','Independent',details.city||'',details.city||'','']);
+        await client.query('INSERT INTO provider_doctors(provider_id,doctor_id) VALUES($1,$2)', [provider.rows[0].id,doctorId]);
+      }
+    }
+   }
    await client.query("UPDATE users SET role='provider' WHERE id=$1 AND role='patient'", [request.user_id]);
   }
   await client.query('COMMIT');
@@ -339,14 +352,30 @@ app.get('/api/admin/documents/:id',requireAuth,requireAdmin,asyncRoute(async(req
 app.get('/api/admin/doctors/:id/schedule',requireAuth,requireAdmin,asyncRoute(async(req,res)=>{
  const [s,d]=await Promise.all([db.query('SELECT * FROM doctor_schedules WHERE doctor_id=$1 ORDER BY weekday',[req.params.id]),db.query('SELECT date FROM doctor_days_off WHERE doctor_id=$1',[req.params.id])]);res.json({schedule:s.rows,daysOff:d.rows.map(r=>r.date)});
 }));
-app.put('/api/admin/doctors/:id/schedule',requireAuth,requireAdmin,asyncRoute(async(req,res)=>{
- const d=valid(z.object({weekday:z.number().int().min(0).max(6),startTime:z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),endTime:z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),slotMinutes:z.number().int().min(10).max(120),enabled:z.boolean()}),req.body);
+const requireProviderDoctor = asyncRoute(async(req,res,next)=>{
+ const owned = await db.query('SELECT 1 FROM provider_doctors pd JOIN provider_profiles p ON p.id=pd.provider_id WHERE pd.doctor_id=$1 AND p.user_id=$2 AND p.active=true', [req.params.id,req.user.id]);
+ if (!owned.rowCount) return res.status(403).json({message:'This doctor is not linked to your provider account'});
+ next();
+});
+const scheduleInput = z.object({weekday:z.number().int().min(0).max(6),startTime:z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),endTime:z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),slotMinutes:z.number().int().min(10).max(120),enabled:z.boolean()});
+app.get('/api/provider/doctors',requireAuth,asyncRoute(async(req,res)=>{
+ const r=await db.query('SELECT d.id,d.name FROM doctors d JOIN provider_doctors pd ON pd.doctor_id=d.id JOIN provider_profiles p ON p.id=pd.provider_id WHERE p.user_id=$1 AND p.active=true ORDER BY d.name',[req.user.id]);res.json(r.rows);
+}));
+app.get('/api/provider/doctors/:id/schedule',requireAuth,requireProviderDoctor,asyncRoute(async(req,res)=>{
+ const [s,d]=await Promise.all([db.query('SELECT * FROM doctor_schedules WHERE doctor_id=$1 ORDER BY weekday',[req.params.id]),db.query('SELECT date FROM doctor_days_off WHERE doctor_id=$1 ORDER BY date',[req.params.id])]);res.json({schedule:s.rows,daysOff:d.rows.map(r=>r.date)});
+}));
+app.put('/api/provider/doctors/:id/schedule',requireAuth,requireProviderDoctor,asyncRoute(async(req,res)=>{
+ const d=valid(scheduleInput,req.body);
  if(d.startTime>=d.endTime)return res.status(400).json({message:'End time must be after start time'});
  const r=await db.query('INSERT INTO doctor_schedules(doctor_id,weekday,start_time,end_time,slot_minutes,enabled) VALUES($1,$2,$3,$4,$5,$6) ON CONFLICT(doctor_id,weekday) DO UPDATE SET start_time=$3,end_time=$4,slot_minutes=$5,enabled=$6 RETURNING *',[req.params.id,d.weekday,d.startTime,d.endTime,d.slotMinutes,d.enabled]);res.json(r.rows[0]);
 }));
-app.post('/api/admin/doctors/:id/days-off',requireAuth,requireAdmin,asyncRoute(async(req,res)=>{
+app.post('/api/provider/doctors/:id/days-off',requireAuth,requireProviderDoctor,asyncRoute(async(req,res)=>{
  const d=valid(z.object({date:z.string().regex(/^\d{4}\/\d{2}\/\d{2}$/)}),req.body);
  await db.query('INSERT INTO doctor_days_off(doctor_id,date) VALUES($1,$2) ON CONFLICT DO NOTHING',[req.params.id,d.date]);res.json({ok:true});
+}));
+app.delete('/api/provider/doctors/:id/days-off/:date',requireAuth,requireProviderDoctor,asyncRoute(async(req,res)=>{
+ const d=valid(z.object({date:z.string().regex(/^\d{4}-\d{2}-\d{2}$/)}),req.params);
+ await db.query('DELETE FROM doctor_days_off WHERE doctor_id=$1 AND date=$2',[req.params.id,d.date.replaceAll('-','/')]);res.json({ok:true});
 }));
 const requireProvider = (req,res,next) => ['provider','admin'].includes(req.user.role) ? next() : res.status(403).json({message:'Provider access required'});
 app.get('/api/admin/contacts', requireAuth, requireAdmin, asyncRoute(async(req,res)=>{

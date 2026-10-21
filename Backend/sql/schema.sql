@@ -1,0 +1,140 @@
+CREATE TABLE IF NOT EXISTS users (
+ id BIGSERIAL PRIMARY KEY,
+ name VARCHAR(120) NOT NULL,
+ email VARCHAR(254) NOT NULL UNIQUE,
+ password_hash TEXT NOT NULL,
+ phone VARCHAR(40) NOT NULL DEFAULT '',
+ city VARCHAR(100) NOT NULL DEFAULT '',
+ avatar TEXT NOT NULL DEFAULT '',
+ role VARCHAR(20) NOT NULL DEFAULT 'patient' CHECK (role IN ('patient','admin')),
+ created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE TABLE IF NOT EXISTS hospitals (
+ id INTEGER PRIMARY KEY,
+ name TEXT NOT NULL,
+ type TEXT NOT NULL,
+ type_value TEXT NOT NULL,
+ city TEXT NOT NULL,
+ city_value TEXT NOT NULL,
+ location TEXT NOT NULL,
+ image TEXT NOT NULL,
+ description TEXT NOT NULL DEFAULT ''
+);
+CREATE TABLE IF NOT EXISTS doctors (
+ id INTEGER PRIMARY KEY,
+ name TEXT NOT NULL,
+ specialty TEXT NOT NULL,
+ specialty_value TEXT NOT NULL,
+ hospital TEXT NOT NULL,
+ city TEXT NOT NULL,
+ city_value TEXT NOT NULL,
+ image TEXT NOT NULL,
+ experience TEXT NOT NULL DEFAULT '',
+ education TEXT NOT NULL DEFAULT '',
+ about TEXT NOT NULL DEFAULT ''
+);
+CREATE TABLE IF NOT EXISTS appointments (
+ id BIGSERIAL PRIMARY KEY,
+ user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+ doctor_id INTEGER NOT NULL REFERENCES doctors(id),
+ date VARCHAR(30) NOT NULL,
+ time VARCHAR(10) NOT NULL,
+ patient_name VARCHAR(120) NOT NULL,
+ phone VARCHAR(40) NOT NULL,
+ notes TEXT NOT NULL DEFAULT '',
+ status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','confirmed','cancelled')),
+ created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE UNIQUE INDEX IF NOT EXISTS unique_active_slot ON appointments(doctor_id, date, time) WHERE status <> 'cancelled';
+CREATE INDEX IF NOT EXISTS appointments_user_idx ON appointments(user_id, created_at DESC);
+CREATE TABLE IF NOT EXISTS contacts (
+ id BIGSERIAL PRIMARY KEY,
+ name VARCHAR(120) NOT NULL,
+ email VARCHAR(254) NOT NULL,
+ message TEXT NOT NULL,
+ created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE TABLE IF NOT EXISTS provider_requests (
+ id BIGSERIAL PRIMARY KEY,
+ user_id BIGINT REFERENCES users(id) ON DELETE SET NULL,
+ name VARCHAR(120) NOT NULL,
+ email VARCHAR(254) NOT NULL,
+ phone VARCHAR(40) NOT NULL,
+ details TEXT NOT NULL,
+ status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','approved','rejected')),
+ created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS address VARCHAR(240) NOT NULL DEFAULT '';
+ALTER TABLE users ADD COLUMN IF NOT EXISTS bio VARCHAR(500) NOT NULL DEFAULT '';
+ALTER TABLE users ADD COLUMN IF NOT EXISTS birth_date VARCHAR(10) NOT NULL DEFAULT '';
+
+
+ALTER TABLE provider_requests ADD COLUMN IF NOT EXISTS provider_type VARCHAR(20) NOT NULL DEFAULT 'doctor';
+ALTER TABLE provider_requests ADD COLUMN IF NOT EXISTS review_note TEXT NOT NULL DEFAULT '';
+ALTER TABLE provider_requests ADD COLUMN IF NOT EXISTS reviewed_at TIMESTAMPTZ;
+ALTER TABLE provider_requests ADD COLUMN IF NOT EXISTS reviewed_by BIGINT REFERENCES users(id) ON DELETE SET NULL;
+ALTER TABLE contacts ADD COLUMN IF NOT EXISTS status VARCHAR(20) NOT NULL DEFAULT 'unread';
+ALTER TABLE contacts ADD COLUMN IF NOT EXISTS admin_reply TEXT NOT NULL DEFAULT '';
+ALTER TABLE contacts ADD COLUMN IF NOT EXISTS replied_at TIMESTAMPTZ;
+ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check;
+ALTER TABLE users ADD CONSTRAINT users_role_check CHECK (role IN ('patient','admin','provider'));
+CREATE TABLE IF NOT EXISTS provider_profiles (
+ id BIGSERIAL PRIMARY KEY,
+ user_id BIGINT NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+ request_id BIGINT NOT NULL UNIQUE REFERENCES provider_requests(id) ON DELETE CASCADE,
+ provider_type VARCHAR(20) NOT NULL CHECK (provider_type IN ('doctor','hospital','clinic')),
+ name VARCHAR(120) NOT NULL,
+ specialty VARCHAR(120) NOT NULL DEFAULT '',
+ city VARCHAR(100) NOT NULL DEFAULT '',
+ address VARCHAR(240) NOT NULL DEFAULT '',
+ phone VARCHAR(40) NOT NULL DEFAULT '',
+ description TEXT NOT NULL DEFAULT '',
+ services TEXT NOT NULL DEFAULT '',
+ working_hours JSONB NOT NULL DEFAULT '{}'::jsonb,
+ days_off JSONB NOT NULL DEFAULT '[]'::jsonb,
+ active BOOLEAN NOT NULL DEFAULT true
+);
+CREATE TABLE IF NOT EXISTS provider_documents (
+ id BIGSERIAL PRIMARY KEY,
+ request_id BIGINT NOT NULL REFERENCES provider_requests(id) ON DELETE CASCADE,
+ user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+ stored_name TEXT NOT NULL,
+ original_name VARCHAR(255) NOT NULL,
+ uploaded_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE TABLE IF NOT EXISTS password_reset_tokens (
+ id BIGSERIAL PRIMARY KEY,
+ user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+ token_hash TEXT NOT NULL UNIQUE,
+ expires_at TIMESTAMPTZ NOT NULL,
+ used_at TIMESTAMPTZ
+);
+CREATE TABLE IF NOT EXISTS email_verification_tokens (
+ id BIGSERIAL PRIMARY KEY,
+ user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+ token_hash TEXT NOT NULL UNIQUE,
+ expires_at TIMESTAMPTZ NOT NULL,
+ used_at TIMESTAMPTZ
+);
+ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified BOOLEAN NOT NULL DEFAULT false;
+CREATE TABLE IF NOT EXISTS provider_doctors (
+ provider_id BIGINT NOT NULL REFERENCES provider_profiles(id) ON DELETE CASCADE,
+ doctor_id INTEGER NOT NULL REFERENCES doctors(id) ON DELETE CASCADE,
+ PRIMARY KEY(provider_id,doctor_id)
+);
+CREATE TABLE IF NOT EXISTS doctor_schedules (
+ doctor_id INTEGER NOT NULL REFERENCES doctors(id) ON DELETE CASCADE,
+ weekday INTEGER NOT NULL CHECK(weekday BETWEEN 0 AND 6),
+ start_time VARCHAR(5) NOT NULL DEFAULT '09:00',
+ end_time VARCHAR(5) NOT NULL DEFAULT '17:00',
+ slot_minutes INTEGER NOT NULL DEFAULT 30 CHECK(slot_minutes BETWEEN 10 AND 120),
+ capacity INTEGER NOT NULL DEFAULT 1 CHECK(capacity BETWEEN 1 AND 20),
+ enabled BOOLEAN NOT NULL DEFAULT true,
+ PRIMARY KEY(doctor_id,weekday)
+);
+CREATE TABLE IF NOT EXISTS doctor_days_off (
+ doctor_id INTEGER NOT NULL REFERENCES doctors(id) ON DELETE CASCADE,
+ date VARCHAR(10) NOT NULL,
+ PRIMARY KEY(doctor_id,date)
+);

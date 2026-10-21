@@ -1,0 +1,146 @@
+import AccountRecovery from "./pages/AccountRecovery.jsx";
+import { api } from "./api";
+import { Routes, Route, Navigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import SignUp from "./pages/SignUp.jsx";
+import Header from "./components/Header.jsx";
+import Hero from "./components/Hero.jsx";
+import Specialties from "./components/Specialties.jsx";
+import Hospitals from "./components/Hospitals.jsx";
+import Doctors from "./components/Doctors.jsx";
+import DoctorDetails from "./pages/DoctorDetails.jsx";
+import HowItWorks from "./components/HowItWorks.jsx";
+import Footer from "./components/Footer.jsx";
+import ProviderRegistration from "./pages/ProviderRegistration.jsx";
+import BookAppointment from "./pages/BookAppointment.jsx";
+import MyAppointments from "./pages/MyAppointments.jsx";
+import HospitalDetails from "./pages/hospitalDetails.jsx";
+import HospitalDoctors from "./pages/HospitalDoctors.jsx";
+import Login from "./pages/Login.jsx";
+import About from "./pages/About.jsx";
+import Contact from "./pages/Contact.jsx";
+import SpecialtiesPage from "./pages/SpecialtiesPage.jsx";
+import UserProfile from "./pages/UserProfile.jsx";
+import AdminDashboard from "./pages/AdminDashboard.jsx";
+import ProviderDashboard from "./pages/ProviderDashboard.jsx";
+
+export default function App() {
+  const [language, setLanguage] = useState(() => {
+    return localStorage.getItem("language") || "English";
+  });
+
+  useEffect(() => {
+    localStorage.setItem("language", language);
+
+    document.documentElement.dir = language === "English" ? "ltr" : "rtl";
+
+    document.documentElement.lang =
+      language === "English" ? "en" : language === "Persian" ? "fa-AF" : "ps";
+  }, [language]);
+
+  const [user, setUser] = useState(null);
+  const [checking, setChecking] = useState(true);
+
+  useEffect(() => {
+    api("/auth/me")
+      .then((data) => setUser(data.user))
+      .catch(() => setUser(null))
+      .finally(() => setChecking(false));
+  }, []);
+
+  const logout = async () => {
+    try {
+      await api("/auth/logout", { method: "POST" });
+      setUser(null);
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
+  if (checking) return <div className="min-h-screen bg-gray-50 dark:bg-slate-900" />;
+
+  return (
+    <>
+      <Header
+        imageURL="/logo.png"
+        title="NobatYar Logo"
+        language={language}
+        setLanguage={setLanguage}
+        isLoggedIn={!!user}
+        user={user}
+        onLogout={logout}
+      />
+
+      <Routes>
+          <Route path="/forgot-password" element={<AccountRecovery language={language} mode="forgot" />} />
+          <Route path="/reset-password" element={<AccountRecovery language={language} mode="reset" />} />
+          <Route path="/verify-email" element={<AccountRecovery language={language} mode="verify" />} />
+        <Route path="/" element={<Navigate to="/home" replace />} />
+
+        <Route
+          path="/home"
+          element={
+            <>
+              <Hero language={language} />
+              <Specialties language={language} />
+              <Hospitals language={language} home={true} />
+              <Doctors language={language} home={true} />
+              <HowItWorks language={language} home={true} />
+            </>
+          }
+        />
+
+        <Route path="/hospitals" element={<Hospitals language={language} />} />
+
+        <Route path="/doctors" element={<Doctors language={language} />} />
+
+        <Route
+          path="/doctors/:id"
+          element={<DoctorDetails language={language} />}
+        />
+
+        <Route
+          path="/register-provider"
+          element={<ProviderRegistration language={language} user={user} />}
+        />
+        <Route
+          path="/book-appointment/:id"
+          element={user ? <BookAppointment language={language} /> : <Navigate to="/login" replace />}
+        />
+        <Route
+          path="/my-appointments"
+          element={user ? <MyAppointments language={language} /> : <Navigate to="/login" replace />}
+        />
+        <Route
+          path="/hospitals/:id"
+          element={<HospitalDetails language={language} />}
+        />
+
+        <Route
+          path="/hospitals/:id/doctors"
+          element={<HospitalDoctors language={language} />}
+        />
+        <Route
+          path="/how-it-works"
+          element={<HowItWorks language={language} />}
+        />
+        <Route path="/login" element={<Login language={language} onLogin={setUser} />} />
+        <Route path="/signup" element={<SignUp language={language} onLogin={setUser} />} />
+        <Route path="/admin" element={user?.role === "admin" ? <AdminDashboard language={language} /> : <Navigate to="/home" replace />} />
+        <Route path="/provider-dashboard" element={user && ["provider","admin"].includes(user.role) ? <ProviderDashboard language={language} /> : <Navigate to="/home" replace />} />
+        <Route path="/about" element={<About language={language} />} />
+        <Route path="/contact" element={<Contact language={language} />} />
+        <Route
+          path="/specialties"
+          element={<SpecialtiesPage language={language} />}
+        />
+        <Route
+  path="/profile"
+  element={user ? <UserProfile language={language} user={user} setUser={setUser} /> : <Navigate to="/login" replace />}
+/>
+      </Routes>
+
+      <Footer language={language} />
+    </>
+  );
+}

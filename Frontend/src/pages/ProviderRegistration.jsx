@@ -276,7 +276,7 @@ export default function ProviderRegistration({ language, user }) {
                       </select>
                       {!hospitalOptions.length && <p className="text-sm text-amber-600 mt-2">No hospitals available. An admin must add a hospital first.</p>}
                     </div>
-                    <div>
+                    <div className="md:col-span-2">
                       <label className="block mb-2 font-medium text-gray-700 dark:text-gray-200">
                         {t.licenseNumber} <span className="text-red-500">*</span>
                       </label>
@@ -294,7 +294,7 @@ export default function ProviderRegistration({ language, user }) {
 
                 {(providerType === "hospital" || providerType === "clinic") && (
                   <>
-                    <div>
+                    <div className="md:col-span-2">
                       <label className="block mb-2 font-medium text-gray-700 dark:text-gray-200">
                         {t.licenseNumber} <span className="text-red-500">*</span>
                       </label>

@@ -74,7 +74,7 @@ export default function AdminDashboard({ language }) {
   };
   const startEdit = (kind, item) => {
     setEditing(`${kind}-${item.id}`);
-    setForm(kind === "doctor" ? {name:item.name,specialty:item.specialty_value,hospitalId:hospitals.find(h=>h.name===item.hospital)?.id || "",city:item.city,about:item.about || ""} : kind === "hospital" ? {name:item.name,city:item.city,location:item.location,description:item.description || ""} : {name:item.name,value:item.value,department:item.department || "",image:item.image || ""});
+    setForm(kind === "doctor" ? {name:item.name,specialty:item.specialty_value,hospitalId:hospitals.find(h=>h.name===item.hospital)?.id || "",city:item.city,about:item.about || "",image:item.image || ""} : kind === "hospital" ? {name:item.name,city:item.city,location:item.location,description:item.description || "",image:item.image || ""} : {name:item.name,value:item.value,department:item.department || "",image:item.image || ""});
   };
   const saveItem = async (kind, id) => {
     if(kind === "specialty" && (!form.image || !form.department || !form.name || !form.value)){setError("Name, code, department and image are required");return;}
@@ -97,6 +97,19 @@ export default function AdminDashboard({ language }) {
       setForm(previous=>({...previous,image:result.image}));
     }catch(e){setError(e.message);}finally{setUploadingImage(false);}
   };
+  const uploadCatalogPhoto = async file => {
+    if (!file) return;
+    setUploadingImage(true);setError("");
+    try {
+      const body = new FormData();body.append("photo",file);
+      const result = await api("/admin/catalog/photo",{method:"POST",body});
+      setForm(previous=>({...previous,image:result.image}));
+    } catch(e) {setError(e.message);} finally {setUploadingImage(false);}
+  };
+  const catalogImageField = () => <label className="block sm:col-span-2">Change photo (JPG, PNG, WebP)
+    <input type="file" accept="image/jpeg,image/png,image/webp" onChange={e=>uploadCatalogPhoto(e.target.files[0])} className="block w-full mt-2 border rounded-xl p-3" />
+    {form.image && <img src={form.image} alt="Preview" className="w-24 h-24 rounded-xl object-cover mt-2" />}
+  </label>;
   const specialtyImageField = () => <div className="sm:col-span-2 space-y-2">
     <label className="block text-sm font-medium">Specialty image * (JPG, PNG, WebP, max 3MB)
       <input type="file" accept="image/jpeg,image/png,image/webp" onChange={e=>uploadSpecialtyPhoto(e.target.files[0])} className="block mt-2 w-full border rounded-xl p-3" />
@@ -171,8 +184,8 @@ export default function AdminDashboard({ language }) {
               </div>
               {active && <div className="grid sm:grid-cols-2 gap-3 mt-5">
                 {field("name","Name")}
-                {kind === "doctor" && <>{field("specialty","Specialty","select",specialtiesList.map(x=>({value:x.value,label:x.name})))}{field("hospitalId","Hospital","select",hospitals.map(x=>({value:x.id,label:x.name})))}{field("city","City")}{field("about","About")}</>}
-                {kind === "hospital" && <>{field("city","City")}{field("location","Address")}{field("description","Description")}</>}
+                {kind === "doctor" && <>{field("specialty","Specialty","select",specialtiesList.map(x=>({value:x.value,label:x.name})))}{field("hospitalId","Hospital","select",hospitals.map(x=>({value:x.id,label:x.name})))}{field("city","City")}{field("about","About")}{catalogImageField()}</>}
+                {kind === "hospital" && <>{field("city","City")}{field("location","Address")}{field("description","Description")}{catalogImageField()}</>}
                 {kind === "specialty" && <>{field("value","Code")}{field("department","Specialty department")}{specialtyImageField()}</>}
                 <button disabled={uploadingImage} onClick={()=>saveItem(kind,item.id)} className="bg-teal-600 text-white rounded-xl px-4 py-2 flex items-center justify-center gap-2"><Save size={17}/> Save changes</button>
               </div>}

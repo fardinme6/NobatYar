@@ -142,7 +142,7 @@ export default function Header({
                 <div className="w-52 bg-white dark:bg-slate-800 border dark:border-slate-700 shadow-xl rounded-xl p-2">
                   <p className="px-3 py-2 text-sm font-semibold text-gray-700 dark:text-white truncate">{user?.name}</p>
                   <NavLink to="/profile" className="flex items-center gap-2 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 dark:text-white"><UserRound size={18} />{t.myProfile}</NavLink>
-                  <NavLink to="/my-appointments" className="flex items-center gap-2 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 dark:text-white"><CalendarDays size={18} />{t.myAppointments}</NavLink>
+                  {user?.role !== "admin" && user?.role !== "provider" && <NavLink to="/my-appointments" className="flex items-center gap-2 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 dark:text-white"><CalendarDays size={18} />{t.myAppointments}</NavLink>}
                   {user?.role === "admin" && <NavLink to="/admin" className="flex items-center gap-2 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 dark:text-white"><LayoutDashboard size={18} />{t.adminTitle}</NavLink>}
                   {user?.role === "provider" && <NavLink to="/provider-dashboard" className="flex items-center gap-2 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 dark:text-white"><Stethoscope size={18} />{t.providerDashboard}</NavLink>}
                   <button onClick={onLogout} className="w-full flex items-center gap-2 p-3 rounded-lg text-red-600 hover:bg-red-50 cursor-pointer"><LogOut size={18} />{t.logout}</button>
@@ -259,7 +259,7 @@ export default function Header({
             {t.Specialties}
           </NavLink>
 
-          {isLoggedIn && (
+          {isLoggedIn && user?.role !== "admin" && user?.role !== "provider" && (
             <NavLink
               to="/my-appointments"
               className={linkStyle}

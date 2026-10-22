@@ -21,7 +21,7 @@ export default function ProviderRegistration({ language, user }) {
     api("/hospitals").then(setHospitalOptions).catch(() => {});
     api("/specialties").then(setSpecialtyOptions).catch(() => {});
   }, []);
-  useEffect(() => { if (user) api("/provider-requests/mine").then(setRequests).catch(()=>{}); }, [user]);
+  useEffect(() => { if (user) api("/provider-requests/mine").then(data => setRequests(data.filter(r => r.status === "pending"))).catch(()=>{}); }, [user]);
 
   const inputStyle =
     "w-full p-3.5 border border-gray-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-gray-900 dark:text-white outline-none focus:border-teal-500";
@@ -46,7 +46,7 @@ export default function ProviderRegistration({ language, user }) {
       const created = await api("/provider-requests", { method: "POST", body: JSON.stringify({ name: data.name, email: data.email, phone: data.phone, providerType, details }) });
 
       setSubmitted(true);
-      api("/provider-requests/mine").then(setRequests).catch(()=>{});
+      api("/provider-requests/mine").then(data => setRequests(data.filter(r => r.status === "pending"))).catch(()=>{});
     } catch (err) { setError(err.message); }
     finally { setSaving(false); }
   }

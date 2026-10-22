@@ -3,6 +3,7 @@ import { api } from "../api";
 import MultiDatePicker from "react-multi-date-picker";
 const DatePicker = MultiDatePicker.default || MultiDatePicker;
 import persian from "react-date-object/calendars/persian";
+import gregorian from "react-date-object/calendars/gregorian";
 import persian_fa from "react-date-object/locales/persian_fa";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import {
@@ -31,12 +32,13 @@ export default function BookAppointment({ language }) {
   const [phone, setPhone] = useState("");
   const [notes, setNotes] = useState("");
   const [bookedSlots, setBookedSlots] = useState([]);
+  const [availableTimes, setAvailableTimes] = useState([]);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   useEffect(() => {
-    if (!date) { setBookedSlots([]); return; }
-    api(`/doctors/${id}/booked-slots?date=${encodeURIComponent(date)}`)
-      .then(setBookedSlots).catch(() => setBookedSlots([]));
+    if (!date) { setBookedSlots([]); setAvailableTimes([]); return; }
+    api(`/doctors/${id}/available-slots?date=${encodeURIComponent(date)}`)
+      .then(setAvailableTimes).catch(e => { setAvailableTimes([]); setError(e.message); });
   }, [date, id]);
 
   const afghanCalendar = {
@@ -72,15 +74,15 @@ export default function BookAppointment({ language }) {
     "11:30",
     "12:00",
     "12:30",
-    "01:00",
-    "01:30",
-    "02:00",
-    "02:30",
-    "03:00",
-    "03:30",
-    "04:00",
-    "04:30",
-    "05:00",
+    "13:00",
+    "13:30",
+    "14:00",
+    "14:30",
+    "15:00",
+    "15:30",
+    "16:00",
+    "16:30",
+    "17:00",
   ];
 
   const BackIcon = language === "English" ? ArrowLeft : ArrowRight;
@@ -154,9 +156,9 @@ export default function BookAppointment({ language }) {
 
                 <div className="w-full [&_.rmdp-container]:!w-full">
                   <DatePicker
-                    value={date}
+                    value={date ? new Date(date.replaceAll("/", "-") + "T12:00:00") : ""}
                     onChange={(value) => {
-                      setDate(value ? value.format("YYYY/MM/DD") : "");
+                      setDate(value ? value.convert(gregorian).format("YYYY/MM/DD") : "");
                       setTime("");
                     }}
                     calendar={afghanCalendar}
@@ -175,8 +177,9 @@ export default function BookAppointment({ language }) {
                   {t.selectAppointmentTime}
                 </h2>
 
+                {date && availableTimes.length === 0 && <p className="text-amber-700 mb-3">No available times for this day / برای این روز وقت خالی وجود ندارد</p>}
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-                  {times.map((item) => (
+                  {availableTimes.map((item) => (
                     <button
                       key={item}
                       type="button"

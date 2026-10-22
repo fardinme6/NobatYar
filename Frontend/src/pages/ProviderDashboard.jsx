@@ -13,6 +13,7 @@ export default function ProviderDashboard({ language }) {
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("17:00");
   const [slotMinutes, setSlotMinutes] = useState(30);
+  const [enabled, setEnabled] = useState(true);
   const [daysOff, setDaysOff] = useState([]);
   const [schedule, setSchedule] = useState([]);
   const [message, setMessage] = useState("");
@@ -22,7 +23,7 @@ export default function ProviderDashboard({ language }) {
   };
   useEffect(()=>{load();},[]);
   useEffect(()=>{if(!doctorId)return;api(`/provider/doctors/${doctorId}/schedule`).then(data=>{setSchedule(data.schedule);setDaysOff(data.daysOff);}).catch(e=>setMessage(e.message));},[doctorId]);
-  const saveSchedule = async e => {e.preventDefault();try {await api(`/provider/doctors/${doctorId}/schedule`,{method:"PUT",body:JSON.stringify({weekday:Number(weekday),startTime,endTime,slotMinutes:Number(slotMinutes),enabled:true})});const data=await api(`/provider/doctors/${doctorId}/schedule`);setSchedule(data.schedule);setMessage(t.adminScheduleSaved);}catch(e){setMessage(e.message);}};
+  const saveSchedule = async e => {e.preventDefault();try {await api(`/provider/doctors/${doctorId}/schedule`,{method:"PUT",body:JSON.stringify({weekday:Number(weekday),startTime,endTime,slotMinutes:Number(slotMinutes),enabled})});const data=await api(`/provider/doctors/${doctorId}/schedule`);setSchedule(data.schedule);setMessage(t.adminScheduleSaved);}catch(e){setMessage(e.message);}};
   const addDayOff = async e => {e.preventDefault();const date=e.currentTarget.elements.dayOff.value.replaceAll("-","/");try{await api(`/provider/doctors/${doctorId}/days-off`,{method:"POST",body:JSON.stringify({date})});setDaysOff(old=>old.includes(date)?old:[...old,date]);e.target.reset();setMessage(t.adminScheduleSaved);}catch(e){setMessage(e.message);}};
   const removeDayOff = async date => {try{await api(`/provider/doctors/${doctorId}/days-off/${date.replaceAll("/","-")}`,{method:"DELETE"});setDaysOff(old=>old.filter(x=>x!==date));}catch(e){setMessage(e.message);}};
   const edit = (id,key,value) => setProfiles(profiles.map(p=>p.id===id?{...p,[key]:value}:p));
@@ -53,17 +54,18 @@ export default function ProviderDashboard({ language }) {
           <label>{t.adminSlotMinutes}<input type="number" min="10" max="120" value={slotMinutes} onChange={e=>setSlotMinutes(e.target.value)} className="block w-full border rounded-xl p-3 mt-2 dark:bg-slate-700 dark:border-slate-600"/></label>
           <label>{t.adminStartTime}<input type="time" value={startTime} onChange={e=>setStartTime(e.target.value)} className="block w-full border rounded-xl p-3 mt-2 dark:bg-slate-700 dark:border-slate-600"/></label>
           <label>{t.adminEndTime}<input type="time" value={endTime} onChange={e=>setEndTime(e.target.value)} className="block w-full border rounded-xl p-3 mt-2 dark:bg-slate-700 dark:border-slate-600"/></label>
+          <label className="flex gap-2 items-center"><input type="checkbox" checked={enabled} onChange={e=>setEnabled(e.target.checked)}/> Available on this weekday</label>
           <button className="sm:col-span-2 bg-teal-600 text-white rounded-xl p-3 cursor-pointer">{t.profileSave}</button>
         </form>
         <h3 className="font-semibold mt-5">{t.providerWeeklySchedule}</h3>
-        {schedule.map(d=><p key={d.weekday} className="text-sm mt-2">{t.adminDays[d.weekday]}: {d.start_time} - {d.end_time} ({d.slot_minutes} {t.adminSlotMinutes})</p>)}
+        {schedule.map(d=><p key={d.weekday} className="text-sm mt-2">{t.adminDays[d.weekday]}: {d.start_time} - {d.end_time} ({d.slot_minutes} {t.adminSlotMinutes}) {d.enabled ? "✓" : "— Unavailable"}</p>)}
         <form onSubmit={addDayOff} className="mt-6 border-t dark:border-slate-700 pt-6 flex flex-wrap gap-3 items-end"><label>{t.adminDayOff}<input type="date" name="dayOff" required className="block border rounded-xl p-3 mt-2 dark:bg-slate-700 dark:border-slate-600"/></label><button className="bg-amber-100 text-amber-800 rounded-xl px-5 py-3 cursor-pointer">{t.adminAddDayOff}</button></form>
         {daysOff.map(date=><div key={date} className="flex items-center gap-3 mt-2"><span>{date}</span><button type="button" onClick={()=>removeDayOff(date)} className="text-red-600 underline cursor-pointer">{t.providerRemoveDayOff}</button></div>)}
       </>}
     </section>
     <section className="bg-white dark:bg-slate-800 dark:text-white rounded-2xl shadow-md p-6 mt-6"><h2 className="text-xl font-bold flex items-center gap-2"><CalendarDays className="text-teal-600"/>{t.adminAppointments}</h2>
       {!appointments.length && <p className="text-gray-500 mt-5">{t.adminEmpty}</p>}
-      {appointments.map(a=><div key={a.id} className="flex flex-wrap items-center justify-between gap-3 border-b dark:border-slate-700 py-4"><div><p className="font-bold">{a.patient_name}</p><p className="text-sm text-gray-500">{a.date} · {a.time} · {a.status}</p></div><div className="flex gap-2"><button onClick={()=>status(a,"confirmed")} className="bg-teal-600 text-white rounded-lg px-3 py-2 cursor-pointer">{t.adminConfirm}</button><button onClick={()=>status(a,"cancelled")} className="bg-red-100 text-red-700 rounded-lg px-3 py-2 cursor-pointer">{t.adminCancel}</button></div></div>)}
+      {appointments.map(a=><div key={a.id} className="flex flex-wrap items-center justify-between gap-3 border-b dark:border-slate-700 py-4"><div><p className="font-bold">{a.patient_name}</p><p className="text-sm text-gray-500">{a.date} · {a.time} · {a.status}</p></div><div className="flex gap-2"><button onClick={()=>status(a,"confirmed")} className="bg-teal-600 text-white rounded-lg px-3 py-2 cursor-pointer">{t.adminConfirm}</button><button onClick={()=>status(a,"cancelled")} className="bg-red-100 text-red-700 rounded-lg px-3 py-2 cursor-pointer">{t.adminCancel}</button><button onClick={async()=>{if(!window.confirm("Cancel this appointment?"))return;try{await api(`/provider/appointments/${a.id}`,{method:"DELETE"});await load();}catch(e){setMessage(e.message);}}} className="border border-red-500 text-red-600 rounded-lg px-3 py-2 cursor-pointer">Remove</button></div></div>)}
     </section>
   </div></main>;
 }

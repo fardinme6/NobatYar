@@ -957,6 +957,7 @@ Herat Heart Hospital aims to improve the quality of cardiovascular healthcare, i
   },
 
   Pashto: {
+    dermatologist: "د پوستکي او وېښتانو متخصص",
     forgotPasswordTitle: "پټنوم مو هېر شوی؟",
     resetPasswordTitle: "پټنوم بدلول",
     verifyEmailTitle: "برېښنالیک تاییدول",

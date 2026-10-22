@@ -19,7 +19,7 @@ export default function Doctors({ language, home = false, user }) {
   const t = translations[language];
   const [onlineDoctors, setOnlineDoctors] = useState([]);
   useEffect(() => { api("/doctors").then(setOnlineDoctors).catch(()=>{}); }, []);
-  const allDoctors = [...doctors.filter(d=>!onlineDoctors.some(o=>o.id===d.id)), ...onlineDoctors];
+  const allDoctors = onlineDoctors;;
   const label = value => t[value] || value || "";
 
   const [search, setSearch] = useState("");
@@ -186,7 +186,14 @@ export default function Doctors({ language, home = false, user }) {
                 key={doctor.id}
                 className="flex flex-col bg-white dark:bg-slate-800 rounded-2xl overflow-hidden border border-gray-100 dark:border-slate-700 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
               >
-                {user?.role === "admin" && onlineDoctors.some(d=>d.id===doctor.id) && <Link to={`/admin?tab=doctors&edit=${doctor.id}`} className="bg-teal-600 text-white text-center py-2">✎ Edit / Delete Doctor</Link>}
+                {user?.role === "admin" && <div className="flex gap-2 p-2 bg-teal-50 dark:bg-slate-700">
+                  <Link to={`/admin?tab=doctors&edit=${doctor.id}`} className="flex-1 bg-teal-600 text-white rounded-lg text-center py-2">Edit</Link>
+                  <button onClick={async()=>{
+                    if (!window.confirm("Delete this doctor?")) return;
+                    try { await api(`/admin/doctors/${doctor.id}`, {method:"DELETE"}); setOnlineDoctors(items=>items.filter(item=>item.id!==doctor.id)); }
+                    catch(error) {alert(error.message);}
+                  }} className="flex-1 bg-red-600 text-white rounded-lg py-2">Delete</button>
+                </div>}
                 <div className="relative overflow-hidden bg-gray-100 dark:bg-slate-700">
                   <img
                     src={doctor.image}

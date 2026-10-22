@@ -18,11 +18,14 @@ export default function HospitalDetails({ language }) {
   const { id } = useParams();
 
   const [onlineHospital, setOnlineHospital] = useState(null);
-  useEffect(() => { api(`/hospitals/${id}`).then(setOnlineHospital).catch(()=>{}); }, [id]);
-  const hospital = onlineHospital || hospitals.find((item) => item.id === Number(id));
+  const [hospitalLoading, setHospitalLoading] = useState(true);
+  useEffect(() => { setHospitalLoading(true); api(`/hospitals/${id}`).then(setOnlineHospital).catch(()=>setOnlineHospital(null)).finally(()=>setHospitalLoading(false)); }, [id]);
+  const hospital = onlineHospital;
   const label = value => t[value] || value || "";
 
   const BackIcon = language === "English" ? ArrowLeft : ArrowRight;
+
+  if (hospitalLoading) return <p className="text-center p-10 dark:text-white">Loading...</p>;
 
   if (!hospital) {
     return (

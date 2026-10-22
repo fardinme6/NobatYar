@@ -18,7 +18,7 @@ export default function Hospitals({ language, home = false, user }) {
   const t = translations[language];
   const [onlineHospitals,setOnlineHospitals] = useState([]);
   useEffect(()=>{api("/hospitals").then(setOnlineHospitals).catch(()=>{});},[]);
-  const allHospitals = [...hospitals.filter(h=>!onlineHospitals.some(o=>o.id===h.id)),...onlineHospitals];
+  const allHospitals = onlineHospitals;;
 
   const [search, setSearch] = useState("");
   const [city, setCity] = useState("all");
@@ -179,7 +179,14 @@ export default function Hospitals({ language, home = false, user }) {
                 key={hospital.id}
                 className="flex flex-col bg-white dark:bg-slate-800 rounded-2xl overflow-hidden border border-gray-100 dark:border-slate-700 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
               >
-                {user?.role === "admin" && onlineHospitals.some(h=>h.id===hospital.id) && <Link to={`/admin?tab=hospitals&edit=${hospital.id}`} className="block bg-teal-600 text-white text-center py-2">✎ Edit / Delete Hospital</Link>}
+                {user?.role === "admin" && <div className="flex gap-2 p-2 bg-teal-50 dark:bg-slate-700">
+                  <Link to={`/admin?tab=hospitals&edit=${hospital.id}`} className="flex-1 bg-teal-600 text-white rounded-lg text-center py-2">Edit</Link>
+                  <button onClick={async()=>{
+                    if (!window.confirm("Delete this hospital?")) return;
+                    try { await api(`/admin/hospitals/${hospital.id}`, {method:"DELETE"}); setOnlineHospitals(items=>items.filter(item=>item.id!==hospital.id)); }
+                    catch(error) {alert(error.message);}
+                  }} className="flex-1 bg-red-600 text-white rounded-lg py-2">Delete</button>
+                </div>}
                 <div className="relative overflow-hidden">
                   <img
                     src={hospital.image}

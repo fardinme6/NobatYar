@@ -25,7 +25,10 @@ export default function BookAppointment({ language }) {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const doctor = doctors.find((item) => item.id === Number(id));
+  const [onlineDoctor, setOnlineDoctor] = useState(null);
+  const [doctorLoading, setDoctorLoading] = useState(true);
+  useEffect(() => { setDoctorLoading(true); api(`/doctors/${id}`).then(setOnlineDoctor).catch(()=>setOnlineDoctor(null)).finally(()=>setDoctorLoading(false)); }, [id]);
+  const doctor = onlineDoctor;
 
   const [date, setDate] = useState("");
   const [bookableDays, setBookableDays] = useState([]);
@@ -72,29 +75,9 @@ export default function BookAppointment({ language }) {
   months: afghanCalendar.months,
 };
 
-  const times = [
-    "08:00",
-    "08:30",
-    "09:00",
-    "09:30",
-    "10:00",
-    "10:30",
-    "11:00",
-    "11:30",
-    "12:00",
-    "12:30",
-    "13:00",
-    "13:30",
-    "14:00",
-    "14:30",
-    "15:00",
-    "15:30",
-    "16:00",
-    "16:30",
-    "17:00",
-  ];
-
   const BackIcon = language === "English" ? ArrowLeft : ArrowRight;
+
+  if (doctorLoading) return <p className="text-center p-10 dark:text-white">Loading...</p>;
 
   if (!doctor) {
     return (
@@ -167,12 +150,14 @@ export default function BookAppointment({ language }) {
                   <DatePicker
                     value={date ? new Date(date.replaceAll("/", "-") + "T12:00:00") : ""}
                     onChange={(value) => {
-                      setDate(value ? value.convert(gregorian).format("YYYY/MM/DD") : "");
+                      const selected = value ? value.convert(gregorian).format("YYYY/MM/DD") : "";
+                      if (selected && !bookableDays.includes(selected)) return;
+                      setDate(selected);
                       setTime("");
                     }}
                     calendar={afghanCalendar}
                     locale={afghanLocale}
-                    onMonthChange={(month) => setCalendarMonth(new DateObject(month).convert(gregorian).format("YYYY/MM"))}
+                    onMonthChange={(month) => { setCalendarMonth(new DateObject(month).convert(gregorian).format("YYYY/MM")); setDate(""); setTime(""); }}
                     mapDays={({ date: day }) => {
                       const value = new DateObject(day).convert(gregorian).format("YYYY/MM/DD");
                       const enabled = bookableDays.includes(value);

@@ -20,9 +20,12 @@ export default function DoctorDetails({ language }) {
   const { id } = useParams();
 
   const [onlineDoctor, setOnlineDoctor] = useState(null);
-  useEffect(() => { api(`/doctors/${id}`).then(setOnlineDoctor).catch(()=>{}); }, [id]);
-  const doctor = onlineDoctor || doctors.find((item) => item.id === Number(id));
+  const [doctorLoading, setDoctorLoading] = useState(true);
+  useEffect(() => { setDoctorLoading(true); api(`/doctors/${id}`).then(setOnlineDoctor).catch(()=>setOnlineDoctor(null)).finally(()=>setDoctorLoading(false)); }, [id]);
+  const doctor = onlineDoctor;
   const label = value => t[value] || value || "";
+
+  if (doctorLoading) return <p className="text-center p-10 dark:text-white">Loading...</p>;
 
   if (!doctor) {
     return (

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { UserRound, Camera, Trash2, Save, Pencil, X, Mail, Phone, MapPin, CalendarDays, FileText, Home, ShieldCheck } from "lucide-react";
 import { translations } from "../data/translations";
 import { api, API_URL } from "../api";
@@ -7,6 +7,9 @@ import PhotoCropper from "../components/PhotoCropper";
 
 export default function UserProfile({ language, user, setUser }) {
   const t = translations[language];
+  const navigate = useNavigate();
+  const [deletePassword, setDeletePassword] = useState("");
+  const [showDelete, setShowDelete] = useState(false);
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(user.name || "");
   const [phone, setPhone] = useState(user.phone || "");
@@ -57,6 +60,15 @@ export default function UserProfile({ language, user, setUser }) {
       await api("/profile/avatar", { method: "DELETE" });
       setUser({ ...user, avatar: "" }); setImageError(false); setMessage("");
     } catch (error) { setMessage(error.message); }
+  };
+  const deleteAccount = async e => {
+    e.preventDefault();
+    if (!window.confirm("Permanently delete your account and its appointments?")) return;
+    setSaving(true); setMessage("");
+    try {
+      await api("/profile", {method:"DELETE",body:JSON.stringify({password:deletePassword})});
+      setUser(null); navigate("/home");
+    } catch (error) {setMessage(error.message);} finally {setSaving(false);}
   };
   const details = [
     [UserRound, t.profileFullName, user.name], [Mail, t.profileEmail, user.email],
@@ -110,6 +122,14 @@ export default function UserProfile({ language, user, setUser }) {
           </div>
         </div>
       </div>
+      {user.role !== "admin" && <div className="max-w-4xl mx-auto mt-6 p-5 rounded-2xl border border-red-200 dark:border-red-900">
+        <button onClick={()=>setShowDelete(!showDelete)} className="text-red-600 font-semibold">{language === "English" ? "Delete my account" : language === "Persian" ? "حذف حساب کاربری" : "زما حساب ړنګول"}</button>
+        {showDelete && <form onSubmit={deleteAccount} className="mt-4 space-y-3">
+          <p className="text-sm text-red-600">{language === "English" ? "This permanently removes your account and appointments. Enter your password to confirm." : language === "Persian" ? "حساب و نوبت‌های شما برای همیشه حذف می‌شوند. برای تأیید رمز عبور را وارد کنید." : "ستاسو حساب او نوبتونه د تل لپاره ړنګېږي. خپل پټنوم ولیکئ."}</p>
+          <input type="password" required value={deletePassword} onChange={e=>setDeletePassword(e.target.value)} className={fieldClass} placeholder={t.currentPassword}/>
+          <button disabled={saving} className="bg-red-600 text-white rounded-xl px-5 py-3 disabled:opacity-50">{language === "English" ? "Permanently delete account" : language === "Persian" ? "حذف دایمی حساب" : "حساب د تل لپاره ړنګول"}</button>
+        </form>}
+      </div>}
       {cropFile && <PhotoCropper file={cropFile} t={t} onClose={()=>setCropFile(null)} onSave={uploadImage}/>}
     </div>
   );

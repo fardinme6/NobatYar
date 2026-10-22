@@ -74,7 +74,7 @@ export default function AdminDashboard({ language }) {
   };
   const startEdit = (kind, item) => {
     setEditing(`${kind}-${item.id}`);
-    setForm(kind === "doctor" ? {name:item.name,specialty:item.specialty_value,hospitalId:hospitals.find(h=>h.name===item.hospital)?.id || "",city:item.city,about:item.about || "",image:item.image || ""} : kind === "hospital" ? {name:item.name,city:item.city,location:item.location,description:item.description || "",image:item.image || ""} : {name:item.name,value:item.value,department:item.department || "",image:item.image || ""});
+    setForm(kind === "doctor" ? {name:item.name,specialty:item.specialty_value,hospitalId:hospitals.find(h=>h.name===item.hospital)?.id || "",city:item.city,about:item.about || "",experience:item.experience || "",education:item.education || "",image:item.image || ""} : kind === "hospital" ? {name:item.name,city:item.city,location:item.location,type:item.type_value || "private",description:item.description || "",image:item.image || ""} : {name:item.name,value:item.value,department:item.department || "",image:item.image || ""});
   };
   const saveItem = async (kind, id) => {
     if(kind === "specialty" && (!form.image || !form.department || !form.name || !form.value)){setError("Name, code, department and image are required");return;}
@@ -121,6 +121,15 @@ export default function AdminDashboard({ language }) {
     if (!form.image || !form.department || !form.name || !form.value) {setError("Name, code, department and image are required");return;}
     try {await api("/admin/specialties",{method:"POST",body:JSON.stringify(form)});setEditing(null);setForm({});await load();}
     catch(e){setError(e.message);}
+  };
+  const addCatalog = async kind => {
+    if (!form.name || !form.city || (kind === "doctor" && (!form.specialty || !form.hospitalId))) {
+      setError("Complete all required fields"); return;
+    }
+    try {
+      await api(`/admin/${kind === "doctor" ? "doctors" : "hospitals"}`, {method:"POST",body:JSON.stringify(form)});
+      setEditing(null); setForm({}); await load();
+    } catch (e) {setError(e.message);}
   };
   const field = (name, label, type="text", options=[]) => <label key={name} className="block text-sm font-medium">{label}
     {type === "select" ? <select value={form[name] ?? ""} onChange={e=>setForm({...form,[name]:e.target.value})} className="mt-1 w-full p-3 rounded-xl border text-gray-900"><option value="">Select</option>{options.map(o=><option key={o.value} value={o.value}>{o.label}</option>)}</select>
@@ -170,6 +179,14 @@ export default function AdminDashboard({ language }) {
         {tab === "appointments" && (appointments.length ? appointments.map(a=><article key={a.id} className="bg-white dark:bg-slate-800 dark:text-white rounded-2xl p-5 shadow-sm flex flex-wrap justify-between gap-4 items-center"><div><h3 className="font-bold">{a.patient_name}</h3><p className="text-sm text-gray-500 dark:text-gray-300">#{a.doctor_id} · {a.date} · {a.time} · {a.status}</p></div><div className="flex gap-2"><button onClick={()=>changeAppointment(a.id,"confirmed")} className="bg-teal-600 text-white px-4 py-2 rounded-lg cursor-pointer">{t.adminConfirm}</button><button onClick={()=>changeAppointment(a.id,"cancelled")} className="bg-red-100 text-red-700 px-4 py-2 rounded-lg cursor-pointer">{t.adminCancel}</button></div></article>) : <p className="dark:text-white">{t.adminEmpty}</p>)}
 
         {(["doctors","hospitals","specialties"].includes(tab)) && <>
+          {(tab === "doctors" || tab === "hospitals") && <button onClick={()=>{setEditing(`new-${tab}`);setForm(tab === "doctors" ? {name:"",specialty:"",hospitalId:"",city:"",about:"",image:""} : {name:"",type:"private",city:"",location:"",description:"",image:""});}} className="bg-teal-600 text-white rounded-xl px-4 py-2">+ Add {tab === "doctors" ? "Doctor" : "Hospital / Clinic"}</button>}
+          {(editing === "new-doctors" || editing === "new-hospitals") && <div className="bg-white rounded-xl p-5 grid sm:grid-cols-2 gap-3">
+            {field("name","Name *")}
+            {editing === "new-doctors" ? <>{field("specialty","Specialty *","select",specialtiesList.map(x=>({value:x.value,label:x.name})))}{field("hospitalId","Hospital *","select",hospitals.map(x=>({value:x.id,label:x.name})))}{field("city","City *")}{field("experience","Experience")}{field("education","Education")}{field("about","About")}</> : <>{field("type","Type *","select",[{value:"private",label:"Private Hospital"},{value:"government",label:"Government Hospital"},{value:"clinic",label:"Clinic"}])}{field("city","City *")}{field("location","Address *")}{field("description","Description")}</>}
+            {catalogImageField()}
+            <button disabled={uploadingImage} onClick={()=>addCatalog(editing === "new-doctors" ? "doctor" : "hospital")} className="bg-teal-600 text-white rounded-xl px-4 py-2">Save</button>
+            <button onClick={()=>setEditing(null)} className="border rounded-xl px-4 py-2">Cancel</button>
+          </div>}
           {tab === "specialties" && <button onClick={()=>{setEditing("new-specialty");setForm({name:"",value:"",department:"",image:""});}} className="bg-teal-600 text-white rounded-xl px-4 py-2">+ Add Specialty</button>}
           {editing === "new-specialty" && <div className="bg-white rounded-xl p-5 grid gap-3">{field("name","Specialty name")}{field("value","Code (e.g. cardiology)")}{field("department","Specialty department")}{specialtyImageField()}<button disabled={uploadingImage} onClick={addSpecialty} className="bg-teal-600 text-white rounded-xl p-2">Save</button></div>}
           {(tab === "doctors" ? doctors : tab === "hospitals" ? hospitals : specialtiesList).map(item => {
@@ -184,8 +201,8 @@ export default function AdminDashboard({ language }) {
               </div>
               {active && <div className="grid sm:grid-cols-2 gap-3 mt-5">
                 {field("name","Name")}
-                {kind === "doctor" && <>{field("specialty","Specialty","select",specialtiesList.map(x=>({value:x.value,label:x.name})))}{field("hospitalId","Hospital","select",hospitals.map(x=>({value:x.id,label:x.name})))}{field("city","City")}{field("about","About")}{catalogImageField()}</>}
-                {kind === "hospital" && <>{field("city","City")}{field("location","Address")}{field("description","Description")}{catalogImageField()}</>}
+                {kind === "doctor" && <>{field("specialty","Specialty","select",specialtiesList.map(x=>({value:x.value,label:x.name})))}{field("hospitalId","Hospital","select",hospitals.map(x=>({value:x.id,label:x.name})))}{field("city","City")}{field("experience","Experience")}{field("education","Education")}{field("about","About")}{catalogImageField()}</>}
+                {kind === "hospital" && <>{field("type","Type","select",[{value:"private",label:"Private"},{value:"government",label:"Government"},{value:"clinic",label:"Clinic"}])}{field("city","City")}{field("location","Address")}{field("description","Description")}{catalogImageField()}</>}
                 {kind === "specialty" && <>{field("value","Code")}{field("department","Specialty department")}{specialtyImageField()}</>}
                 <button disabled={uploadingImage} onClick={()=>saveItem(kind,item.id)} className="bg-teal-600 text-white rounded-xl px-4 py-2 flex items-center justify-center gap-2"><Save size={17}/> Save changes</button>
               </div>}

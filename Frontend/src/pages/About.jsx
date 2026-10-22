@@ -180,7 +180,7 @@ export default function About({ language }) {
           <div className="grid grid-cols-1 md:grid-cols-5 items-center p-2">
               <div className="w-full bg-white dark:bg-slate-800 p-3 rounded-2xl md:col-span-2 p-5 md:p-7 flex items-center justify-center shadow-xl">
                 <img
-                  src="/fardin.jpg?v=20261023"
+                  src={`${import.meta.env.BASE_URL}fardin-nobatyar.jpg`}
                   alt="Fardin Mehry"
                   className="w-full h-auto rounded-xl"
                 />

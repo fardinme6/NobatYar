@@ -32,7 +32,7 @@ export default function ProviderRegistration({ language, user }) {
     setSaving(true);
     const form = new FormData(e.currentTarget);
     const data = Object.fromEntries(form.entries());
-    if (providerType === "doctor" && !doctorPhoto) { setError("Doctor photo is required / عکس داکتر ضروری است"); setSaving(false); return; }
+    if (!doctorPhoto) { setError("Photo is required / عکس ضروری است"); setSaving(false); return; }
     let photoUrl = "";
     try {
       if (doctorPhoto) {

@@ -113,7 +113,8 @@ export default function SignUp({ language, onLogin }) {
                 <select value={accountType} onChange={(e) => setAccountType(e.target.value)} className={inputStyle}>
                   <option value="patient">{language === "English" ? "Patient" : language === "Persian" ? "مریض" : "ناروغ"}</option>
                   <option value="doctor">{language === "English" ? "Doctor" : language === "Persian" ? "داکتر" : "ډاکټر"}</option>
-                  <option value="hospital">{language === "English" ? "Hospital / Clinic" : language === "Persian" ? "شفاخانه / کلینیک" : "روغتون / کلینیک"}</option>
+                  <option value="hospital">{language === "English" ? "Hospital" : language === "Persian" ? "شفاخانه" : "روغتون"}</option>
+                  <option value="clinic">{language === "English" ? "Clinic" : language === "Persian" ? "کلینیک" : "کلینیک"}</option>
                 </select>
                 {accountType !== "patient" && <p className="text-xs text-teal-600 mt-2">{language === "English" ? "After signup, complete the provider application. Admin approval is required." : language === "Persian" ? "پس از ثبت‌نام، فرم درخواست را تکمیل کنید. تأیید ادمین ضروری است." : "له نوم‌لیکنې وروسته د خدمت‌وړاندې کوونکي غوښتنلیک بشپړ کړئ."}</p>}
               </div>

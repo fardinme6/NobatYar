@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { api } from "../api";
 import MultiDatePicker from "react-multi-date-picker";
 const DatePicker = MultiDatePicker.default || MultiDatePicker;
+import DateObject from "react-date-object";
 import persian from "react-date-object/calendars/persian";
 import gregorian from "react-date-object/calendars/gregorian";
 import persian_fa from "react-date-object/locales/persian_fa";
@@ -27,6 +28,14 @@ export default function BookAppointment({ language }) {
   const doctor = doctors.find((item) => item.id === Number(id));
 
   const [date, setDate] = useState("");
+  const [bookableDays, setBookableDays] = useState([]);
+  const [calendarMonth, setCalendarMonth] = useState(() => new Date().toISOString().slice(0,7).replace('-', '/'));
+  useEffect(() => {
+    setBookableDays([]);
+    api(`/doctors/${id}/bookable-days?month=${calendarMonth}`)
+      .then(setBookableDays)
+      .catch(() => setBookableDays([]));
+  }, [id, calendarMonth]);
   const [time, setTime] = useState("");
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
@@ -163,6 +172,15 @@ export default function BookAppointment({ language }) {
                     }}
                     calendar={afghanCalendar}
                     locale={afghanLocale}
+                    onMonthChange={(month) => setCalendarMonth(new DateObject(month).convert(gregorian).format("YYYY/MM"))}
+                    mapDays={({ date: day }) => {
+                      const value = new DateObject(day).convert(gregorian).format("YYYY/MM/DD");
+                      const enabled = bookableDays.includes(value);
+                      return {
+                        disabled: !enabled,
+                        style: enabled ? { backgroundColor: "#16a34a", color: "white", borderRadius: "8px" } : { opacity: 0.3, cursor: "not-allowed" }
+                      };
+                    }}
                     minDate={new Date()}
                     format="YYYY/MM/DD"
                     containerClassName="w-full"

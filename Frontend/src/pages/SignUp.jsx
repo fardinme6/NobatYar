@@ -20,6 +20,7 @@ export default function SignUp({ language, onLogin }) {
   const navigate = useNavigate();
 
   const [fullName, setFullName] = useState("");
+  const [accountType, setAccountType] = useState("patient");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
@@ -59,7 +60,7 @@ export default function SignUp({ language, onLogin }) {
         body: JSON.stringify({ name: fullName, email, phone, password }),
       });
       onLogin(data.user);
-      navigate("/profile");
+      navigate(accountType === "patient" ? "/my-appointments" : "/register-provider");
     } catch (error) {
       setError(true);
       setMessage(error.message);
@@ -105,6 +106,17 @@ export default function SignUp({ language, onLogin }) {
               onSubmit={handleSignUp}
               className="grid grid-cols-1 sm:grid-cols-2 gap-4"
             >
+              <div className="sm:col-span-2">
+                <label className="block mb-2 text-sm font-semibold text-gray-700 dark:text-gray-200">
+                  {language === "English" ? "Register as" : language === "Persian" ? "ثبت‌نام به عنوان" : "د حساب ډول"} *
+                </label>
+                <select value={accountType} onChange={(e) => setAccountType(e.target.value)} className={inputStyle}>
+                  <option value="patient">{language === "English" ? "Patient" : language === "Persian" ? "مریض" : "ناروغ"}</option>
+                  <option value="doctor">{language === "English" ? "Doctor" : language === "Persian" ? "داکتر" : "ډاکټر"}</option>
+                  <option value="hospital">{language === "English" ? "Hospital / Clinic" : language === "Persian" ? "شفاخانه / کلینیک" : "روغتون / کلینیک"}</option>
+                </select>
+                {accountType !== "patient" && <p className="text-xs text-teal-600 mt-2">{language === "English" ? "After signup, complete the provider application. Admin approval is required." : language === "Persian" ? "پس از ثبت‌نام، فرم درخواست را تکمیل کنید. تأیید ادمین ضروری است." : "له نوم‌لیکنې وروسته د خدمت‌وړاندې کوونکي غوښتنلیک بشپړ کړئ."}</p>}
+              </div>
               <div>
                 <label className="block mb-2 text-sm font-semibold text-gray-700 dark:text-gray-200">
                   {t.fullName}

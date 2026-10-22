@@ -32,7 +32,7 @@ export default function ProviderRegistration({ language, user }) {
     setSaving(true);
     const form = new FormData(e.currentTarget);
     const data = Object.fromEntries(form.entries());
-    if (!doctorPhoto) { setError("Doctor photo is required / عکس داکتر ضروری است"); setSaving(false); return; }
+    if (providerType === "doctor" && !doctorPhoto) { setError("Doctor photo is required / عکس داکتر ضروری است"); setSaving(false); return; }
     let photoUrl = "";
     try {
       if (doctorPhoto) {
@@ -41,7 +41,7 @@ export default function ProviderRegistration({ language, user }) {
         photoUrl = uploaded.photoUrl;
       }
     } catch (err) { setError(err.message); setSaving(false); return; }
-    const details = JSON.stringify({ photoUrl, type: providerType, city: data.city, specialty: data.specialty || "", hospitalId: data.hospitalId || null, hospitalType: data.hospitalType || "", license: data.license || "", address: data.address || "", information: data.information || "" });
+    const details = JSON.stringify({ photoUrl, type: providerType, city: data.city, specialty: data.specialty || "", hospitalId: data.hospitalId || null, hospitalType: providerType === "doctor" ? "" : providerType, license: data.license || "", address: data.address || "", information: data.information || "" });
     try {
       const created = await api("/provider-requests", { method: "POST", body: JSON.stringify({ name: data.name, email: data.email, phone: data.phone, providerType, details }) });
 
@@ -169,7 +169,7 @@ export default function ProviderRegistration({ language, user }) {
                   <label className="block mb-2 font-medium text-gray-700 dark:text-gray-200">
                     {providerType === "doctor"
                       ? t.fullName
-                      : t.hospitalName}
+                      : t.hospitalName} <span className="text-red-500">*</span>
                   </label>
 
                   <input
@@ -187,7 +187,7 @@ export default function ProviderRegistration({ language, user }) {
 
                 <div>
                   <label className="block mb-2 font-medium text-gray-700 dark:text-gray-200">
-                    {t.phoneNumber}
+                    {t.phoneNumber} <span className="text-red-500">*</span>
                   </label>
 
                   <input
@@ -202,7 +202,7 @@ export default function ProviderRegistration({ language, user }) {
 
                 <div>
                   <label className="block mb-2 font-medium text-gray-700 dark:text-gray-200">
-                    {t.emailAddress}
+                    {t.emailAddress} <span className="text-red-500">*</span>
                   </label>
 
                   <input
@@ -278,7 +278,7 @@ export default function ProviderRegistration({ language, user }) {
                     </div>
                     <div>
                       <label className="block mb-2 font-medium text-gray-700 dark:text-gray-200">
-                        {t.licenseNumber}
+                        {t.licenseNumber} <span className="text-red-500">*</span>
                       </label>
 
                       <input
@@ -296,26 +296,7 @@ export default function ProviderRegistration({ language, user }) {
                   <>
                     <div>
                       <label className="block mb-2 font-medium text-gray-700 dark:text-gray-200">
-                        {t.hospitalType}
-                      </label>
-
-                      <select
-                        name="hospitalType"
-                        defaultValue=""
-                        required
-                        className={inputStyle}
-                      >
-                        <option value="" disabled>
-                          {t.selectHospitalType}
-                        </option>
-                        <option value="hospital">{t.hospital}</option>
-                        <option value="clinic">{t.clinic}</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block mb-2 font-medium text-gray-700 dark:text-gray-200">
-                        {t.licenseNumber}
+                        {t.licenseNumber} <span className="text-red-500">*</span>
                       </label>
 
                       <input
@@ -331,7 +312,7 @@ export default function ProviderRegistration({ language, user }) {
 
                 <div className="md:col-span-2">
                   <label className="block mb-2 font-medium text-gray-700 dark:text-gray-200">
-                    {t.fullAddress}
+                    {t.fullAddress} <span className="text-red-500">*</span>
                   </label>
 
                   <textarea

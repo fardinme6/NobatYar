@@ -232,6 +232,40 @@ app.get('/api/doctors/:id/booked-slots', asyncRoute(async (req, res) => {
  const result = await db.query("SELECT time FROM appointments WHERE doctor_id=$1 AND date=$2 AND status <> 'cancelled'", [req.params.id, date]);
  res.json(result.rows.map(r => r.time));
 }));
+// Dates that have at least one available appointment slot.
+app.get('/api/doctors/:id/bookable-days', asyncRoute(async (req, res) => {
+ const month = String(req.query.month || '');
+ if (!/^\d{4}\/\d{2}$/.test(month)) return res.status(400).json({ message: 'Invalid month' });
+ const [year, number] = month.split('/').map(Number);
+ if (number < 1 || number > 12 || year < 2020 || year > 2100) return res.status(400).json({ message: 'Invalid month' });
+ const schedules = await db.query('SELECT weekday,start_time,end_time,slot_minutes FROM doctor_schedules WHERE doctor_id=$1 AND enabled=true', [req.params.id]);
+ const daysOff = await db.query('SELECT date FROM doctor_days_off WHERE doctor_id=$1 AND date LIKE $2', [req.params.id, month + '/%']);
+ const appointments = await db.query("SELECT date,time FROM appointments WHERE doctor_id=$1 AND date LIKE $2 AND status<>'cancelled'", [req.params.id, month + '/%']);
+ const off = new Set(daysOff.rows.map(r => String(r.date).slice(0,10).replaceAll('-','/')));
+ const booked = new Map();
+ for (const a of appointments.rows) {
+  const key = String(a.date).slice(0,10).replaceAll('-','/');
+  if (!booked.has(key)) booked.set(key,new Set());
+  booked.get(key).add(String(a.time).slice(0,5));
+ }
+ const result = [];
+ const today = new Date().toISOString().slice(0,10).replaceAll('-','/');
+ const last = new Date(Date.UTC(year,number,0)).getUTCDate();
+ const minutes = t => Number(String(t).slice(0,2))*60 + Number(String(t).slice(3,5));
+ for (let day=1; day<=last; day++) {
+  const date = month + '/' + String(day).padStart(2,'0');
+  if (date < today || off.has(date)) continue;
+  const weekday = new Date(Date.UTC(year,number-1,day)).getUTCDay();
+  const schedule = schedules.rows.find(r => Number(r.weekday) === weekday);
+  if (!schedule) continue;
+  const used = booked.get(date) || new Set();
+  for (let m=minutes(schedule.start_time); m+Number(schedule.slot_minutes)<=minutes(schedule.end_time); m+=Number(schedule.slot_minutes)) {
+   const time = String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
+   if (!used.has(time)) { result.push(date); break; }
+  }
+ }
+ res.json(result);
+}));
 app.get('/api/doctors/:id/available-slots',asyncRoute(async(req,res)=>{
  const date=normalizeDigits(String(req.query.date||''));
  if(!/^\d{4}\/\d{2}\/\d{2}$/.test(date))return res.status(400).json({message:'Invalid date'});

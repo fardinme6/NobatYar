@@ -14,13 +14,12 @@ import {
 } from "lucide-react";
 import { translations } from "../data/translations.js";
 
-export default function Hospitals({ language, home = false }) {
+export default function Hospitals({ language, home = false, user }) {
   const t = translations[language];
+  const [onlineHospitals,setOnlineHospitals] = useState([]);
+  useEffect(()=>{api("/hospitals").then(setOnlineHospitals).catch(()=>{});},[]);
+  const allHospitals = [...hospitals.filter(h=>!onlineHospitals.some(o=>o.id===h.id)),...onlineHospitals];
 
-  const [onlineHospitals, setOnlineHospitals] = useState([]);
-  useEffect(() => { api("/hospitals").then(setOnlineHospitals).catch(()=>{}); }, []);
-  const allHospitals = [...hospitals.filter(h => !onlineHospitals.some(o => o.id === h.id)), ...onlineHospitals];
-  const label = value => t[value] || value || "";
   const [search, setSearch] = useState("");
   const [city, setCity] = useState("all");
   const [type, setType] = useState("all");
@@ -28,9 +27,9 @@ export default function Hospitals({ language, home = false }) {
   const filteredHospitals = allHospitals.filter((hospital) => {
     const keyword = search.toLowerCase().trim();
 
-    const hospitalName = label(hospital.name).toLowerCase();
-    const hospitalCity = label(hospital.city).toLowerCase();
-    const hospitalLocation = label(hospital.location).toLowerCase();
+    const hospitalName = (t[hospital.name] || hospital.name || "").toLowerCase();
+    const hospitalCity = (t[hospital.city] || hospital.city || "").toLowerCase();
+    const hospitalLocation = (t[hospital.location] || hospital.location || "").toLowerCase();
 
     const matchSearch =
       hospitalName.includes(keyword) ||
@@ -44,7 +43,7 @@ export default function Hospitals({ language, home = false }) {
     return matchSearch && matchCity && matchType;
   });
 
-  const displayedHospitals = home ? allHospitals.slice(-3) : filteredHospitals;
+  const displayedHospitals = home ? allHospitals.slice(0, 3) : filteredHospitals;
 
   const resetFilters = () => {
     setSearch("");
@@ -180,15 +179,16 @@ export default function Hospitals({ language, home = false }) {
                 key={hospital.id}
                 className="flex flex-col bg-white dark:bg-slate-800 rounded-2xl overflow-hidden border border-gray-100 dark:border-slate-700 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
               >
+                {user?.role === "admin" && onlineHospitals.some(h=>h.id===hospital.id) && <Link to={`/admin?tab=hospitals&edit=${hospital.id}`} className="block bg-teal-600 text-white text-center py-2">✎ Edit / Delete Hospital</Link>}
                 <div className="relative overflow-hidden">
                   <img
                     src={hospital.image}
-                    alt={label(hospital.name)}
+                    alt={t[hospital.name]}
                     className="w-full h-56 object-cover hover:scale-105 transition-transform duration-500"
                   />
 
                   <span className="absolute top-4 start-4 bg-white/95 dark:bg-slate-800/95 text-teal-700 dark:text-teal-400 px-3 py-1.5 rounded-lg text-xs font-semibold shadow-sm">
-                    {label(hospital.type)}
+                    {t[hospital.type]}
                   </span>
                 </div>
 
@@ -199,14 +199,14 @@ export default function Hospitals({ language, home = false }) {
                   </div>
 
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                    {label(hospital.name)}
+                    {t[hospital.name]}
                   </h3>
 
                   <div className="flex items-start gap-2 text-gray-600 dark:text-gray-300 mb-6">
                     <MapPin size={18} className="shrink-0 mt-1 text-teal-600" />
 
                     <span className="text-sm leading-6">
-                      {label(hospital.city)}, {label(hospital.location)}
+                      {t[hospital.city]}, {t[hospital.location]}
                     </span>
                   </div>
 

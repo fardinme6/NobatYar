@@ -1,0 +1,2 @@
+ALTER TABLE medical_specialties ADD COLUMN IF NOT EXISTS department TEXT NOT NULL DEFAULT '';
+ALTER TABLE medical_specialties ADD COLUMN IF NOT EXISTS image TEXT NOT NULL DEFAULT '';

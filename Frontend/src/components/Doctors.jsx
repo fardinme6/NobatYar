@@ -15,7 +15,7 @@ import { translations } from "../data/translations.js";
 import { doctors } from "../data/doctorsData.js";
 import { specialties } from "../data/specialties.js";
 
-export default function Doctors({ language, home = false }) {
+export default function Doctors({ language, home = false, user }) {
   const t = translations[language];
   const [onlineDoctors, setOnlineDoctors] = useState([]);
   useEffect(() => { api("/doctors").then(setOnlineDoctors).catch(()=>{}); }, []);
@@ -186,6 +186,7 @@ export default function Doctors({ language, home = false }) {
                 key={doctor.id}
                 className="flex flex-col bg-white dark:bg-slate-800 rounded-2xl overflow-hidden border border-gray-100 dark:border-slate-700 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
               >
+                {user?.role === "admin" && onlineDoctors.some(d=>d.id===doctor.id) && <Link to={`/admin?tab=doctors&edit=${doctor.id}`} className="bg-teal-600 text-white text-center py-2">✎ Edit / Delete Doctor</Link>}
                 <div className="relative overflow-hidden bg-gray-100 dark:bg-slate-700">
                   <img
                     src={doctor.image}

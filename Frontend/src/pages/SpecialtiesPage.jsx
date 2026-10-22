@@ -1,5 +1,6 @@
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { api } from "../api";
 import { Link } from "react-router-dom";
 import {
   Search,
@@ -13,12 +14,15 @@ import { translations } from "../data/translations";
 import { specialties } from "../data/specialties";
 import { doctors } from "../data/doctorsData";
 
-export default function SpecialtiesPage({ language }) {
+export default function SpecialtiesPage({ language, user }) {
   const t = translations[language];
+  const [onlineSpecialties,setOnlineSpecialties] = useState([]);
+  useEffect(()=>{api("/specialties").then(setOnlineSpecialties).catch(()=>{});},[]);
+  const allSpecialties = [...specialties.filter(s=>!onlineSpecialties.some(o=>o.value===s.value)),...onlineSpecialties.map(s=>({...s,image:s.image || specialties.find(x=>x.value===s.value)?.image || ""}))];
   const [search, setSearch] = useState("");
 
-  const filteredSpecialties = specialties.filter((specialty) =>
-    t[specialty.name].toLowerCase().includes(search.toLowerCase().trim())
+  const filteredSpecialties = allSpecialties.filter((specialty) =>
+    (t[specialty.name] || specialty.name || "").toLowerCase().includes(search.toLowerCase().trim())
   );
 
   return (
@@ -80,17 +84,18 @@ export default function SpecialtiesPage({ language }) {
                   key={specialty.id}
                   className="flex flex-col bg-white dark:bg-slate-800 rounded-2xl overflow-hidden border border-gray-100 dark:border-slate-700 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
                 >
+                  {user?.role === "admin" && onlineSpecialties.some(s=>s.id===specialty.id) && <Link to={`/admin?tab=specialties&edit=${specialty.id}`} className="block bg-teal-600 text-white text-center py-2">✎ Edit / Delete Specialty</Link>}
                   <div className="overflow-hidden bg-gray-100 dark:bg-slate-700">
                     <img
                       src={specialty.image}
-                      alt={t[specialty.name]}
+                      alt={t[specialty.name] || specialty.name}
                       className="w-full h-48 object-cover hover:scale-105 transition-transform duration-500"
                     />
                   </div>
 
                   <div className="flex flex-col flex-1 p-5">
                     <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3">
-                      {t[specialty.name]}
+                      {t[specialty.name] || specialty.name}
                     </h3>
 
                     <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-6">

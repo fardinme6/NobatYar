@@ -6,7 +6,7 @@ import cookieParser from 'cookie-parser';
 import rateLimit from 'express-rate-limit';
 import bcrypt from 'bcryptjs';
 import multer from 'multer';
-import { uploadAvatarToCloudinary, deleteCloudinaryAvatar, cloudinaryEnabled, uploadProviderPhotoToCloudinary } from './cloudinary.js';
+import { uploadAvatarToCloudinary, deleteCloudinaryAvatar, cloudinaryEnabled, uploadProviderPhotoToCloudinary, uploadSpecialtyImageToCloudinary } from './cloudinary.js';
 import path from 'node:path';
 import fs from 'node:fs';
 import crypto from 'node:crypto';
@@ -199,7 +199,7 @@ app.delete('/api/profile/avatar', requireAuth, asyncRoute(async (req, res) => {
 }));
 
 app.get('/api/specialties', asyncRoute(async (req,res) => {
- const r = await db.query('SELECT id,name,value FROM medical_specialties ORDER BY name'); res.json(r.rows);
+ const r = await db.query('SELECT id,name,value,department,image FROM medical_specialties ORDER BY name'); res.json(r.rows);
 }));
 app.get('/api/doctors', asyncRoute(async (req, res) => {
  const result = await db.query('SELECT id,name,specialty,specialty_value AS "specialtyValue",hospital,city,city_value AS "cityValue",image,experience,education,about FROM doctors ORDER BY id');
@@ -500,16 +500,27 @@ app.delete('/api/admin/hospitals/:id',requireAuth,requireAdmin,asyncRoute(async(
  if(linked.rowCount)return res.status(409).json({message:'Move or delete the hospital doctors first'});
  await db.query('DELETE FROM hospitals WHERE id=$1',[req.params.id]);res.json({ok:true});
 }));
+app.post('/api/admin/specialties/photo', requireAuth, requireAdmin, providerPhotoUpload.single('photo'), asyncRoute(async (req,res) => {
+ if (!cloudinaryEnabled()) return res.status(503).json({message:'Cloudinary is not configured'});
+ if (!req.file) return res.status(400).json({message:'Select a JPG, PNG or WebP image under 3 MB'});
+ const b=req.file.buffer;
+ const validImage=(b[0]===255&&b[1]===216&&b[2]===255)||b.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10]))||(b.toString('ascii',0,4)==='RIFF'&&b.toString('ascii',8,12)==='WEBP');
+ if (!validImage) return res.status(400).json({message:'Invalid image file'});
+ res.json({image:await uploadSpecialtyImageToCloudinary(b,req.user.id)});
+}));
 app.post('/api/admin/specialties',requireAuth,requireAdmin,asyncRoute(async(req,res)=>{
- const d=valid(z.object({name:text(),value:z.string().trim().regex(/^[a-z0-9-]{2,60}$/)}),req.body);
- const r=await db.query('INSERT INTO medical_specialties(name,value) VALUES($1,$2) RETURNING *',[d.name,d.value]);res.status(201).json(r.rows[0]);
+ const d=valid(z.object({name:text(),value:z.string().regex(/^[a-z][a-zA-Z0-9_-]{1,79}$/),department:text(160),image:z.string().url().max(1000)}),req.body);
+ if(!d.image.startsWith(`https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload/`))return res.status(400).json({message:'Upload a specialty image first'});
+ const r=await db.query('INSERT INTO medical_specialties(name,value,department,image) VALUES($1,$2,$3,$4) RETURNING *',[d.name,d.value,d.department,d.image]);res.status(201).json(r.rows[0]);
 }));
 app.patch('/api/admin/specialties/:id',requireAuth,requireAdmin,asyncRoute(async(req,res)=>{
- const d=valid(z.object({name:text(),value:z.string().trim().regex(/^[a-z0-9-]{2,60}$/)}),req.body);
- const old=await db.query('SELECT value FROM medical_specialties WHERE id=$1',[req.params.id]);
- if(!old.rowCount)return res.status(404).json({message:'Specialty not found'});
- const client=await db.connect();try{await client.query('BEGIN');
-  const r=await client.query('UPDATE medical_specialties SET name=$1,value=$2 WHERE id=$3 RETURNING *',[d.name,d.value,req.params.id]);
+ const d=valid(z.object({name:text(),value:z.string().regex(/^[a-z][a-zA-Z0-9_-]{1,79}$/),department:text(160),image:z.string().url().max(1000)}),req.body);
+ const client=await db.connect();
+ try {
+  await client.query('BEGIN');
+  const old=await client.query('SELECT value FROM medical_specialties WHERE id=$1 FOR UPDATE',[req.params.id]);
+  if(!old.rowCount){await client.query('ROLLBACK');return res.status(404).json({message:'Specialty not found'});}
+  const r=await client.query('UPDATE medical_specialties SET name=$1,value=$2,department=$3,image=$4 WHERE id=$5 RETURNING *',[d.name,d.value,d.department,d.image,req.params.id]);
   await client.query('UPDATE doctors SET specialty=$1,specialty_value=$1 WHERE specialty_value=$2',[d.value,old.rows[0].value]);
   await client.query('COMMIT');res.json(r.rows[0]);
  }catch(e){await client.query('ROLLBACK');throw e;}finally{client.release();}

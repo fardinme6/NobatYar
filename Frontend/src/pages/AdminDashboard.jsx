@@ -5,7 +5,7 @@ import { ShieldCheck, Mail, CalendarDays, ClipboardCheck, RefreshCw, Building2, 
 
 export default function AdminDashboard({ language }) {
   const t = translations[language];
-  const [tab, setTab] = useState("requests");
+  const [tab, setTab] = useState(new URLSearchParams(window.location.search).get("tab") || "requests");
   const [requests, setRequests] = useState([]);
   const [appointments, setAppointments] = useState([]);
   const [contacts, setContacts] = useState([]);
@@ -15,6 +15,7 @@ export default function AdminDashboard({ language }) {
   const [specialtiesList, setSpecialtiesList] = useState([]);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({});
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [notes, setNotes] = useState({});
   const [replies, setReplies] = useState({});
   const [documents, setDocuments] = useState({});
@@ -35,6 +36,13 @@ export default function AdminDashboard({ language }) {
     try { await api(`/admin/provider-requests/${r.id}`, { method: "PATCH", body: JSON.stringify({ status, note }) }); await load(); }
     catch (e) { setError(e.message); }
   };
+  useEffect(()=>{
+    const editId=Number(new URLSearchParams(window.location.search).get("edit"));
+    if(!editId || loading || editing) return;
+    const kind=tab === "doctors" ? "doctor" : tab === "hospitals" ? "hospital" : tab === "specialties" ? "specialty" : "";
+    const item=(kind === "doctor" ? doctors : kind === "hospital" ? hospitals : specialtiesList).find(x=>x.id===editId);
+    if(item && kind) startEdit(kind,item);
+  },[loading,tab,doctors,hospitals,specialtiesList]);
   const showDocuments = async id => {
     try { const result = await api(`/admin/provider-requests/${id}/documents`); setDocuments({...documents,[id]:result}); }
     catch(e){setError(e.message);}
@@ -61,9 +69,10 @@ export default function AdminDashboard({ language }) {
   };
   const startEdit = (kind, item) => {
     setEditing(`${kind}-${item.id}`);
-    setForm(kind === "doctor" ? {name:item.name,specialty:item.specialty_value,hospitalId:hospitals.find(h=>h.name===item.hospital)?.id || "",city:item.city,about:item.about || ""} : kind === "hospital" ? {name:item.name,city:item.city,location:item.location,description:item.description || ""} : {name:item.name,value:item.value});
+    setForm(kind === "doctor" ? {name:item.name,specialty:item.specialty_value,hospitalId:hospitals.find(h=>h.name===item.hospital)?.id || "",city:item.city,about:item.about || ""} : kind === "hospital" ? {name:item.name,city:item.city,location:item.location,description:item.description || ""} : {name:item.name,value:item.value,department:item.department || "",image:item.image || ""});
   };
   const saveItem = async (kind, id) => {
+    if(kind === "specialty" && (!form.image || !form.department || !form.name || !form.value)){setError("Name, code, department and image are required");return;}
     try { await api(`/admin/${kind === "doctor" ? "doctors" : kind === "hospital" ? "hospitals" : "specialties"}/${id}`, {method:"PATCH",body:JSON.stringify(form)});setEditing(null);await load(); }
     catch(e){setError(e.message);}
   };
@@ -72,7 +81,26 @@ export default function AdminDashboard({ language }) {
     try {await api(`/admin/${kind === "doctor" ? "doctors" : kind === "hospital" ? "hospitals" : "specialties"}/${id}`,{method:"DELETE"});await load();}
     catch(e){setError(e.message);}
   };
+  const uploadSpecialtyPhoto = async file => {
+    if (!file) return;
+    setUploadingImage(true);setError("");
+    try {
+      const body=new FormData();body.append("photo",file);
+      const response=await fetch(`${API_URL}/api/admin/specialties/photo`,{method:"POST",credentials:"include",body});
+      const result=await response.json();
+      if(!response.ok)throw new Error(result.message || "Upload failed");
+      setForm(previous=>({...previous,image:result.image}));
+    }catch(e){setError(e.message);}finally{setUploadingImage(false);}
+  };
+  const specialtyImageField = () => <div className="sm:col-span-2 space-y-2">
+    <label className="block text-sm font-medium">Specialty image * (JPG, PNG, WebP, max 3MB)
+      <input type="file" accept="image/jpeg,image/png,image/webp" onChange={e=>uploadSpecialtyPhoto(e.target.files[0])} className="block mt-2 w-full border rounded-xl p-3" />
+    </label>
+    {uploadingImage && <p>Uploading image...</p>}
+    {form.image && <img src={form.image} alt="Specialty" className="w-28 h-28 object-cover rounded-xl" />}
+  </div>;
   const addSpecialty = async () => {
+    if (!form.image || !form.department || !form.name || !form.value) {setError("Name, code, department and image are required");return;}
     try {await api("/admin/specialties",{method:"POST",body:JSON.stringify(form)});setEditing(null);setForm({});await load();}
     catch(e){setError(e.message);}
   };
@@ -124,15 +152,15 @@ export default function AdminDashboard({ language }) {
         {tab === "appointments" && (appointments.length ? appointments.map(a=><article key={a.id} className="bg-white dark:bg-slate-800 dark:text-white rounded-2xl p-5 shadow-sm flex flex-wrap justify-between gap-4 items-center"><div><h3 className="font-bold">{a.patient_name}</h3><p className="text-sm text-gray-500 dark:text-gray-300">#{a.doctor_id} · {a.date} · {a.time} · {a.status}</p></div><div className="flex gap-2"><button onClick={()=>changeAppointment(a.id,"confirmed")} className="bg-teal-600 text-white px-4 py-2 rounded-lg cursor-pointer">{t.adminConfirm}</button><button onClick={()=>changeAppointment(a.id,"cancelled")} className="bg-red-100 text-red-700 px-4 py-2 rounded-lg cursor-pointer">{t.adminCancel}</button></div></article>) : <p className="dark:text-white">{t.adminEmpty}</p>)}
 
         {(["doctors","hospitals","specialties"].includes(tab)) && <>
-          {tab === "specialties" && <button onClick={()=>{setEditing("new-specialty");setForm({name:"",value:""});}} className="bg-teal-600 text-white rounded-xl px-4 py-2">+ Add Specialty</button>}
-          {editing === "new-specialty" && <div className="bg-white rounded-xl p-5 grid gap-3">{field("name","Specialty name")}{field("value","Code (lowercase, e.g. cardiology)")}<button onClick={addSpecialty} className="bg-teal-600 text-white rounded-xl p-2">Save</button></div>}
+          {tab === "specialties" && <button onClick={()=>{setEditing("new-specialty");setForm({name:"",value:"",department:"",image:""});}} className="bg-teal-600 text-white rounded-xl px-4 py-2">+ Add Specialty</button>}
+          {editing === "new-specialty" && <div className="bg-white rounded-xl p-5 grid gap-3">{field("name","Specialty name")}{field("value","Code (e.g. cardiology)")}{field("department","Specialty department")}{specialtyImageField()}<button disabled={uploadingImage} onClick={addSpecialty} className="bg-teal-600 text-white rounded-xl p-2">Save</button></div>}
           {(tab === "doctors" ? doctors : tab === "hospitals" ? hospitals : specialtiesList).map(item => {
             const kind = tab === "doctors" ? "doctor" : tab === "hospitals" ? "hospital" : "specialty";
             const active = editing === `${kind}-${item.id}`;
             return <article key={item.id} className="bg-white dark:bg-slate-800 dark:text-white rounded-2xl p-5 shadow-sm">
               <div className="flex items-center gap-4 flex-wrap">
                 {item.image && <img src={item.image} alt={item.name} className="w-20 h-20 object-cover rounded-xl" />}
-                <div className="flex-1"><h3 className="font-bold">{item.name}</h3><p className="text-sm text-gray-500">{kind === "doctor" ? `${item.specialty} · ${item.hospital} · ${item.city}` : kind === "hospital" ? `${item.city} · ${item.location}` : item.value}</p></div>
+                <div className="flex-1"><h3 className="font-bold">{item.name}</h3><p className="text-sm text-gray-500">{kind === "doctor" ? `${item.specialty} · ${item.hospital} · ${item.city}` : kind === "hospital" ? `${item.city} · ${item.location}` : `${item.value} · ${item.department || "No department"}`}</p></div>
                 <button onClick={()=>active?setEditing(null):startEdit(kind,item)} className="flex gap-1 items-center border rounded-lg px-3 py-2"><Pencil size={16}/> {active?"Cancel":"Edit"}</button>
                 <button onClick={()=>deleteItem(kind,item.id)} className="flex gap-1 items-center bg-red-100 text-red-700 rounded-lg px-3 py-2"><Trash2 size={16}/> Delete</button>
               </div>
@@ -140,8 +168,8 @@ export default function AdminDashboard({ language }) {
                 {field("name","Name")}
                 {kind === "doctor" && <>{field("specialty","Specialty","select",specialtiesList.map(x=>({value:x.value,label:x.name})))}{field("hospitalId","Hospital","select",hospitals.map(x=>({value:x.id,label:x.name})))}{field("city","City")}{field("about","About")}</>}
                 {kind === "hospital" && <>{field("city","City")}{field("location","Address")}{field("description","Description")}</>}
-                {kind === "specialty" && field("value","Code")}
-                <button onClick={()=>saveItem(kind,item.id)} className="bg-teal-600 text-white rounded-xl px-4 py-2 flex items-center justify-center gap-2"><Save size={17}/> Save changes</button>
+                {kind === "specialty" && <>{field("value","Code")}{field("department","Specialty department")}{specialtyImageField()}</>}
+                <button disabled={uploadingImage} onClick={()=>saveItem(kind,item.id)} className="bg-teal-600 text-white rounded-xl px-4 py-2 flex items-center justify-center gap-2"><Save size={17}/> Save changes</button>
               </div>}
             </article>;
           })}

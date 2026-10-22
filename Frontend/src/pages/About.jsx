@@ -177,20 +177,18 @@ export default function About({ language }) {
         </div>
 
         <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm overflow-hidden">
-          <div className="grid grid-cols-1 md:grid-cols-5 items-center">
-            <div className="md:col-span-2 bg-teal-50 dark:bg-slate-700 p-5 md:p-7 flex items-center justify-center">
-              <div className="w-full bg-white dark:bg-slate-800 p-3 rounded-2xl shadow-xl">
+          <div className="grid grid-cols-1 md:grid-cols-5 items-center p-2">
+              <div className="w-full bg-white dark:bg-slate-800 p-3 rounded-2xl md:col-span-2 p-5 md:p-7 flex items-center justify-center shadow-xl">
                 <img
-                  src="/fardin.JPG"
+                  src="/fardin.jpg"
                   alt="Fardin Mehry"
                   className="w-full h-auto rounded-xl"
                 />
               </div>
-            </div>
 
             <div className="md:col-span-3 p-6 md:p-10">
               <h3 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-4">
-                Fardin Mehry
+                {t.developername}
               </h3>
               <div className="inline-flex items-center gap-2 bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400 px-3 py-1.5 rounded-full text-sm font-medium mb-4">
                 <Code2 size={16} />

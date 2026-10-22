@@ -83,16 +83,16 @@ export default function App() {
             <>
               <Hero language={language} />
               <Specialties language={language} />
-              <Hospitals language={language} home={true} />
-              <Doctors language={language} home={true} />
+              <Hospitals language={language} home={true} user={user} />
+              <Doctors language={language} home={true} user={user} />
               <HowItWorks language={language} home={true} />
             </>
           }
         />
 
-        <Route path="/hospitals" element={<Hospitals language={language} />} />
+        <Route path="/hospitals" element={<Hospitals language={language} user={user} />} />
 
-        <Route path="/doctors" element={<Doctors language={language} />} />
+        <Route path="/doctors" element={<Doctors language={language} user={user} />} />
 
         <Route
           path="/doctors/:id"
@@ -132,7 +132,7 @@ export default function App() {
         <Route path="/contact" element={<Contact language={language} />} />
         <Route
           path="/specialties"
-          element={<SpecialtiesPage language={language} />}
+          element={<SpecialtiesPage language={language} user={user} />}
         />
         <Route
   path="/profile"

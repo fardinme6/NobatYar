@@ -67,6 +67,11 @@ export default function AdminDashboard({ language }) {
     try { await api(`/admin/providers/${p.id}`, { method: "PATCH", body: JSON.stringify({ active: !p.active }) }); await load(); }
     catch (e) { setError(e.message); }
   };
+  const deleteProvider = async p => {
+    if (!window.confirm(`Delete provider "${p.name}"? This action cannot be undone. The user login will remain.`)) return;
+    try { await api(`/admin/providers/${p.id}`, { method: "DELETE" }); await load(); }
+    catch (e) { setError(e.message); }
+  };
   const startEdit = (kind, item) => {
     setEditing(`${kind}-${item.id}`);
     setForm(kind === "doctor" ? {name:item.name,specialty:item.specialty_value,hospitalId:hospitals.find(h=>h.name===item.hospital)?.id || "",city:item.city,about:item.about || ""} : kind === "hospital" ? {name:item.name,city:item.city,location:item.location,description:item.description || ""} : {name:item.name,value:item.value,department:item.department || "",image:item.image || ""});
@@ -174,7 +179,7 @@ export default function AdminDashboard({ language }) {
             </article>;
           })}
         </>}
-        {tab === "providers" && (providers.length ? providers.map(p=><article key={p.id} className="bg-white dark:bg-slate-800 dark:text-white rounded-2xl p-5 shadow-sm flex flex-wrap justify-between gap-4 items-center"><div><h3 className="font-bold">{p.provider_type==="doctor"?t.registerDoctor:p.provider_type==="clinic"?t.registerClinic:t.registerHospital} {p.name}</h3><p className="text-sm text-gray-500 dark:text-gray-300">{p.city} · {p.phone}</p></div><button onClick={()=>toggleProvider(p)} className={`px-4 py-2 rounded-xl cursor-pointer ${p.active?"bg-red-100 text-red-700":"bg-green-100 text-green-700"}`}>{p.active?t.adminDeactivate:t.adminActivate}</button></article>) : <p className="dark:text-white">{t.adminEmpty}</p>)}
+        {tab === "providers" && (providers.length ? providers.map(p=><article key={p.id} className="bg-white dark:bg-slate-800 dark:text-white rounded-2xl p-5 shadow-sm flex flex-wrap justify-between gap-4 items-center"><div><h3 className="font-bold">{p.provider_type==="doctor"?t.registerDoctor:p.provider_type==="clinic"?t.registerClinic:t.registerHospital} {p.name}</h3><p className="text-sm text-gray-500 dark:text-gray-300">{p.city} · {p.phone}</p></div><div className="flex gap-2"><button onClick={()=>toggleProvider(p)} className={`px-4 py-2 rounded-xl cursor-pointer ${p.active?"bg-red-100 text-red-700":"bg-green-100 text-green-700"}`}>{p.active?t.adminDeactivate:t.adminActivate}</button><button onClick={()=>deleteProvider(p)} className="px-4 py-2 rounded-xl bg-red-600 text-white cursor-pointer">Delete</button></div></article>) : <p className="dark:text-white">{t.adminEmpty}</p>)}
       </div>}
     </div>
   </main>;

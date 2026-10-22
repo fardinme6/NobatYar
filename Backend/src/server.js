@@ -457,6 +457,31 @@ app.patch('/api/admin/providers/:id',requireAuth,requireAdmin,asyncRoute(async(r
  const r=await db.query('UPDATE provider_profiles SET active=$1 WHERE id=$2 RETURNING *',[d.active,req.params.id]);
  if(!r.rows[0])return res.status(404).json({message:'Not found'});res.json(r.rows[0]);
 }));
+// Admin-only: remove a provider profile without deleting the owner's user account.
+app.delete('/api/admin/providers/:id',requireAuth,requireAdmin,asyncRoute(async(req,res)=>{
+ const client=await db.connect();
+ try {
+  await client.query('BEGIN');
+  const p=await client.query('SELECT id,user_id,provider_type FROM provider_profiles WHERE id=$1 FOR UPDATE',[req.params.id]);
+  if(!p.rowCount){await client.query('ROLLBACK');return res.status(404).json({message:'Provider not found'});}
+  if(p.rows[0].user_id===req.user.id){await client.query('ROLLBACK');return res.status(403).json({message:'You cannot delete your own provider profile'});}
+  const links=await client.query('SELECT doctor_id FROM provider_doctors WHERE provider_id=$1',[req.params.id]);
+  const doctorIds=links.rows.map(row=>row.doctor_id);
+  if(doctorIds.length){
+   const booked=await client.query('SELECT 1 FROM appointments WHERE doctor_id=ANY($1::integer[]) LIMIT 1',[doctorIds]);
+   if(booked.rowCount){await client.query('ROLLBACK');return res.status(409).json({message:'This provider has doctors with appointment history. Deletion is blocked to protect patient records.'});}
+  }
+  await client.query('DELETE FROM provider_profiles WHERE id=$1',[req.params.id]);
+  for(const doctorId of doctorIds){
+   const other=await client.query('SELECT 1 FROM provider_doctors WHERE doctor_id=$1 LIMIT 1',[doctorId]);
+   if(!other.rowCount)await client.query('DELETE FROM doctors WHERE id=$1',[doctorId]);
+  }
+  await client.query("UPDATE users SET role='patient' WHERE id=$1 AND role='provider' AND NOT EXISTS (SELECT 1 FROM provider_profiles WHERE user_id=$1)",[p.rows[0].user_id]);
+  await client.query('COMMIT');
+  res.json({message:'Provider deleted. The user account was kept.'});
+ }catch(error){await client.query('ROLLBACK');throw error;}
+ finally{client.release();}
+}));
 app.get('/api/provider/appointments',requireAuth,requireProvider,asyncRoute(async(req,res)=>{
  const r=await db.query('SELECT a.id,a.patient_name,a.date,a.time,a.status,a.doctor_id FROM appointments a JOIN provider_doctors pd ON pd.doctor_id=a.doctor_id JOIN provider_profiles p ON p.id=pd.provider_id WHERE p.user_id=$1 ORDER BY a.created_at DESC LIMIT 500',[req.user.id]);res.json(r.rows);
 }));

@@ -144,7 +144,10 @@ app.post('/api/auth/logout', (req, res) => {
  res.clearCookie('nobatyar_session', options);
  res.json({ message: 'Logged out' });
 });
-app.get('/api/auth/me', requireAuth, (req, res) => res.json({ user: req.user }));
+app.get('/api/auth/me', requireAuth, asyncRoute(async (req, res) => {
+ const result = await db.query('SELECT provider_type,name FROM provider_profiles WHERE user_id=$1 ORDER BY id DESC LIMIT 1', [req.user.id]);
+ res.json({ user: { ...req.user, providerType: result.rows[0]?.provider_type || null, providerName: result.rows[0]?.name || null } });
+}));
 app.patch('/api/profile', requireAuth, asyncRoute(async (req, res) => {
  const data = valid(z.object({ name: text(), phone: z.string().max(40), city: z.string().max(100), address: z.string().max(240).default(""), bio: z.string().max(500).default(""), birthDate: z.union([z.literal(""), z.string().regex(/^\d{4}-\d{2}-\d{2}$/)]).default("") }), req.body);
  const result = await db.query('UPDATE users SET name=$1,phone=$2,city=$3,address=$4,bio=$5,birth_date=$6 WHERE id=$7 RETURNING id,name,email,phone,city,address,bio,birth_date,avatar,role', [data.name, data.phone, data.city, data.address, data.bio, data.birthDate, req.user.id]);

@@ -33,7 +33,7 @@ export default function Login({ language, onLogin }) {
         body: JSON.stringify({ email, password, rememberMe }),
       });
       onLogin(data.user);
-      navigate("/profile");
+      navigate(data.user.role === "admin" ? "/admin" : data.user.role === "provider" ? "/provider-dashboard" : "/profile");
     } catch (error) {
       setMessage(error.message);
     }

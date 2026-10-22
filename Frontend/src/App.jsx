@@ -42,6 +42,14 @@ export default function App() {
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
+    const refreshUser = () => api("/auth/me")
+      .then((data) => setUser(data.user))
+      .catch(() => setUser(null));
+    window.addEventListener("focus", refreshUser);
+    return () => window.removeEventListener("focus", refreshUser);
+  }, []);
+
+  useEffect(() => {
     api("/auth/me")
       .then((data) => setUser(data.user))
       .catch(() => setUser(null))

@@ -18,7 +18,7 @@ export default function Hero({ language }) {
       setTimeout(() => {
         setCurrent((current) => (current === 2 ? 0 : current + 1));
         setFade(true);
-      }, 300);
+      }, 400);
     }, 4000);
 
     return () => clearInterval(timer);

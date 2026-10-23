@@ -39,15 +39,7 @@ export default function ProviderDashboard({ language, facility = false }) {
     setDaysOff(scheduleData.daysOff);
   };
   useEffect(()=>{if(doctorId)refreshDates().catch(e=>setMessage(e.message));},[doctorId]);
-  // Convert the selected Jalali date to an ordinary JavaScript Date, then
-  // format using ASCII digits so the backend date validator accepts it.
-  const toGregorian = value => {
-    const date = value.toDate();
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    return `${year}/${month}/${day}`;
-  };
+  const toGregorian = value => new DateObject(value).convert(gregorian).format("YYYY/MM/DD");
   const toJalali = value => new DateObject({date:value,format:"YYYY/MM/DD",calendar:gregorian}).convert(persian).format("YYYY/MM/DD");
   const saveSchedule = async e => {
     e.preventDefault();
@@ -69,7 +61,7 @@ export default function ProviderDashboard({ language, facility = false }) {
     try {await api(`/provider/doctors/${doctorId}/available-dates/${date.replaceAll("/","-")}`,{method:"DELETE"});await refreshDates();setMessage("");}
     catch(e){setMessage(e.message);}
   };
-  const addDayOff = async e => {e.preventDefault();const date=dayOffDate ? toGregorian(dayOffDate) : "";if(!date)return;try{await api(`/provider/doctors/${doctorId}/days-off`,{method:"POST",body:JSON.stringify({date})});await refreshDates();setDayOffDate(null);setMessage(t.adminScheduleSaved);}catch(e){setMessage(e.message);}};
+  const addDayOff = async e => {e.preventDefault();const date=dayOffDate ? new DateObject(dayOffDate).convert(gregorian).format("YYYY/MM/DD") : "";if(!date)return;try{await api(`/provider/doctors/${doctorId}/days-off`,{method:"POST",body:JSON.stringify({date})});await refreshDates();setDayOffDate(null);setMessage(t.adminScheduleSaved);}catch(e){setMessage(e.message);}};
   const removeDayOff = async date => {try{await api(`/provider/doctors/${doctorId}/days-off/${date.replaceAll("/","-")}`,{method:"DELETE"});await refreshDates();}catch(e){setMessage(e.message);}};
   const edit = (id,key,value) => setProfiles(profiles.map(p=>p.id===id?{...p,[key]:value}:p));
   const save = async p => {
@@ -125,8 +117,8 @@ export default function ProviderDashboard({ language, facility = false }) {
       </>}
     </section>
     <section className="bg-white dark:bg-slate-800 dark:text-white rounded-2xl shadow-md p-6 mt-6"><h2 className="text-xl font-bold flex items-center gap-2"><CalendarDays className="text-teal-600"/>{t.adminAppointments}</h2>
-      {!appointments.length && <p className="text-gray-500 mt-5">{t.adminEmpty}</p>}
-      {appointments.map(a=><div key={a.id} className="flex flex-wrap items-center justify-between gap-3 border-b dark:border-slate-700 py-4"><div><p className="font-bold">{a.patient_name}</p><p className="text-sm text-gray-500">{a.date} · {a.time} · {a.status}</p></div><div className="flex gap-2"><button onClick={()=>status(a,"confirmed")} className="bg-teal-600 text-white rounded-lg px-3 py-2 cursor-pointer">{t.adminConfirm}</button><button onClick={()=>status(a,"cancelled")} className="bg-red-100 text-red-700 rounded-lg px-3 py-2 cursor-pointer">{t.adminCancel}</button><button onClick={async()=>{if(!window.confirm("Cancel this appointment?"))return;try{await api(`/provider/appointments/${a.id}`,{method:"DELETE"});await load();}catch(e){setMessage(e.message);}}} className="border border-red-500 text-red-600 rounded-lg px-3 py-2 cursor-pointer">Remove</button></div></div>)}
+      {!appointments.some(a => a.status === "pending") && <p className="text-gray-500 mt-5">{t.adminEmpty}</p>}
+      {appointments.filter(a => a.status === "pending").map(a=><div key={a.id} className="flex flex-wrap items-center justify-between gap-3 border-b dark:border-slate-700 py-4"><div><p className="font-bold">{a.patient_name}</p><p className="text-sm text-gray-500">{a.date} · {a.time} · {a.status}</p></div><div className="flex gap-2"><button onClick={()=>status(a,"confirmed")} className="bg-teal-600 text-white rounded-lg px-3 py-2 cursor-pointer">{t.adminConfirm}</button><button onClick={()=>status(a,"cancelled")} className="bg-red-100 text-red-700 rounded-lg px-3 py-2 cursor-pointer">{t.adminCancel}</button><button onClick={async()=>{if(!window.confirm("Cancel this appointment?"))return;try{await api(`/provider/appointments/${a.id}`,{method:"DELETE"});await load();}catch(e){setMessage(e.message);}}} className="border border-red-500 text-red-600 rounded-lg px-3 py-2 cursor-pointer">Remove</button></div></div>)}
     </section>
   </div></main>;
 }

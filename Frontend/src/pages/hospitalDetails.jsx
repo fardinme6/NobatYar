@@ -19,7 +19,7 @@ export default function HospitalDetails({ language }) {
 
   const [onlineHospital, setOnlineHospital] = useState(null);
   const [hospitalLoading, setHospitalLoading] = useState(true);
-  useEffect(() => { setHospitalLoading(true); api(`/hospitals/${id}`).then(setOnlineHospital).catch(()=>setOnlineHospital(null)).finally(()=>setHospitalLoading(false)); }, [id]);
+  useEffect(() => { setHospitalLoading(true); api(`/hospitals/${id}?lang=${language === "Persian" ? "fa" : language === "Pashto" ? "ps" : "en"}`).then(setOnlineHospital).catch(()=>setOnlineHospital(null)).finally(()=>setHospitalLoading(false)); }, [id, language]);
   const hospital = onlineHospital;
   const label = value => t[value] || value || "";
 

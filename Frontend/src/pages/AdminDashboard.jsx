@@ -25,6 +25,22 @@ export default function AdminDashboard({ language }) {
   const [assigning, setAssigning] = useState(null);
   const [assignEmail, setAssignEmail] = useState("");
   const [emailMessage, setEmailMessage] = useState("");
+  const [translationEditor,setTranslationEditor] = useState(null);
+  const [translationBusy,setTranslationBusy] = useState(false);
+  const openTranslation = async (kind,item) => {
+    try {const result=await api(`/admin/profile-translations/${kind}/${item.id}`);setTranslationEditor({kind,id:item.id,name:item.name,translations:result.translations||{},approved:result.approved});setError("");}
+    catch(e){setError(e.message);}
+  };
+  const generateTranslation = async () => {
+    setTranslationBusy(true);
+    try {const result=await api('/admin/profile-translations/suggest',{method:'POST',body:JSON.stringify({kind:translationEditor.kind,id:translationEditor.id})});setTranslationEditor({...translationEditor,translations:result.translations,approved:false});}
+    catch(e){setError(e.message);}finally{setTranslationBusy(false);}
+  };
+  const saveTranslation = async approved => {
+    setTranslationBusy(true);
+    try {await api(`/admin/profile-translations/${translationEditor.kind}/${translationEditor.id}`,{method:'PUT',body:JSON.stringify({translations:translationEditor.translations,approved})});setTranslationEditor(null);setEmailMessage(approved?'Translations approved and published.':'Translation draft saved.');}
+    catch(e){setError(e.message);}finally{setTranslationBusy(false);}
+  };
   const load = async () => {
     setError(""); setLoading(true);
     try {
@@ -230,6 +246,7 @@ export default function AdminDashboard({ language }) {
                   const account=(kind === "doctor" ? catalogAccounts.doctors : catalogAccounts.hospitals).find(x=>Number(x.id)===Number(item.id));
                   return account?.email ? <span className="text-xs text-green-700 bg-green-50 rounded-lg px-3 py-2">Assigned: {account.email}</span> : <button onClick={()=>{setAssigning({type:kind,id:item.id,name:item.name});setAssignEmail(item.email||"");}} className="bg-teal-600 text-white px-3 py-2 rounded-lg">Assign Account</button>;
                 })()}
+                {(kind === "doctor" || kind === "hospital") && <button onClick={()=>openTranslation(kind,item)} className="rounded-lg border border-teal-500 text-teal-700 px-3 py-2">🌐 Translations</button>}
                 <button onClick={()=>active?setEditing(null):startEdit(kind,item)} className="flex gap-1 items-center border rounded-lg px-3 py-2"><Pencil size={16}/> {active?"Cancel":"Edit"}</button>
                 <button onClick={()=>deleteItem(kind,item.id)} className="flex gap-1 items-center bg-red-100 text-red-700 rounded-lg px-3 py-2"><Trash2 size={16}/> Delete</button>
               </div>
@@ -244,6 +261,15 @@ export default function AdminDashboard({ language }) {
           })}
         </>}
         {tab === "providers" && (providers.length ? providers.map(p=><article key={p.id} className="bg-white dark:bg-slate-800 dark:text-white rounded-2xl p-5 shadow-sm flex flex-wrap justify-between gap-4 items-center"><div><h3 className="font-bold">{p.provider_type==="doctor"?t.registerDoctor:p.provider_type==="clinic"?t.registerClinic:t.registerHospital} {p.name}</h3><p className="text-sm text-gray-500 dark:text-gray-300">{p.city} · {p.phone} · {p.email || ""}</p></div><div className="flex gap-2 flex-wrap"><button onClick={()=>changeProviderEmail(p)} className="px-4 py-2 rounded-xl border border-teal-500 text-teal-700 dark:text-teal-200">Edit Email</button>{p.email_verified === false && <button disabled={sendingId !== null} onClick={()=>resendActivation(p.id)} className="px-4 py-2 rounded-xl bg-blue-600 text-white disabled:opacity-50">{sendingId === p.id ? "Sending..." : "Resend Activation Email"}</button>}<button onClick={()=>toggleProvider(p)} className={`px-4 py-2 rounded-xl cursor-pointer ${p.active?"bg-red-100 text-red-700":"bg-green-100 text-green-700"}`}>{p.active?t.adminDeactivate:t.adminActivate}</button><button onClick={()=>deleteProvider(p)} className="px-4 py-2 rounded-xl bg-red-600 text-white cursor-pointer">Delete</button></div></article>) : <p className="dark:text-white">{t.adminEmpty}</p>)}
+      </div>}
+      {translationEditor && <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
+        <div className="bg-white dark:bg-slate-800 dark:text-white rounded-2xl p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+          <div className="flex justify-between items-center mb-3"><h2 className="text-xl font-bold">🌐 Translate: {translationEditor.name}</h2><button onClick={()=>setTranslationEditor(null)}>✕</button></div>
+          <p className="text-sm text-slate-500 mb-4">AI translations are drafts. Review names, medical claims and addresses before approving.</p>
+          <button disabled={translationBusy} onClick={generateTranslation} className="bg-cyan-700 text-white px-4 py-2 rounded-xl mb-4">Generate with AI</button>
+          <div className="grid md:grid-cols-3 gap-4">{[["fa","دری"],["ps","پښتو"],["en","English"]].map(([lang,label])=><section key={lang} className="border rounded-xl p-3"><h3 className="font-bold mb-3">{label}</h3>{(translationEditor.kind==='doctor'?['name','about','education','experience']:['name','description','services','location']).map(field=><label key={field} className="block mb-3 text-xs">{field}<textarea rows={field==='name'?2:3} dir={lang==='en'?'ltr':'rtl'} value={translationEditor.translations?.[lang]?.[field]||''} onChange={e=>setTranslationEditor(prev=>({...prev,translations:{...prev.translations,[lang]:{...prev.translations?.[lang],[field]:e.target.value}}}))} className="block mt-1 w-full border rounded-lg p-2 text-sm text-slate-900" /></label>)}</section>)}</div>
+          <div className="flex gap-3 mt-4 flex-wrap"><button disabled={translationBusy} onClick={()=>saveTranslation(false)} className="bg-slate-200 text-slate-900 px-4 py-2 rounded-lg">Save draft</button><button disabled={translationBusy} onClick={()=>saveTranslation(true)} className="bg-green-600 text-white px-4 py-2 rounded-lg">Approve & Publish</button></div>
+        </div>
       </div>}
       {assigning && <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
         <div className="bg-white dark:bg-slate-800 dark:text-white p-6 rounded-2xl w-full max-w-md shadow-xl">

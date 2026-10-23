@@ -29,7 +29,7 @@ import HospitalDashboard from "./pages/HospitalDashboard.jsx";
 
 export default function App() {
   const [language, setLanguage] = useState(() => {
-    return localStorage.getItem("language") || "English";
+    return localStorage.getItem("language") || "Persian";
   });
 
   useEffect(() => {

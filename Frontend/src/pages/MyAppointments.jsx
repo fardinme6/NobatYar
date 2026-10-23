@@ -19,7 +19,7 @@ export default function MyAppointments({ language }) {
       setAppointments(items);
       const ids = [...new Set(items.map(item => item.doctorId))];
       const results = await Promise.all(ids.map(async id => {
-        try { return [id, await api(`/doctors/${id}`)]; }
+        try { return [id, await api(`/doctors/${id}?lang=${language === "Persian" ? "fa" : language === "Pashto" ? "ps" : "en"}`)]; }
         catch { return [id, null]; }
       }));
       setDoctorDetails(Object.fromEntries(results));

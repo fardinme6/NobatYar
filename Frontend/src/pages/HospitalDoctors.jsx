@@ -21,9 +21,9 @@ export default function HospitalDoctors({ language }) {
 
   const [onlineHospital, setOnlineHospital] = useState(null);
   const [onlineDoctors, setOnlineDoctors] = useState([]);
-  useEffect(() => { api("/doctors").then(setOnlineDoctors).catch(() => {}); }, []);
+  useEffect(() => { api(`/doctors?lang=${language === "Persian" ? "fa" : language === "Pashto" ? "ps" : "en"}`).then(setOnlineDoctors).catch(() => {}); }, []);
   const [hospitalLoading, setHospitalLoading] = useState(true);
-  useEffect(() => { setHospitalLoading(true); api(`/hospitals/${id}`).then(setOnlineHospital).catch(()=>setOnlineHospital(null)).finally(()=>setHospitalLoading(false)); }, [id]);
+  useEffect(() => { setHospitalLoading(true); api(`/hospitals/${id}?lang=${language === "Persian" ? "fa" : language === "Pashto" ? "ps" : "en"}`).then(setOnlineHospital).catch(()=>setOnlineHospital(null)).finally(()=>setHospitalLoading(false)); }, [id, language]);
   const hospital = onlineHospital;
   const label = value => t[value] || value || "";
 
@@ -51,7 +51,7 @@ export default function HospitalDoctors({ language }) {
   }
 
   const hospitalDoctors = onlineDoctors.filter(
-    (doctor) => doctor.hospital === hospital.name
+    (doctor) => doctor.hospital === (hospital.originalName || hospital.name)
   );
 
   return (

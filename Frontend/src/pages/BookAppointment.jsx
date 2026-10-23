@@ -36,7 +36,7 @@ export default function BookAppointment({ language }) {
 
   const [onlineDoctor, setOnlineDoctor] = useState(null);
   const [doctorLoading, setDoctorLoading] = useState(true);
-  useEffect(() => { setDoctorLoading(true); api(`/doctors/${id}`).then(setOnlineDoctor).catch(()=>setOnlineDoctor(null)).finally(()=>setDoctorLoading(false)); }, [id]);
+  useEffect(() => { setDoctorLoading(true); api(`/doctors/${id}?lang=${language === "Persian" ? "fa" : language === "Pashto" ? "ps" : "en"}`).then(setOnlineDoctor).catch(()=>setOnlineDoctor(null)).finally(()=>setDoctorLoading(false)); }, [id, language]);
   const doctor = onlineDoctor;
 
   const [date, setDate] = useState("");

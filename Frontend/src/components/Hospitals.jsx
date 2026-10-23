@@ -17,7 +17,7 @@ import { translations } from "../data/translations.js";
 export default function Hospitals({ language, home = false, user }) {
   const t = translations[language];
   const [onlineHospitals,setOnlineHospitals] = useState([]);
-  useEffect(()=>{api("/hospitals").then(setOnlineHospitals).catch(()=>{});},[]);
+  useEffect(()=>{api(`/hospitals?lang=${language === "Persian" ? "fa" : language === "Pashto" ? "ps" : "en"}`).then(setOnlineHospitals).catch(()=>{});},[]);
   const allHospitals = onlineHospitals;;
 
   const [search, setSearch] = useState("");

@@ -21,6 +21,8 @@ export default function AdminDashboard({ language }) {
   const [documents, setDocuments] = useState({});
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [sendingId, setSendingId] = useState(null);
+  const [emailMessage, setEmailMessage] = useState("");
   const load = async () => {
     setError(""); setLoading(true);
     try {
@@ -35,6 +37,19 @@ export default function AdminDashboard({ language }) {
     if (status === "rejected" && !note.trim()) { setError(t.adminReasonRequired); return; }
     try { await api(`/admin/provider-requests/${r.id}`, { method: "PATCH", body: JSON.stringify({ status, note }) }); await load(); }
     catch (e) { setError(e.message); }
+  };
+  const resendActivation = async (id) => {
+    setError("");
+    setEmailMessage("");
+    setSendingId(id);
+    try {
+      await api(`/admin/provider-requests/${id}/resend-activation`, { method: "POST" });
+      setEmailMessage("Activation email sent successfully.");
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setSendingId(null);
+    }
   };
   useEffect(()=>{
     const editId=Number(new URLSearchParams(window.location.search).get("edit"));
@@ -161,6 +176,7 @@ export default function AdminDashboard({ language }) {
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mt-6">
         {tabs.map(item => <button key={item.id} onClick={()=>setTab(item.id)} className={`rounded-2xl p-4 text-start shadow-sm border transition hover:-translate-y-1 cursor-pointer ${tab===item.id?"bg-teal-600 text-white border-teal-600":"bg-white dark:bg-slate-800 dark:text-white border-gray-100 dark:border-slate-700"}`}><item.icon size={24}/><p className="font-semibold mt-3">{item.name}</p><p className="text-2xl font-bold mt-1">{item.count}</p></button>)}
       </div>
+      {emailMessage && <p role="status" className="bg-green-50 text-green-700 rounded-xl p-4 mt-5">{emailMessage}</p>}
       {error && <p role="alert" className="bg-red-50 text-red-700 rounded-xl p-4 mt-5">{error}</p>}
       {loading ? <p className="p-6 dark:text-white">{t.loadingText}</p> : <div className="mt-7 space-y-4">
         {tab === "requests" && (requests.length ? requests.map(r=><article key={r.id} className="bg-white dark:bg-slate-800 dark:text-white rounded-2xl shadow-sm p-6 transition hover:shadow-lg">
@@ -169,6 +185,11 @@ export default function AdminDashboard({ language }) {
           <div className="grid sm:grid-cols-2 gap-3 mt-4 text-sm text-gray-600 dark:text-gray-300">
             {Object.entries(detailsOf(r)).filter(([key,value])=>key!=="photoUrl" && key!=="type" && value).map(([key,value])=><p key={key} className="rounded-lg bg-gray-50 dark:bg-slate-700 p-3"><strong className="capitalize">{key.replace(/([A-Z])/g," $1")}: </strong>{String(value)}</p>)}
           </div>
+          {r.status === "approved" && <button
+            onClick={() => resendActivation(r.id)}
+            disabled={sendingId !== null}
+            className="mt-4 mr-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl px-5 py-2 cursor-pointer"
+          >{sendingId === r.id ? "Sending..." : "Resend Activation Email"}</button>}
           <button onClick={()=>showDocuments(r.id)} className="mt-4 text-teal-600 underline cursor-pointer">{t.adminDocuments}</button>
           {documents[r.id]?.map(d=><button key={d.id} onClick={()=>downloadDocument(d)} className="block text-sm mt-2 text-teal-600 underline cursor-pointer">{d.original_name} — {t.adminDownloadHint} #{d.id}</button>)}
           {<><label className="block mt-5 mb-2 text-sm font-semibold">{t.adminReviewNote}</label><textarea value={notes[r.id] ?? r.review_note ?? ""} onChange={e=>setNotes({...notes,[r.id]:e.target.value})} rows={2} className="w-full rounded-xl border p-3 dark:bg-slate-700 dark:border-slate-600" placeholder={t.adminReviewPlaceholder}/>

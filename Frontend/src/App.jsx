@@ -1,3 +1,4 @@
+import Loading from "./components/Loading.jsx";
 import AccountRecovery from "./pages/AccountRecovery.jsx";
 import { api } from "./api";
 import { Routes, Route, Navigate } from "react-router-dom";
@@ -43,6 +44,13 @@ export default function App() {
 
   const [user, setUser] = useState(null);
   const [checking, setChecking] = useState(true);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    const update = (e) => setBusy(e.detail);
+    window.addEventListener("ny-loading", update);
+    return () => window.removeEventListener("ny-loading", update);
+  }, []);
 
   useEffect(() => {
     const refreshUser = () => api("/auth/me")
@@ -68,10 +76,11 @@ export default function App() {
     }
   };
 
-  if (checking) return <div className="min-h-screen bg-gray-50 dark:bg-slate-900" />;
+  if (checking) return <Loading language={language} />;
 
   return (
     <>
+      {busy && <Loading language={language} />}
       <Header
         imageURL="/logo.png"
         title="NobatYar Logo"

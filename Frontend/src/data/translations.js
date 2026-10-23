@@ -158,8 +158,7 @@ export const translations = {
     registerDoctor: "Doctor",
     registerHospital: "Hospital",
     fullName: "Full Name / Hospital Name",
-    enterFullName: "Enter full name",
-    enterEmailAddress:"Please enter your email address.",
+    enterFullName: "Enter full name or hospital name",
     phoneNumber: "Phone Number",
     emailAddress: "Email Address",
     cityLabel: "City",
@@ -381,6 +380,7 @@ Herat Heart Hospital aims to improve the quality of cardiovascular healthcare, i
     contactMessage: "Your Message",
     contactMessagePlaceholder: "Write your message here...",
     contactSendMessage: "Send Message",
+    contactMessageSuccess: "Your message has been sent successfully! ✅",
     contactNotConnected:
       "The contact form is not connected yet. Your message has not been sent.",
     contactFormNotice:
@@ -409,13 +409,11 @@ Herat Heart Hospital aims to improve the quality of cardiovascular healthcare, i
     supportInformation: "Support & Information",
     motto: "A Smart Choice for Your Health",
     importantSpecialties: "Major Medical Specialties",
-    hospitalName: "Hospital",
-    enterHospitalName: "Enter hospital Name",
-    enterClinicName: "Enter Clinic Name",
+    hospitalName: "Hospital / Clinic Name",
+    enterHospitalName: "Enter hospital or clinic name",
     selectHospitalType: "Select facility type",
     hospital: "Hospital",
     clinic: "Clinic",
-    clinicName:"Clinic Name",
     registrationFormCompleted: "Form Completed",
     registrationNotSent:
       "Your information will be added to our website after being reviewed by our team.",
@@ -666,8 +664,7 @@ Herat Heart Hospital aims to improve the quality of cardiovascular healthcare, i
     registerDoctor: "داکتر",
     registerHospital: "شفاخانه",
     fullName: "نام مکمل / نام شفاخانه",
-    enterFullName: "نام مکمل خود را وارد کنید",
-    enterEmailAddress:"لطفا ایمیل آدرس خود را وارد کنید!",
+    enterFullName: "نام مکمل یا نام شفاخانه را وارد کنید",
     phoneNumber: "شماره تماس",
     emailAddress: "ایمیل آدرس",
     cityLabel: "شهر",
@@ -861,10 +858,10 @@ Herat Heart Hospital aims to improve the quality of cardiovascular healthcare, i
     meetDeveloper: "آشنایی با سازنده",
     developerSubtitle: "با سازنده نوبت‌یار آشنا شوید",
     developerRole:
-      "برنامه نویس فرانت‌اند | برنامه نویس اپلیکیشن مبایل | حسابدار",
+      "توسعه‌دهنده فرانت‌اند | توسعه‌دهنده اپلیکیشن موبایل | حسابدار",
 
     developerDescription:
-      " فردین مهری هستم، برنامه‌نویس فرانت‌اند و اپلیکیشن‌های مبایل. به تکنالوژی علاقه زیادی دارم و تلاش می‌کنم با استفاده از دانش و مهارت‌هایم، راه‌حل‌های کاربردی برای مشکلات روزمره مردم ایجاد کنم.\n\nدر کنار برنامه‌نویسی، حدود ۵ سال می‌شود که در بخش حسابداری مصروف کار هستم و تجربه‌های ارزشمندی به دست آورده‌ام.\n\nهدف من از ساخت نوبت‌یار (NobatYar)، آسان‌سازی دسترسی مردم به خدمات صحی است. با این برنامه، کاربران می‌توانند داکتر یا شفاخانه موردنظر خود را پیدا کرده و تنها با چند کلیک، بدون مراجعه حضوری به شفاخانه‌ها و کلینیک‌ها، نوبت خود را آنلاین رزرو کنند.\n\nنوبت‌یار برای من تنها یک پروژه نیست، بلکه فرصتی برای خدمت به جامعه است.\n\nپیام من این است: از جوانان وطن حمایت کنید؛ آن‌ها استعدادها و حرف‌های زیادی برای گفتن دارند و تنها به فرصت و اعتماد نیاز دارند.\n\nخرسندم که با ساخت نوبت‌یار می‌توانم سهمی در خدمت به مردم داشته باشم.",
+      "من فردین مهری هستم، برنامه‌نویس فرانت‌اند و اپلیکیشن‌های موبایل. به تکنالوژی علاقه زیادی دارم و تلاش می‌کنم با استفاده از دانش و مهارت‌هایم، راه‌حل‌های کاربردی برای مشکلات روزمره مردم ایجاد کنم.\n\nدر کنار برنامه‌نویسی، حدود ۵ سال می‌شود که در بخش حسابداری مصروف کار هستم و تجربه‌های ارزشمندی به دست آورده‌ام.\n\nهدف من از ساخت نوبت‌یار (NobatYar)، آسان‌سازی دسترسی مردم به خدمات صحی است. با این برنامه، کاربران می‌توانند داکتر یا شفاخانه موردنظر خود را پیدا کرده و تنها با چند کلیک، بدون مراجعه حضوری به شفاخانه‌ها و کلینیک‌ها، نوبت خود را آنلاین رزرو کنند.\n\nنوبت‌یار برای من تنها یک پروژه نیست، بلکه فرصتی برای خدمت به جامعه است.\n\nپیام من این است: از جوانان وطن حمایت کنید؛ آن‌ها استعدادها و حرف‌های زیادی برای گفتن دارند و تنها به فرصت و اعتماد نیاز دارند.\n\nخرسندم که با ساخت نوبت‌یار می‌توانم سهمی در خدمت به مردم داشته باشم.",
 
     aboutCtaTitle: "خدمات صحی موردنیاز خود را پیدا کنید",
     aboutCtaDescription:
@@ -891,6 +888,7 @@ Herat Heart Hospital aims to improve the quality of cardiovascular healthcare, i
     contactMessage: "پیام شما",
     contactMessagePlaceholder: "پیام خود را اینجا بنویسید...",
     contactSendMessage: "ارسال پیام",
+    contactMessageSuccess: "پیام شما موفقانه ارسال گردید ✅",
     contactNotConnected:
       "فرم تماس هنوز فعال نشده است و پیام شما ارسال نشده است.",
     contactFormNotice:
@@ -917,10 +915,8 @@ Herat Heart Hospital aims to improve the quality of cardiovascular healthcare, i
     rheumatology: "روماتیزم و مفاصل",
     supportInformation: "رهنمایی و معلومات",
     motto: "یک انتخاب هوشمند برای سلامتی شما",
-    hospitalName: "نام شفاخانه",
-    clinicName:"نام کلینیک",
-    enterHospitalName: "نام شفاخانه را وارد کنید",
-    enterClinicName:"نام کلینیک را وارد کنید",
+    hospitalName: "نام شفاخانه / کلینیک",
+    enterHospitalName: "نام شفاخانه یا کلینیک را وارد کنید",
     selectHospitalType: "نوع مرکز صحی را انتخاب کنید",
     hospital: "شفاخانه",
     clinic: "کلینیک",
@@ -1167,8 +1163,7 @@ Herat Heart Hospital aims to improve the quality of cardiovascular healthcare, i
     registerDoctor: "ډاکټر",
     registerHospital: "روغتون",
     fullName: "بشپړ نوم / د روغتون نوم",
-    enterFullName: "ستا بشپړ نوم یا ولیکئ",
-    enterEmailAddress:"مهرباني وکړئ خپل برېښنالیک پته دننه کړئ",
+    enterFullName: "بشپړ نوم یا د روغتون نوم ولیکئ",
     phoneNumber: "د اړیکې شمېره",
     emailAddress: "برېښنالیک",
     cityLabel: "ښار",
@@ -1389,6 +1384,7 @@ Herat Heart Hospital aims to improve the quality of cardiovascular healthcare, i
     contactMessage: "ستاسو پیغام",
     contactMessagePlaceholder: "خپل پیغام دلته ولیکئ...",
     contactSendMessage: "پیغام واستوئ",
+    contactMessageSuccess: "ستاسو پیغام په بریالیتوب سره واستول شو ✅",
     contactNotConnected:
       "د اړیکې فورمه لا فعاله شوې نه ده او ستاسو پیغام نه دی لېږل شوی.",
     contactFormNotice:
@@ -1417,9 +1413,8 @@ Herat Heart Hospital aims to improve the quality of cardiovascular healthcare, i
     supportInformation: "مرسته او معلومات",
     motto: "ستاسو د روغتیا لپاره یو هوښیار انتخاب",
     importantSpecialties: "مهم طبي تخصصونه",
-    hospitalName: "د روغتون نوم",
-    enterHospitalName: "د روغتون نوم ولیکئ",
-    enterClinicName: "د کلینیک نوم ولیکئ",
+    hospitalName: "د روغتون / کلینیک نوم",
+    enterHospitalName: "د روغتون یا کلینیک نوم ولیکئ",
     selectHospitalType: "د روغتیايي مرکز ډول وټاکئ",
     hospital: "روغتون",
     registrationFormCompleted: "فورمه بشپړه شوه",
@@ -1458,6 +1453,5 @@ Herat Heart Hospital aims to improve the quality of cardiovascular healthcare, i
     profileSave: "بدلونونه خوندي کول",
     profileSaved: "معلومات په بریالیتوب سره خوندي شول!",
     profileImageError: "مهرباني وکړئ له ۱ مېګابایټ څخه کوچنی عکس وټاکئ.",
-    clinicName:"د کلینیک نوم",
   },
 };

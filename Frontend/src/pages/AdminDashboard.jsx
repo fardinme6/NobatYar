@@ -27,13 +27,15 @@ export default function AdminDashboard({ language }) {
   const [emailMessage, setEmailMessage] = useState("");
   const [translationEditor,setTranslationEditor] = useState(null);
   const [translationBusy,setTranslationBusy] = useState(false);
+  const [sourceLanguage,setSourceLanguage] = useState("fa");
   const openTranslation = async (kind,item) => {
-    try {const result=await api(`/admin/profile-translations/${kind}/${item.id}`);setTranslationEditor({kind,id:item.id,name:item.name,translations:result.translations||{},approved:result.approved});setError("");}
+    try {const result=await api(`/admin/profile-translations/${kind}/${item.id}`);setTranslationEditor({kind,id:item.id,name:item.name,translations:result.translations||{},approved:result.approved});setSourceLanguage("fa");setError("");}
     catch(e){setError(e.message);}
   };
   const generateTranslation = async () => {
+    setError("");
     setTranslationBusy(true);
-    try {const result=await api('/admin/profile-translations/suggest',{method:'POST',body:JSON.stringify({kind:translationEditor.kind,id:translationEditor.id})});setTranslationEditor(prev=>({...prev,translations:Object.fromEntries(["fa","ps","en"].map(lang=>[lang,{...result.translations?.[lang],...Object.fromEntries(Object.entries(prev.translations?.[lang]||{}).filter(([,value])=>String(value||"").trim()))}])),approved:false}));}
+    try {const result=await api('/admin/profile-translations/suggest',{method:'POST',body:JSON.stringify({kind:translationEditor.kind,id:translationEditor.id,sourceLanguage,sourceFields:translationEditor.translations?.[sourceLanguage]||{}})});setTranslationEditor(prev=>({...prev,translations:Object.fromEntries(["fa","ps","en"].map(lang=>[lang,{...result.translations?.[lang],...Object.fromEntries(Object.entries(prev.translations?.[lang]||{}).filter(([,value])=>String(value||"").trim()))}])),approved:false}));}
     catch(e){setError(e.message);}finally{setTranslationBusy(false);}
   };
   const saveTranslation = async approved => {
@@ -225,7 +227,7 @@ export default function AdminDashboard({ language }) {
         {tab === "appointments" && (appointments.length ? appointments.map(a=><article key={a.id} className="bg-white dark:bg-slate-800 dark:text-white rounded-2xl p-5 shadow-sm flex flex-wrap justify-between gap-4 items-center"><div><h3 className="font-bold">{a.patient_name}</h3><p className="text-sm text-gray-500 dark:text-gray-300">#{a.doctor_id} · {a.date} · {a.time} · {a.status}</p></div><div className="flex gap-2"><button onClick={()=>changeAppointment(a.id,"confirmed")} className="bg-teal-600 text-white px-4 py-2 rounded-lg cursor-pointer">{t.adminConfirm}</button><button onClick={()=>changeAppointment(a.id,"cancelled")} className="bg-red-100 text-red-700 px-4 py-2 rounded-lg cursor-pointer">{t.adminCancel}</button></div></article>) : <p className="dark:text-white">{t.adminEmpty}</p>)}
 
         {(["doctors","hospitals","specialties"].includes(tab)) && <>
-          {(tab === "doctors" || tab === "hospitals") && <button onClick={()=>{setEditing(`new-${tab}`);setForm(tab === "doctors" ? {name:"",email:"",specialty:"",hospitalId:"",city:"",about:"",image:""} : {name:"",type:"private",city:"",location:"",phone:"",license:"",services:"",description:"",image:""});}} className="bg-teal-600 text-white rounded-xl px-4 py-2">+ Add {tab === "doctors" ? "Doctor" : "Hospital / Clinic"}</button>}
+          {(tab === "doctors" || tab === "hospitals") && <button onClick={()=>{setEditing(`new-${tab}`);setForm(tab === "doctors" ? {name:"",email:"",specialty:"",hospitalId:"",city:"",about:"",image:""} : {name:"",type:"private",city:"",location:"",phone:"",license:"",services:"",description:"",image:""});}} className="bg-teal-600 hover:bg-teal-700 active:bg-teal-800 cursor-pointer transition-colors text-white rounded-xl px-4 py-2">+ Add {tab === "doctors" ? "Doctor" : "Hospital / Clinic"}</button>}
           {(editing === "new-doctors" || editing === "new-hospitals") && <div className="bg-white rounded-xl p-5 grid sm:grid-cols-2 gap-3">
             {field("name","Name *")}
             {editing === "new-doctors" ? <>{field("email","Email *")}{field("specialty","Specialty *","select",specialtiesList.map(x=>({value:x.value,label:x.name})))}{field("hospitalId","Hospital *","select",hospitals.map(x=>({value:x.id,label:x.name})))}{field("city","City *")}{field("experience","Experience")}{field("education","Education")}{field("about","About")}</> : <>{field("type","Hospital / Clinic type *","select",[{value:"private",label:"Private Hospital"},{value:"government",label:"Government Hospital"},{value:"clinic",label:"Clinic"}])}{field("city","City *")}{field("location","Full address *")}{field("phone","Contact phone *")}{field("license","License number *")}{field("services","Medical services")}{field("description","About the hospital / clinic")}</>}
@@ -233,8 +235,8 @@ export default function AdminDashboard({ language }) {
             <button disabled={uploadingImage} onClick={()=>addCatalog(editing === "new-doctors" ? "doctor" : "hospital")} className="bg-teal-600 text-white rounded-xl px-4 py-2">Save</button>
             <button onClick={()=>setEditing(null)} className="border rounded-xl px-4 py-2">Cancel</button>
           </div>}
-          {tab === "specialties" && <button onClick={()=>{setEditing("new-specialty");setForm({name:"",value:"",department:"",image:""});}} className="bg-teal-600 text-white rounded-xl px-4 py-2">+ Add Specialty</button>}
-          {editing === "new-specialty" && <div className="bg-white rounded-xl p-5 grid gap-3">{field("name","Specialty name")}{field("value","Code (e.g. cardiology)")}{field("department","Specialty department")}{specialtyImageField()}<button disabled={uploadingImage} onClick={addSpecialty} className="bg-teal-600 text-white rounded-xl p-2">Save</button></div>}
+          {tab === "specialties" && <button onClick={()=>{setEditing("new-specialty");setForm({name:"",value:"",department:"",image:""});}} className="bg-teal-600 hover:bg-teal-700 active:bg-teal-800 cursor-pointer transition-colors text-white rounded-xl px-4 py-2">+ Add Specialty</button>}
+          {editing === "new-specialty" && <div className="bg-white rounded-xl p-5 grid gap-3">{field("name","Specialty name")}{field("value","Code (e.g. cardiology)")}{field("department","Specialty department")}{specialtyImageField()}<button disabled={uploadingImage} onClick={addSpecialty} className="cursor-pointer hover:brightness-90 active:brightness-75 transition-colors bg-teal-600 text-white rounded-xl p-2">Save</button></div>}
           {(tab === "doctors" ? doctors : tab === "hospitals" ? hospitals : specialtiesList).map(item => {
             const kind = tab === "doctors" ? "doctor" : tab === "hospitals" ? "hospital" : "specialty";
             const active = editing === `${kind}-${item.id}`;
@@ -264,11 +266,13 @@ export default function AdminDashboard({ language }) {
       </div>}
       {translationEditor && <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
         <div className="bg-white dark:bg-slate-800 dark:text-white rounded-2xl p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-          <div className="flex justify-between items-center mb-3"><h2 className="text-xl font-bold">🌐 Translate: {translationEditor.name}</h2><button onClick={()=>setTranslationEditor(null)}>✕</button></div>
+          <div className="flex justify-between items-center mb-3"><h2 className="text-xl font-bold">🌐 Translate: {translationEditor.name}</h2><button onClick={()=>setTranslationEditor(null)} className="cursor-pointer hover:text-red-600 transition-colors">✕</button></div>
           <p className="text-sm text-slate-500 mb-4">AI translations are drafts. Review names, medical claims and addresses before approving.</p>
-          <button disabled={translationBusy} onClick={generateTranslation} className="bg-cyan-700 text-white px-4 py-2 rounded-xl mb-4">Generate with AI</button>
+          <label className="block text-sm mb-2">Source language: <select value={sourceLanguage} onChange={e=>setSourceLanguage(e.target.value)} className="border rounded-lg p-2 dark:bg-slate-800 cursor-pointer"><option value="fa">دری</option><option value="ps">پښتو</option><option value="en">English</option></select></label>
+          {error && <p role="alert" className="text-red-600 mb-3">{error}</p>}
+          <button disabled={translationBusy} onClick={generateTranslation} className="bg-cyan-700 hover:bg-cyan-800 active:bg-cyan-900 text-white px-4 py-2 rounded-xl mb-4 cursor-pointer disabled:opacity-50 disabled:cursor-wait transition-colors">{translationBusy ? "Generating..." : "Generate with AI"}</button>
           <div className="grid md:grid-cols-3 gap-4">{[["fa","دری"],["ps","پښتو"],["en","English"]].map(([lang,label])=><section key={lang} className="border rounded-xl p-3"><h3 className="font-bold mb-3">{label}</h3>{(translationEditor.kind==='doctor'?['name','about','education','experience']:['name','description','services','location']).map(field=><label key={field} className="block mb-3 text-xs">{field}<textarea rows={field==='name'?2:3} dir={lang==='en'?'ltr':'rtl'} value={translationEditor.translations?.[lang]?.[field]||''} onChange={e=>setTranslationEditor(prev=>({...prev,translations:{...prev.translations,[lang]:{...prev.translations?.[lang],[field]:e.target.value}}}))} className="block mt-1 w-full border rounded-lg p-2 text-sm text-slate-900" /></label>)}</section>)}</div>
-          <div className="flex gap-3 mt-4 flex-wrap"><button disabled={translationBusy} onClick={()=>saveTranslation(false)} className="bg-slate-200 text-slate-900 px-4 py-2 rounded-lg">Save draft</button><button disabled={translationBusy} onClick={()=>saveTranslation(true)} className="bg-green-600 text-white px-4 py-2 rounded-lg">Approve & Publish</button></div>
+          <div className="flex gap-3 mt-4 flex-wrap"><button disabled={translationBusy} onClick={()=>saveTranslation(false)} className="bg-slate-200 hover:bg-slate-300 active:bg-slate-400 cursor-pointer transition-colors text-slate-900 px-4 py-2 rounded-lg">Save draft</button><button disabled={translationBusy} onClick={()=>saveTranslation(true)} className="bg-green-600 hover:bg-green-700 active:bg-green-800 cursor-pointer transition-colors text-white px-4 py-2 rounded-lg">Approve & Publish</button></div>
         </div>
       </div>}
       {assigning && <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
@@ -278,7 +282,7 @@ export default function AdminDashboard({ language }) {
           <label className="block mb-2">Provider email (required)</label>
           <input type="email" required value={assignEmail} onChange={e=>setAssignEmail(e.target.value)} className="border rounded-xl p-3 w-full text-black" placeholder="doctor@example.com" />
           <p className="text-xs text-gray-500 mt-2">An activation link will be emailed. The existing profile will not be duplicated.</p>
-          <div className="flex gap-2 mt-5"><button disabled={sendingId!==null || !assignEmail.trim()} onClick={assignAccount} className="bg-teal-600 text-white px-4 py-2 rounded-lg disabled:opacity-50">{sendingId!==null?"Sending...":"Send activation"}</button><button onClick={()=>setAssigning(null)} className="border px-4 py-2 rounded-lg">Cancel</button></div>
+          <div className="flex gap-2 mt-5"><button disabled={sendingId!==null || !assignEmail.trim()} onClick={assignAccount} className="cursor-pointer hover:brightness-90 active:brightness-75 transition-colors bg-teal-600 text-white px-4 py-2 rounded-lg disabled:opacity-50">{sendingId!==null?"Sending...":"Send activation"}</button><button onClick={()=>setAssigning(null)} className="border px-4 py-2 rounded-lg">Cancel</button></div>
         </div>
       </div>}
     </div>

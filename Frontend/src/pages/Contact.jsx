@@ -6,7 +6,7 @@ import {
   MapPin,
   Send,
   MessageSquare,
-  Clock3,
+  CheckCircle2,
   ExternalLink,
 } from "lucide-react";
 import { FaGithub, FaInstagram, FaFacebook } from "react-icons/fa";
@@ -20,12 +20,14 @@ export default function Contact({ language }) {
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); setError("");
+    e.preventDefault(); setError(""); setSending(true);
     try { await api("/contact", { method: "POST", body: JSON.stringify({ name, email, message: `${subject}\n\n${message}` }) }); setSubmitted(true); }
     catch (err) { setError(err.message); }
+    finally { setSending(false); }
   };
 
   const inputStyle =
@@ -254,8 +256,9 @@ export default function Contact({ language }) {
                         setEmail(e.target.value);
                         setSubmitted(false);
                       }}
-                      placeholder={t.enterEmailAddress}
+                      placeholder="example@gmail.com"
                       required
+                      dir="ltr"
                       className={inputStyle}
                     />
                   </div>
@@ -299,15 +302,16 @@ export default function Contact({ language }) {
                 </div>
 
                 {submitted && (
-                  <div className="flex items-start gap-3 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 rounded-xl p-4 text-sm leading-7">
-                    <Clock3 size={20} className="shrink-0 mt-1" />
-                    <span>{t.contactNotConnected}</span>
+                  <div className="flex items-start gap-3 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded-xl p-4 text-sm leading-7">
+                    <CheckCircle2 size={20} className="shrink-0 mt-1" />
+                    <span>{t.contactMessageSuccess}</span>
                   </div>
                 )}
 
                 <button
                   type="submit"
-                  className="w-full flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 text-white font-semibold py-3.5 rounded-xl transition cursor-pointer"
+                  disabled={sending}
+                  className="w-full flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 text-white font-semibold py-3.5 rounded-xl transition cursor-pointer disabled:opacity-60 disabled:cursor-wait"
                 >
                   <Send size={18} />
                   {t.contactSendMessage}

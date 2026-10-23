@@ -39,7 +39,15 @@ export default function ProviderDashboard({ language, facility = false }) {
     setDaysOff(scheduleData.daysOff);
   };
   useEffect(()=>{if(doctorId)refreshDates().catch(e=>setMessage(e.message));},[doctorId]);
-  const toGregorian = value => new DateObject({date:value.format("YYYY/MM/DD"),format:"YYYY/MM/DD",calendar:persian}).convert(gregorian).format("YYYY/MM/DD");
+  // Convert the selected Jalali date to an ordinary JavaScript Date, then
+  // format using ASCII digits so the backend date validator accepts it.
+  const toGregorian = value => {
+    const date = value.toDate();
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}/${month}/${day}`;
+  };
   const toJalali = value => new DateObject({date:value,format:"YYYY/MM/DD",calendar:gregorian}).convert(persian).format("YYYY/MM/DD");
   const saveSchedule = async e => {
     e.preventDefault();
@@ -61,7 +69,7 @@ export default function ProviderDashboard({ language, facility = false }) {
     try {await api(`/provider/doctors/${doctorId}/available-dates/${date.replaceAll("/","-")}`,{method:"DELETE"});await refreshDates();setMessage("");}
     catch(e){setMessage(e.message);}
   };
-  const addDayOff = async e => {e.preventDefault();const date=dayOffDate ? new DateObject(dayOffDate).convert(gregorian).format("YYYY/MM/DD") : "";if(!date)return;try{await api(`/provider/doctors/${doctorId}/days-off`,{method:"POST",body:JSON.stringify({date})});await refreshDates();setDayOffDate(null);setMessage(t.adminScheduleSaved);}catch(e){setMessage(e.message);}};
+  const addDayOff = async e => {e.preventDefault();const date=dayOffDate ? toGregorian(dayOffDate) : "";if(!date)return;try{await api(`/provider/doctors/${doctorId}/days-off`,{method:"POST",body:JSON.stringify({date})});await refreshDates();setDayOffDate(null);setMessage(t.adminScheduleSaved);}catch(e){setMessage(e.message);}};
   const removeDayOff = async date => {try{await api(`/provider/doctors/${doctorId}/days-off/${date.replaceAll("/","-")}`,{method:"DELETE"});await refreshDates();}catch(e){setMessage(e.message);}};
   const edit = (id,key,value) => setProfiles(profiles.map(p=>p.id===id?{...p,[key]:value}:p));
   const save = async p => {

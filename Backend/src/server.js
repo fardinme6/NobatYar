@@ -267,30 +267,24 @@ app.get('/api/doctors/:id/bookable-days', asyncRoute(async (req, res) => {
  if (!/^\d{4}\/\d{2}$/.test(month)) return res.status(400).json({ message: 'Invalid month' });
  const [year, number] = month.split('/').map(Number);
  if (number < 1 || number > 12 || year < 2020 || year > 2100) return res.status(400).json({ message: 'Invalid month' });
- const schedules = await db.query('SELECT weekday,start_time,end_time,slot_minutes FROM doctor_schedules WHERE doctor_id=$1 AND enabled=true', [req.params.id]);
+ const schedules = await db.query('SELECT date,start_time,end_time,slot_minutes FROM doctor_available_dates WHERE doctor_id=$1 AND date LIKE $2', [req.params.id, month + '/%']);
  const daysOff = await db.query('SELECT date FROM doctor_days_off WHERE doctor_id=$1 AND date LIKE $2', [req.params.id, month + '/%']);
  const appointments = await db.query("SELECT date,time FROM appointments WHERE doctor_id=$1 AND date LIKE $2 AND status<>'cancelled'", [req.params.id, month + '/%']);
- const off = new Set(daysOff.rows.map(r => String(r.date).slice(0,10).replaceAll('-','/')));
+ const off = new Set(daysOff.rows.map(r => r.date));
  const booked = new Map();
  for (const a of appointments.rows) {
-  const key = String(a.date).slice(0,10).replaceAll('-','/');
-  if (!booked.has(key)) booked.set(key,new Set());
-  booked.get(key).add(String(a.time).slice(0,5));
+  if (!booked.has(a.date)) booked.set(a.date, new Set());
+  booked.get(a.date).add(a.time.slice(0,5));
  }
  const result = [];
  const today = new Date().toISOString().slice(0,10).replaceAll('-','/');
- const last = new Date(Date.UTC(year,number,0)).getUTCDate();
- const minutes = t => Number(String(t).slice(0,2))*60 + Number(String(t).slice(3,5));
- for (let day=1; day<=last; day++) {
-  const date = month + '/' + String(day).padStart(2,'0');
-  if (date < today || off.has(date)) continue;
-  const weekday = new Date(Date.UTC(year,number-1,day)).getUTCDay();
-  const schedule = schedules.rows.find(r => Number(r.weekday) === weekday);
-  if (!schedule) continue;
-  const used = booked.get(date) || new Set();
+ const minutes = value => Number(value.slice(0,2))*60 + Number(value.slice(3,5));
+ for (const schedule of schedules.rows) {
+  if (schedule.date < today || off.has(schedule.date)) continue;
+  const used = booked.get(schedule.date) || new Set();
   for (let m=minutes(schedule.start_time); m+Number(schedule.slot_minutes)<=minutes(schedule.end_time); m+=Number(schedule.slot_minutes)) {
    const time = String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
-   if (!used.has(time)) { result.push(date); break; }
+   if (!used.has(time)) { result.push(schedule.date); break; }
   }
  }
  res.json(result);
@@ -302,7 +296,7 @@ app.get('/api/doctors/:id/available-slots',asyncRoute(async(req,res)=>{
  if(Number.isNaN(parsed.getTime())||parsed.toISOString().slice(0,10).replaceAll('-','/')!==date)return res.status(400).json({message:'Invalid date'});
  const off=await db.query('SELECT 1 FROM doctor_days_off WHERE doctor_id=$1 AND date=$2',[req.params.id,date]);
  if(off.rowCount)return res.json([]);
- const r=await db.query('SELECT * FROM doctor_schedules WHERE doctor_id=$1 AND weekday=$2 AND enabled=true',[req.params.id,parsed.getUTCDay()]);
+ const r=await db.query('SELECT * FROM doctor_available_dates WHERE doctor_id=$1 AND date=$2',[req.params.id,date]);
  if(!r.rowCount)return res.json([]);
  const a=r.rows[0];const minutes=t=>Number(t.slice(0,2))*60+Number(t.slice(3,5));
  const booked=await db.query("SELECT time FROM appointments WHERE doctor_id=$1 AND date=$2 AND status<>'cancelled'",[req.params.id,date]);
@@ -321,13 +315,13 @@ app.post('/api/appointments', requireAuth, asyncRoute(async (req, res) => {
  const weekday = appointmentDate.getUTCDay();
  const off = await db.query('SELECT 1 FROM doctor_days_off WHERE doctor_id=$1 AND date=$2',[data.doctorId,data.date]);
  if (off.rowCount) return res.status(409).json({message:'Doctor is unavailable on this date'});
- const schedule = await db.query('SELECT * FROM doctor_schedules WHERE doctor_id=$1 AND weekday=$2',[data.doctorId,weekday]);
- if (!schedule.rows.length) return res.status(409).json({message:'Doctor has no schedule for this day'});
+ const schedule = await db.query('SELECT * FROM doctor_available_dates WHERE doctor_id=$1 AND date=$2',[data.doctorId,data.date]);
+ if (!schedule.rows.length) return res.status(409).json({message:'Doctor has not enabled this date'});
  if (schedule.rows.length) {
   const s=schedule.rows[0];
   const toMinutes=t=>Number(t.slice(0,2))*60+Number(t.slice(3,5));
   const at=toMinutes(data.time), start=toMinutes(s.start_time), end=toMinutes(s.end_time);
-  if (!s.enabled || at<start || at+s.slot_minutes>end || (at-start)%s.slot_minutes!==0) return res.status(409).json({message:'Time is outside doctor working hours'});
+  if (at<start || at+s.slot_minutes>end || (at-start)%s.slot_minutes!==0) return res.status(409).json({message:'Time is outside doctor working hours'});
  }
  try {
   const result = await db.query('INSERT INTO appointments(user_id,doctor_id,date,time,patient_name,phone,notes) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING *', [req.user.id, data.doctorId, data.date, data.time, data.patientName, data.phone, data.notes]);
@@ -533,6 +527,46 @@ const scheduleInput = z.object({weekday:z.number().int().min(0).max(6),startTime
 app.get('/api/provider/doctors',requireAuth,asyncRoute(async(req,res)=>{
  const r=await db.query('SELECT d.id,d.name FROM doctors d JOIN provider_doctors pd ON pd.doctor_id=d.id JOIN provider_profiles p ON p.id=pd.provider_id WHERE p.user_id=$1 AND p.active=true ORDER BY d.name',[req.user.id]);res.json(r.rows);
 }));
+// A doctor selects exact dates; no weekday is automatically repeated.
+const availableDateInput = z.object({
+ date:z.string().regex(/^\d{4}\/\d{2}\/\d{2}$/),
+ startTime:z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
+ endTime:z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
+ slotMinutes:z.number().int().min(10).max(120)
+});
+const validCalendarDate = date => {
+ const parsed = new Date(date.replaceAll('/','-')+'T12:00:00Z');
+ return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0,10).replaceAll('-','/')===date;
+};
+app.get('/api/provider/doctors/:id/available-dates',requireAuth,requireProviderDoctor,asyncRoute(async(req,res)=>{
+ const r=await db.query('SELECT * FROM doctor_available_dates WHERE doctor_id=$1 ORDER BY date',[req.params.id]);
+ res.json(r.rows);
+}));
+app.put('/api/provider/doctors/:id/available-dates',requireAuth,requireProviderDoctor,asyncRoute(async(req,res)=>{
+ const input=valid(z.object({dates:z.array(z.string().regex(/^\d{4}\/\d{2}\/\d{2}$/)).min(1).max(60),startTime:availableDateInput.shape.startTime,endTime:availableDateInput.shape.endTime,slotMinutes:availableDateInput.shape.slotMinutes}),req.body);
+ if(input.startTime>=input.endTime)return res.status(400).json({message:'End time must be later than start time'});
+ const dates=[...new Set(input.dates)];
+ const today=new Date().toISOString().slice(0,10).replaceAll('-','/');
+ if(dates.some(date=>!validCalendarDate(date)||date<today))return res.status(400).json({message:'Choose valid future dates'});
+ for(const date of dates){
+  const booked=await db.query("SELECT time FROM appointments WHERE doctor_id=$1 AND date=$2 AND status<>'cancelled'",[req.params.id,date]);
+  const start=Number(input.startTime.slice(0,2))*60+Number(input.startTime.slice(3));
+  const end=Number(input.endTime.slice(0,2))*60+Number(input.endTime.slice(3));
+  if(booked.rows.some(a=>{const m=Number(a.time.slice(0,2))*60+Number(a.time.slice(3,5));return m<start||m+input.slotMinutes>end||(m-start)%input.slotMinutes!==0;}))return res.status(409).json({message:`Existing appointments conflict with ${date}`});
+ }
+ for(const date of dates){
+  await db.query('INSERT INTO doctor_available_dates(doctor_id,date,start_time,end_time,slot_minutes) VALUES($1,$2,$3,$4,$5) ON CONFLICT(doctor_id,date) DO UPDATE SET start_time=$3,end_time=$4,slot_minutes=$5',[req.params.id,date,input.startTime,input.endTime,input.slotMinutes]);
+ }
+ res.json({ok:true});
+}));
+app.delete('/api/provider/doctors/:id/available-dates/:date',requireAuth,requireProviderDoctor,asyncRoute(async(req,res)=>{
+ const date=req.params.date.replaceAll('-','/');
+ if(!validCalendarDate(date))return res.status(400).json({message:'Invalid date'});
+ const booked=await db.query("SELECT 1 FROM appointments WHERE doctor_id=$1 AND date=$2 AND status<>'cancelled' LIMIT 1",[req.params.id,date]);
+ if(booked.rowCount)return res.status(409).json({message:'Cancel or reschedule existing appointments before deleting this date'});
+ await db.query('DELETE FROM doctor_available_dates WHERE doctor_id=$1 AND date=$2',[req.params.id,date]);
+ res.json({ok:true});
+}));
 app.get('/api/provider/doctors/:id/schedule',requireAuth,requireProviderDoctor,asyncRoute(async(req,res)=>{
  const [s,d]=await Promise.all([db.query('SELECT * FROM doctor_schedules WHERE doctor_id=$1 ORDER BY weekday',[req.params.id]),db.query('SELECT date FROM doctor_days_off WHERE doctor_id=$1 ORDER BY date',[req.params.id])]);res.json({schedule:s.rows,daysOff:d.rows.map(r=>r.date)});
 }));
@@ -543,6 +577,8 @@ app.put('/api/provider/doctors/:id/schedule',requireAuth,requireProviderDoctor,a
 }));
 app.post('/api/provider/doctors/:id/days-off',requireAuth,requireProviderDoctor,asyncRoute(async(req,res)=>{
  const d=valid(z.object({date:z.string().regex(/^\d{4}\/\d{2}\/\d{2}$/)}),req.body);
+ const booked=await db.query("SELECT 1 FROM appointments WHERE doctor_id=$1 AND date=$2 AND status<>'cancelled' LIMIT 1",[req.params.id,d.date]);
+ if(booked.rowCount)return res.status(409).json({message:'This date already has appointments; cancel or reschedule them first'});
  await db.query('INSERT INTO doctor_days_off(doctor_id,date) VALUES($1,$2) ON CONFLICT DO NOTHING',[req.params.id,d.date]);res.json({ok:true});
 }));
 app.delete('/api/provider/doctors/:id/days-off/:date',requireAuth,requireProviderDoctor,asyncRoute(async(req,res)=>{

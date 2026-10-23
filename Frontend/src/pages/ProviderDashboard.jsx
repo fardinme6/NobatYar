@@ -15,11 +15,12 @@ export default function ProviderDashboard({ language, facility = false }) {
   const [appointments, setAppointments] = useState([]);
   const [doctors, setDoctors] = useState([]);
   const [doctorId, setDoctorId] = useState("");
-  const [weekday, setWeekday] = useState(0);
+  const [selectedDates, setSelectedDates] = useState([]);
+  const [availableDates, setAvailableDates] = useState([]);
+  const [editingDate, setEditingDate] = useState("");
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("17:00");
   const [slotMinutes, setSlotMinutes] = useState(30);
-  const [enabled, setEnabled] = useState(true);
   const [daysOff, setDaysOff] = useState([]);
   const [dayOffDate, setDayOffDate] = useState(null);
   const [schedule, setSchedule] = useState([]);
@@ -29,17 +30,39 @@ export default function ProviderDashboard({ language, facility = false }) {
     catch(e){setMessage(e.message);}
   };
   useEffect(()=>{load();},[]);
-  useEffect(()=>{if(!doctorId)return;api(`/provider/doctors/${doctorId}/schedule`).then(data=>{setSchedule(data.schedule);setDaysOff(data.daysOff);}).catch(e=>setMessage(e.message));},[doctorId]);
-  const saveSchedule = async e => {e.preventDefault();try {await api(`/provider/doctors/${doctorId}/schedule`,{method:"PUT",body:JSON.stringify({weekday:Number(weekday),startTime,endTime,slotMinutes:Number(slotMinutes),enabled})});const data=await api(`/provider/doctors/${doctorId}/schedule`);setSchedule(data.schedule);setMessage(t.adminScheduleSaved);}catch(e){setMessage(e.message);}};
-  const editSchedule = d => {
-    setWeekday(d.weekday);
-    setStartTime(d.start_time);
-    setEndTime(d.end_time);
-    setSlotMinutes(d.slot_minutes);
-    setEnabled(d.enabled);
+  const refreshDates = async () => {
+    const [available, scheduleData] = await Promise.all([
+      api(`/provider/doctors/${doctorId}/available-dates`),
+      api(`/provider/doctors/${doctorId}/schedule`)
+    ]);
+    setAvailableDates(available);
+    setDaysOff(scheduleData.daysOff);
   };
-  const addDayOff = async e => {e.preventDefault();const date=dayOffDate ? new DateObject(dayOffDate).convert(gregorian).format("YYYY/MM/DD") : "";if(!date)return;try{await api(`/provider/doctors/${doctorId}/days-off`,{method:"POST",body:JSON.stringify({date})});setDaysOff(old=>old.includes(date)?old:[...old,date]);setDayOffDate(null);setMessage(t.adminScheduleSaved);}catch(e){setMessage(e.message);}};
-  const removeDayOff = async date => {try{await api(`/provider/doctors/${doctorId}/days-off/${date.replaceAll("/","-")}`,{method:"DELETE"});setDaysOff(old=>old.filter(x=>x!==date));}catch(e){setMessage(e.message);}};
+  useEffect(()=>{if(doctorId)refreshDates().catch(e=>setMessage(e.message));},[doctorId]);
+  const toGregorian = value => new DateObject(value).convert(gregorian).format("YYYY/MM/DD");
+  const toJalali = value => new DateObject({date:value,format:"YYYY/MM/DD",calendar:gregorian}).convert(persian).format("YYYY/MM/DD");
+  const saveSchedule = async e => {
+    e.preventDefault();
+    const dates = selectedDates.map(toGregorian);
+    if(!dates.length) {setMessage("Select at least one date.");return;}
+    try {
+      await api(`/provider/doctors/${doctorId}/available-dates`,{method:"PUT",body:JSON.stringify({dates,startTime,endTime,slotMinutes:Number(slotMinutes)})});
+      await refreshDates();
+      setSelectedDates([]);setEditingDate("");setMessage(t.adminScheduleSaved);
+    } catch(e){setMessage(e.message);}
+  };
+  const editSchedule = item => {
+    setSelectedDates([new DateObject({date:item.date,format:"YYYY/MM/DD",calendar:gregorian}).convert(persian)]);
+    setEditingDate(item.date);
+    setStartTime(item.start_time);setEndTime(item.end_time);setSlotMinutes(item.slot_minutes);
+  };
+  const removeSchedule = async date => {
+    if(!window.confirm("Remove this available date?"))return;
+    try {await api(`/provider/doctors/${doctorId}/available-dates/${date.replaceAll("/","-")}`,{method:"DELETE"});await refreshDates();setMessage("");}
+    catch(e){setMessage(e.message);}
+  };
+  const addDayOff = async e => {e.preventDefault();const date=dayOffDate ? new DateObject(dayOffDate).convert(gregorian).format("YYYY/MM/DD") : "";if(!date)return;try{await api(`/provider/doctors/${doctorId}/days-off`,{method:"POST",body:JSON.stringify({date})});await refreshDates();setDayOffDate(null);setMessage(t.adminScheduleSaved);}catch(e){setMessage(e.message);}};
+  const removeDayOff = async date => {try{await api(`/provider/doctors/${doctorId}/days-off/${date.replaceAll("/","-")}`,{method:"DELETE"});await refreshDates();}catch(e){setMessage(e.message);}};
   const edit = (id,key,value) => setProfiles(profiles.map(p=>p.id===id?{...p,[key]:value}:p));
   const save = async p => {
     try { await api(`/provider/dashboard/${p.id}`,{method:"PATCH",body:JSON.stringify({name:p.name,phone:p.phone,address:p.address,city:p.city,specialty:p.specialty,description:p.description,services:p.services,active:p.active})});setMessage(t.providerSaved); }
@@ -68,20 +91,29 @@ export default function ProviderDashboard({ language, facility = false }) {
     <section className="bg-white dark:bg-slate-800 dark:text-white rounded-2xl shadow-md p-6 mt-6">
       <h2 className="text-xl font-bold mb-5">{t.adminSchedule}</h2>
       {!doctors.length ? <p className="text-gray-500">{t.providerNoLinkedDoctors}</p> : <>
-        <label className="block mb-4">{t.registerDoctor}<select value={doctorId} onChange={e=>setDoctorId(e.target.value)} className="block w-full mt-2 border rounded-xl p-3 dark:bg-slate-700 dark:border-slate-600">{doctors.map(d=><option key={d.id} value={d.id}>{d.name}</option>)}</select></label>
+        {doctors.length > 1 && <label className="block mb-4">{t.registerDoctor}<select value={doctorId} onChange={e=>setDoctorId(e.target.value)} className="block w-full mt-2 border rounded-xl p-3 dark:bg-slate-700 dark:border-slate-600">{doctors.map(d=><option key={d.id} value={d.id}>{d.name}</option>)}</select></label>}
         <form onSubmit={saveSchedule} className="grid sm:grid-cols-2 gap-4">
-          <label>{t.adminWeekday}<select value={weekday} onChange={e=>setWeekday(Number(e.target.value))} className="block w-full border rounded-xl p-3 mt-2 dark:bg-slate-700 dark:border-slate-600">{t.adminDays.map((day,i)=><option key={i} value={i}>{day}</option>)}</select></label>
-          <label>{t.adminSlotMinutes}<input type="number" min="10" max="120" value={slotMinutes} onChange={e=>setSlotMinutes(e.target.value)} className="block w-full border rounded-xl p-3 mt-2 dark:bg-slate-700 dark:border-slate-600"/></label>
+          <label className="sm:col-span-2">{language === "Persian" ? "تاریخ‌های کاری را انتخاب کنید (شمسی)" : language === "English" ? "Choose available dates (Jalali)" : "د کار نېټې وټاکئ (هجري لمریز)"}
+            <div className="mt-2"><DatePicker multiple value={selectedDates} onChange={setSelectedDates} calendar={persian} locale={persian_fa} minDate={new Date()} format="YYYY/MM/DD" inputClass="w-full border rounded-xl p-3 dark:bg-slate-700 dark:border-slate-600"/></div>
+          </label>
           <label>{t.adminStartTime}<input type="time" value={startTime} onChange={e=>setStartTime(e.target.value)} className="block w-full border rounded-xl p-3 mt-2 dark:bg-slate-700 dark:border-slate-600"/></label>
           <label>{t.adminEndTime}<input type="time" value={endTime} onChange={e=>setEndTime(e.target.value)} className="block w-full border rounded-xl p-3 mt-2 dark:bg-slate-700 dark:border-slate-600"/></label>
-          <label className="flex gap-2 items-center"><input type="checkbox" checked={enabled} onChange={e=>setEnabled(e.target.checked)}/> Available on this weekday</label>
-          <button className="sm:col-span-2 bg-teal-600 text-white rounded-xl p-3 cursor-pointer">{t.profileSave}</button>
+          <label>{t.adminSlotMinutes}<input type="number" min="10" max="120" value={slotMinutes} onChange={e=>setSlotMinutes(e.target.value)} className="block w-full border rounded-xl p-3 mt-2 dark:bg-slate-700 dark:border-slate-600"/></label>
+          <button className="sm:col-span-2 bg-teal-600 text-white rounded-xl p-3 cursor-pointer">{editingDate ? "Save Changes" : t.profileSave}</button>
         </form>
-        <h3 className="font-semibold mt-5">{t.providerWeeklySchedule}</h3>
-        <p className="text-sm text-gray-500 mt-2">{language === "Persian" ? "برنامه هفتگی تکرار می‌شود. برای رخصتی یک تاریخ مشخص، از بخش پایین استفاده کن؛ سایر روزها فعال می‌مانند." : language === "English" ? "Weekly hours repeat. Add a specific day off below without changing other dates." : "اونیز ساعتونه تکرارېږي. د یوې ځانګړې ورځې رخصتي لاندې وټاکئ."}</p>
-        {schedule.map(d=><div key={d.weekday} className="flex flex-wrap items-center justify-between gap-2 mt-3 border-b dark:border-slate-700 pb-2"><p className="text-sm">{t.adminDays[d.weekday]}: {d.start_time} - {d.end_time} ({d.slot_minutes} {t.adminSlotMinutes}) {d.enabled ? "✓" : "— Unavailable"}</p><button type="button" onClick={()=>editSchedule(d)} className="text-teal-700 dark:text-teal-300 underline cursor-pointer">{language === "Persian" ? "ویرایش" : "Edit"}</button></div>)}
-        <form onSubmit={addDayOff} className="mt-6 border-t dark:border-slate-700 pt-6 flex flex-wrap gap-3 items-end"><label>{t.adminDayOff}<DatePicker value={dayOffDate} onChange={setDayOffDate} calendar={persian} locale={persian_fa} minDate={new Date()} format="YYYY/MM/DD" inputClass="block border rounded-xl p-3 mt-2 dark:bg-slate-700 dark:border-slate-600"/></label><button className="bg-amber-100 text-amber-800 rounded-xl px-5 py-3 cursor-pointer">{t.adminAddDayOff}</button></form>
-        {daysOff.map(date=><div key={date} className="flex items-center gap-3 mt-2"><span>{new DateObject({ date, format: "YYYY/MM/DD", calendar: gregorian }).convert(persian).format("YYYY/MM/DD")}</span><button type="button" onClick={()=>removeDayOff(date)} className="text-red-600 underline cursor-pointer">{t.providerRemoveDayOff}</button></div>)}
+        <h3 className="font-semibold mt-7">{language === "Persian" ? "تاریخ‌های ثبت‌شده" : "Available dates"}</h3>
+        <div className="mt-3 space-y-3">
+          {availableDates.map(item=><div key={item.date} className="border-l-4 border-green-500 bg-green-50 dark:bg-slate-700 rounded-xl p-4 flex flex-wrap items-center justify-between gap-3">
+            <div><p className="font-semibold text-green-800 dark:text-green-300">{toJalali(item.date)}</p><p className="text-sm text-gray-600 dark:text-gray-200">{item.start_time} - {item.end_time} · {item.slot_minutes} min</p></div>
+            <div className="flex gap-2"><button type="button" onClick={()=>editSchedule(item)} className="px-4 py-2 border border-teal-500 text-teal-700 dark:text-teal-300 rounded-lg">Edit</button><button type="button" onClick={()=>removeSchedule(item.date)} className="px-4 py-2 bg-red-100 text-red-700 rounded-lg">Delete</button></div>
+          </div>)}
+          {!availableDates.length && <p className="text-sm text-gray-500">No available dates selected yet.</p>}
+        </div>
+        <div className="mt-7 border-t dark:border-slate-700 pt-6">
+          <h3 className="font-semibold mb-3">{t.adminDayOff}</h3>
+          <form onSubmit={addDayOff} className="flex flex-wrap gap-3 items-end bg-amber-50 dark:bg-slate-700 rounded-xl p-4"><label>{t.adminDayOff}<DatePicker value={dayOffDate} onChange={setDayOffDate} calendar={persian} locale={persian_fa} minDate={new Date()} format="YYYY/MM/DD" inputClass="block border rounded-xl p-3 mt-2 dark:bg-slate-600 dark:border-slate-500"/></label><button className="bg-amber-500 text-white rounded-xl px-5 py-3 cursor-pointer">{t.adminAddDayOff}</button></form>
+          <div className="mt-3 space-y-2">{daysOff.map(date=><div key={date} className="flex items-center justify-between gap-3 rounded-xl bg-amber-50 dark:bg-slate-700 border-l-4 border-amber-400 p-3"><span>{toJalali(date)}</span><button type="button" onClick={()=>removeDayOff(date)} className="text-red-600 border border-red-300 px-3 py-2 rounded-lg">{t.providerRemoveDayOff}</button></div>)}</div>
+        </div>
       </>}
     </section>
     <section className="bg-white dark:bg-slate-800 dark:text-white rounded-2xl shadow-md p-6 mt-6"><h2 className="text-xl font-bold flex items-center gap-2"><CalendarDays className="text-teal-600"/>{t.adminAppointments}</h2>

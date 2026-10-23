@@ -32,13 +32,17 @@ export default function BookAppointment({ language }) {
 
   const [date, setDate] = useState("");
   const [bookableDays, setBookableDays] = useState([]);
-  const [calendarMonth, setCalendarMonth] = useState(() => new DateObject({ date: new Date(), calendar: persian }).convert(gregorian).format("YYYY/MM"));
+  // ماه نمایش داده شده در تقویم شمسی است.
+  const [calendarMonth, setCalendarMonth] = useState(() => new DateObject({ date: new Date(), calendar: persian }).format("YYYY/MM"));
   useEffect(() => {
     setBookableDays([]);
-    const [year, month] = calendarMonth.split("/").map(Number);
-    const nextMonth = new Date(Date.UTC(year, month, 1)).toISOString().slice(0, 7).replace("-", "/");
+    // اولین روز ماه شمسی را به میلادی تبدیل می‌کنیم.
+    const firstDay = new DateObject({ date: `${calendarMonth}/01`, format: "YYYY/MM/DD", calendar: persian }).convert(gregorian);
+    const firstMonth = firstDay.format("YYYY/MM");
+    const [year, month] = firstMonth.split("/").map(Number);
+    const nextMonth = `${month === 12 ? year + 1 : year}/${String(month === 12 ? 1 : month + 1).padStart(2, "0")}`;
     Promise.all([
-      api(`/doctors/${id}/bookable-days?month=${calendarMonth}`),
+      api(`/doctors/${id}/bookable-days?month=${firstMonth}`),
       api(`/doctors/${id}/bookable-days?month=${nextMonth}`),
     ]).then(([first, second]) => setBookableDays([...first, ...second]))
       .catch(() => setBookableDays([]));
@@ -161,8 +165,8 @@ export default function BookAppointment({ language }) {
                     }}
                     calendar={afghanCalendar}
                     locale={afghanLocale}
-                    onOpen={() => setCalendarMonth(new DateObject({ date: new Date(), calendar: persian }).convert(gregorian).format("YYYY/MM"))}
-                    onMonthChange={(month) => { setCalendarMonth(new DateObject(month).convert(gregorian).format("YYYY/MM")); setDate(""); setTime(""); }}
+                    
+                    onMonthChange={(month) => { setCalendarMonth(month.format("YYYY/MM")); setDate(""); setTime(""); }}
                     mapDays={({ date: day }) => {
                       const value = new DateObject(day).convert(gregorian).format("YYYY/MM/DD");
                       const enabled = bookableDays.includes(value);

@@ -2,6 +2,11 @@ import { useEffect, useState } from "react";
 import { api } from "../api";
 import { translations } from "../data/translations";
 import { Stethoscope, Save, CalendarDays, Building2 } from "lucide-react";
+import DatePicker from "react-multi-date-picker";
+import DateObject from "react-date-object";
+import persian from "react-date-object/calendars/persian";
+import gregorian from "react-date-object/calendars/gregorian";
+import persian_fa from "react-date-object/locales/persian_fa";
 
 export default function ProviderDashboard({ language, facility = false }) {
   const t = translations[language];
@@ -15,6 +20,7 @@ export default function ProviderDashboard({ language, facility = false }) {
   const [slotMinutes, setSlotMinutes] = useState(30);
   const [enabled, setEnabled] = useState(true);
   const [daysOff, setDaysOff] = useState([]);
+  const [dayOffDate, setDayOffDate] = useState(null);
   const [schedule, setSchedule] = useState([]);
   const [message, setMessage] = useState("");
   const load = async () => {
@@ -24,7 +30,14 @@ export default function ProviderDashboard({ language, facility = false }) {
   useEffect(()=>{load();},[]);
   useEffect(()=>{if(!doctorId)return;api(`/provider/doctors/${doctorId}/schedule`).then(data=>{setSchedule(data.schedule);setDaysOff(data.daysOff);}).catch(e=>setMessage(e.message));},[doctorId]);
   const saveSchedule = async e => {e.preventDefault();try {await api(`/provider/doctors/${doctorId}/schedule`,{method:"PUT",body:JSON.stringify({weekday:Number(weekday),startTime,endTime,slotMinutes:Number(slotMinutes),enabled})});const data=await api(`/provider/doctors/${doctorId}/schedule`);setSchedule(data.schedule);setMessage(t.adminScheduleSaved);}catch(e){setMessage(e.message);}};
-  const addDayOff = async e => {e.preventDefault();const date=e.currentTarget.elements.dayOff.value.replaceAll("-","/");try{await api(`/provider/doctors/${doctorId}/days-off`,{method:"POST",body:JSON.stringify({date})});setDaysOff(old=>old.includes(date)?old:[...old,date]);e.target.reset();setMessage(t.adminScheduleSaved);}catch(e){setMessage(e.message);}};
+  const editSchedule = d => {
+    setWeekday(d.weekday);
+    setStartTime(d.start_time);
+    setEndTime(d.end_time);
+    setSlotMinutes(d.slot_minutes);
+    setEnabled(d.enabled);
+  };
+  const addDayOff = async e => {e.preventDefault();const date=dayOffDate ? new DateObject(dayOffDate).convert(gregorian).format("YYYY/MM/DD") : "";if(!date)return;try{await api(`/provider/doctors/${doctorId}/days-off`,{method:"POST",body:JSON.stringify({date})});setDaysOff(old=>old.includes(date)?old:[...old,date]);setDayOffDate(null);setMessage(t.adminScheduleSaved);}catch(e){setMessage(e.message);}};
   const removeDayOff = async date => {try{await api(`/provider/doctors/${doctorId}/days-off/${date.replaceAll("/","-")}`,{method:"DELETE"});setDaysOff(old=>old.filter(x=>x!==date));}catch(e){setMessage(e.message);}};
   const edit = (id,key,value) => setProfiles(profiles.map(p=>p.id===id?{...p,[key]:value}:p));
   const save = async p => {
@@ -64,9 +77,10 @@ export default function ProviderDashboard({ language, facility = false }) {
           <button className="sm:col-span-2 bg-teal-600 text-white rounded-xl p-3 cursor-pointer">{t.profileSave}</button>
         </form>
         <h3 className="font-semibold mt-5">{t.providerWeeklySchedule}</h3>
-        {schedule.map(d=><p key={d.weekday} className="text-sm mt-2">{t.adminDays[d.weekday]}: {d.start_time} - {d.end_time} ({d.slot_minutes} {t.adminSlotMinutes}) {d.enabled ? "✓" : "— Unavailable"}</p>)}
-        <form onSubmit={addDayOff} className="mt-6 border-t dark:border-slate-700 pt-6 flex flex-wrap gap-3 items-end"><label>{t.adminDayOff}<input type="date" name="dayOff" required className="block border rounded-xl p-3 mt-2 dark:bg-slate-700 dark:border-slate-600"/></label><button className="bg-amber-100 text-amber-800 rounded-xl px-5 py-3 cursor-pointer">{t.adminAddDayOff}</button></form>
-        {daysOff.map(date=><div key={date} className="flex items-center gap-3 mt-2"><span>{date}</span><button type="button" onClick={()=>removeDayOff(date)} className="text-red-600 underline cursor-pointer">{t.providerRemoveDayOff}</button></div>)}
+        <p className="text-sm text-gray-500 mt-2">{language === "Persian" ? "برنامه هفتگی تکرار می‌شود. برای رخصتی یک تاریخ مشخص، از بخش پایین استفاده کن؛ سایر روزها فعال می‌مانند." : language === "English" ? "Weekly hours repeat. Add a specific day off below without changing other dates." : "اونیز ساعتونه تکرارېږي. د یوې ځانګړې ورځې رخصتي لاندې وټاکئ."}</p>
+        {schedule.map(d=><div key={d.weekday} className="flex flex-wrap items-center justify-between gap-2 mt-3 border-b dark:border-slate-700 pb-2"><p className="text-sm">{t.adminDays[d.weekday]}: {d.start_time} - {d.end_time} ({d.slot_minutes} {t.adminSlotMinutes}) {d.enabled ? "✓" : "— Unavailable"}</p><button type="button" onClick={()=>editSchedule(d)} className="text-teal-700 dark:text-teal-300 underline cursor-pointer">{language === "Persian" ? "ویرایش" : "Edit"}</button></div>)}
+        <form onSubmit={addDayOff} className="mt-6 border-t dark:border-slate-700 pt-6 flex flex-wrap gap-3 items-end"><label>{t.adminDayOff}<DatePicker value={dayOffDate} onChange={setDayOffDate} calendar={persian} locale={persian_fa} minDate={new Date()} format="YYYY/MM/DD" inputClass="block border rounded-xl p-3 mt-2 dark:bg-slate-700 dark:border-slate-600"/></label><button className="bg-amber-100 text-amber-800 rounded-xl px-5 py-3 cursor-pointer">{t.adminAddDayOff}</button></form>
+        {daysOff.map(date=><div key={date} className="flex items-center gap-3 mt-2"><span>{new DateObject({ date, format: "YYYY/MM/DD", calendar: gregorian }).convert(persian).format("YYYY/MM/DD")}</span><button type="button" onClick={()=>removeDayOff(date)} className="text-red-600 underline cursor-pointer">{t.providerRemoveDayOff}</button></div>)}
       </>}
     </section>
     <section className="bg-white dark:bg-slate-800 dark:text-white rounded-2xl shadow-md p-6 mt-6"><h2 className="text-xl font-bold flex items-center gap-2"><CalendarDays className="text-teal-600"/>{t.adminAppointments}</h2>

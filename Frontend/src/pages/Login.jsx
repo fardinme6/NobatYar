@@ -70,7 +70,6 @@ export default function Login({ language, onLogin }) {
 
         <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-slate-700 p-5 md:p-6">
           <form onSubmit={handleLogin} className="space-y-3">
-            <Link to="/forgot-password" className="block text-right text-sm text-teal-600 hover:underline">{t.forgotPasswordTitle}</Link>
             <div>
               <label className="block mb-2 text-sm font-semibold text-gray-700 dark:text-gray-200">
                 {t.emailAddress}

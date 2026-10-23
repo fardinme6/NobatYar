@@ -39,7 +39,7 @@ export default function ProviderDashboard({ language, facility = false }) {
     setDaysOff(scheduleData.daysOff);
   };
   useEffect(()=>{if(doctorId)refreshDates().catch(e=>setMessage(e.message));},[doctorId]);
-  const toGregorian = value => new DateObject(value).convert(gregorian).format("YYYY/MM/DD");
+  const toGregorian = value => new DateObject({date:value.format("YYYY/MM/DD"),format:"YYYY/MM/DD",calendar:persian}).convert(gregorian).format("YYYY/MM/DD");
   const toJalali = value => new DateObject({date:value,format:"YYYY/MM/DD",calendar:gregorian}).convert(persian).format("YYYY/MM/DD");
   const saveSchedule = async e => {
     e.preventDefault();

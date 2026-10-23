@@ -1,0 +1,85 @@
+.ny-loading {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(247, 253, 251, 0.96);
+  backdrop-filter: blur(9px);
+  color: #0f766e;
+  gap: 10px;
+}
+.dark .ny-loading {
+  background: rgba(15, 23, 42, 0.96);
+  color: #5eead4;
+}
+.ny-loading-ring {
+  width: 142px;
+  height: 142px;
+  border: 3px solid #d1fae5;
+  border-top-color: #0d9488;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  animation: ny-spin 1.5s linear infinite;
+}
+.ny-loading-ring img {
+  width: 92px;
+  height: 110px;
+  object-fit: contain;
+  animation:
+    ny-counterspin 1.5s linear infinite,
+    ny-breathe 2s ease-in-out infinite;
+}
+.ny-loading strong {
+  font-size: 25px;
+}
+.ny-loading p {
+  font-size: 14px;
+  margin: 0;
+}
+.ny-loading-dots {
+  display: flex;
+  gap: 7px;
+}
+.ny-loading-dots i {
+  width: 7px;
+  height: 7px;
+  background: #0d9488;
+  border-radius: 50%;
+  animation: ny-pulse 1s infinite alternate;
+}
+.ny-loading-dots i:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.ny-loading-dots i:nth-child(3) {
+  animation-delay: 0.4s;
+}
+@keyframes ny-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes ny-counterspin {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+@keyframes ny-breathe {
+  50% {
+    filter: drop-shadow(0 0 10px #14b8a6);
+  }
+}
+@keyframes ny-pulse {
+  to {
+    opacity: 0.2;
+    transform: translateY(-5px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ny-loading * {
+    animation: none !important;
+  }
+}

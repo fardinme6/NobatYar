@@ -455,7 +455,7 @@ app.patch('/api/admin/appointments/:id/status', requireAuth, requireAdmin, async
  }
 }));
 app.get('/api/admin/provider-requests', requireAuth, requireAdmin, asyncRoute(async (req, res) => {
- const result = await db.query('SELECT * FROM provider_requests WHERE status=\'pending\' ORDER BY created_at DESC LIMIT 500');
+ const result = await db.query('SELECT * FROM provider_requests WHERE status IN (\'pending\',\'approved\') ORDER BY created_at DESC LIMIT 500');
  res.json(result.rows);
 }));
 app.patch('/api/admin/provider-requests/:id', requireAuth, requireAdmin, asyncRoute(async (req, res) => {

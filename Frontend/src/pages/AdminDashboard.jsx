@@ -159,7 +159,7 @@ export default function AdminDashboard({ language }) {
     return `${r.provider_type === "clinic" || d.type === "clinic" ? t.registerClinic : r.provider_type === "hospital" || d.type === "hospital" ? t.registerHospital : t.registerDoctor} ${r.name}`;
   };
   const tabs = [
-    {id:"requests",name:t.adminRequests,icon:ClipboardCheck,count:requests.length},
+    {id:"requests",name:t.adminRequests,icon:ClipboardCheck,count:requests.filter(r=>r.status==="pending").length},
     {id:"doctors",name:language==="Persian"?"مدیریت داکتران":"Manage Doctors",icon:Stethoscope,count:doctors.length},
     {id:"hospitals",name:language==="Persian"?"مدیریت شفاخانه‌ها":"Manage Hospitals",icon:Building2,count:hospitals.length},
     {id:"specialties",name:language==="Persian"?"تخصص‌ها":"Specialties",icon:Tags,count:specialtiesList.length},
@@ -179,6 +179,7 @@ export default function AdminDashboard({ language }) {
       {emailMessage && <p role="status" className="bg-green-50 text-green-700 rounded-xl p-4 mt-5">{emailMessage}</p>}
       {error && <p role="alert" className="bg-red-50 text-red-700 rounded-xl p-4 mt-5">{error}</p>}
       {loading ? <p className="p-6 dark:text-white">{t.loadingText}</p> : <div className="mt-7 space-y-4">
+        {tab === "requests" && <div className="flex gap-3 flex-wrap"><span className="rounded-lg bg-amber-100 text-amber-800 px-4 py-2">Pending: {requests.filter(r=>r.status==="pending").length}</span><span className="rounded-lg bg-green-100 text-green-800 px-4 py-2">Approved: {requests.filter(r=>r.status==="approved").length}</span></div>}
         {tab === "requests" && (requests.length ? requests.map(r=><article key={r.id} className="bg-white dark:bg-slate-800 dark:text-white rounded-2xl shadow-sm p-6 transition hover:shadow-lg">
           <div className="flex justify-between flex-wrap gap-3"><div><h3 className="font-bold text-lg">{title(r)}</h3><p className="text-sm text-gray-500 dark:text-gray-300 mt-1">{r.email} · {r.phone}</p></div><span className={`rounded-full px-4 py-2 h-fit text-sm ${r.status==="approved"?"bg-green-100 text-green-700":r.status==="rejected"?"bg-red-100 text-red-700":"bg-amber-100 text-amber-700"}`}>{r.status==="approved"?t.requestApproved:r.status==="rejected"?t.requestRejected:t.requestPending}</span></div>
           {detailsOf(r).photoUrl && <img src={detailsOf(r).photoUrl} alt={r.name} className="mt-4 w-32 h-32 rounded-xl object-cover" />}
@@ -190,9 +191,7 @@ export default function AdminDashboard({ language }) {
             disabled={sendingId !== null}
             className="mt-4 mr-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl px-5 py-2 cursor-pointer"
           >{sendingId === r.id ? "Sending..." : "Resend Activation Email"}</button>}
-          <button onClick={()=>showDocuments(r.id)} className="mt-4 text-teal-600 underline cursor-pointer">{t.adminDocuments}</button>
-          {documents[r.id]?.map(d=><button key={d.id} onClick={()=>downloadDocument(d)} className="block text-sm mt-2 text-teal-600 underline cursor-pointer">{d.original_name} — {t.adminDownloadHint} #{d.id}</button>)}
-          {<><label className="block mt-5 mb-2 text-sm font-semibold">{t.adminReviewNote}</label><textarea value={notes[r.id] ?? r.review_note ?? ""} onChange={e=>setNotes({...notes,[r.id]:e.target.value})} rows={2} className="w-full rounded-xl border p-3 dark:bg-slate-700 dark:border-slate-600" placeholder={t.adminReviewPlaceholder}/>
+          {r.status === "pending" && <><label className="block mt-5 mb-2 text-sm font-semibold">{t.adminReviewNote}</label><textarea value={notes[r.id] ?? r.review_note ?? ""} onChange={e=>setNotes({...notes,[r.id]:e.target.value})} rows={2} className="w-full rounded-xl border p-3 dark:bg-slate-700 dark:border-slate-600" placeholder={t.adminReviewPlaceholder}/>
           <div className="flex gap-3 mt-3"><button onClick={()=>decide(r,"approved")} className="bg-teal-600 hover:bg-teal-700 text-white rounded-xl px-5 py-2 transition cursor-pointer">{t.adminApprove}</button><button onClick={()=>decide(r,"rejected")} className="bg-red-100 hover:bg-red-200 text-red-700 rounded-xl px-5 py-2 transition cursor-pointer">{t.adminReject}</button></div></>}
         </article>) : <p className="dark:text-white">{t.adminEmpty}</p>)}
         {tab === "contacts" && (contacts.length ? contacts.map(c=><article key={c.id} className="bg-white dark:bg-slate-800 dark:text-white rounded-2xl shadow-sm p-6">

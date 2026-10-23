@@ -20,6 +20,15 @@ import {
 import { doctors } from "../data/doctorsData.js";
 import { translations } from "../data/translations.js";
 
+// تاریخ را همیشه با اعداد انگلیسی و قالب میلادی API می‌سازیم.
+function toApiDate(day) {
+  const d = day.toDate();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const date = String(d.getDate()).padStart(2, "0");
+  return `${year}/${month}/${date}`;
+}
+
 export default function BookAppointment({ language }) {
   const t = translations[language];
   const { id } = useParams();
@@ -158,7 +167,7 @@ export default function BookAppointment({ language }) {
                   <DatePicker
                     value={date ? new Date(date.replaceAll("/", "-") + "T12:00:00") : ""}
                     onChange={(value) => {
-                      const selected = value ? value.convert(gregorian).format("YYYY/MM/DD") : "";
+                      const selected = value ? toApiDate(value) : "";
                       if (selected && !bookableDays.includes(selected)) return;
                       setDate(selected);
                       setTime("");
@@ -168,7 +177,7 @@ export default function BookAppointment({ language }) {
                     
                     onMonthChange={(month) => { setCalendarMonth(month.format("YYYY/MM")); setDate(""); setTime(""); }}
                     mapDays={({ date: day }) => {
-                      const value = new DateObject(day).convert(gregorian).format("YYYY/MM/DD");
+                      const value = toApiDate(day);
                       const enabled = bookableDays.includes(value);
                       return {
                         disabled: !enabled,

@@ -18,7 +18,6 @@ export default function AdminDashboard({ language }) {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [notes, setNotes] = useState({});
   const [replies, setReplies] = useState({});
-  const [documents, setDocuments] = useState({});
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [sendingId, setSendingId] = useState(null);
@@ -43,7 +42,7 @@ export default function AdminDashboard({ language }) {
     setEmailMessage("");
     setSendingId(id);
     try {
-      await api(`/admin/provider-requests/${id}/resend-activation`, { method: "POST" });
+      await api(`/admin/providers/${id}/resend-activation`, { method: "POST" });
       setEmailMessage("Activation email sent successfully.");
     } catch (e) {
       setError(e.message);
@@ -58,18 +57,6 @@ export default function AdminDashboard({ language }) {
     const item=(kind === "doctor" ? doctors : kind === "hospital" ? hospitals : specialtiesList).find(x=>x.id===editId);
     if(item && kind) startEdit(kind,item);
   },[loading,tab,doctors,hospitals,specialtiesList]);
-  const showDocuments = async id => {
-    try { const result = await api(`/admin/provider-requests/${id}/documents`); setDocuments({...documents,[id]:result}); }
-    catch(e){setError(e.message);}
-  };
-  const downloadDocument = async d => {
-    try {
-      const response=await fetch(`${API_URL}/api/admin/documents/${d.id}`,{credentials:"include"});
-      if(!response.ok)throw new Error("Download failed");
-      const url=URL.createObjectURL(await response.blob());
-      const a=document.createElement("a");a.href=url;a.download="provider-document.pdf";a.click();URL.revokeObjectURL(url);
-    } catch(e){setError(e.message);}
-  };
   const changeAppointment = async (id, status) => {
     try { await api(`/admin/appointments/${id}/status`, { method: "PATCH", body: JSON.stringify({ status }) }); await load(); }
     catch (e) { setError(e.message); }
@@ -89,7 +76,7 @@ export default function AdminDashboard({ language }) {
   };
   const startEdit = (kind, item) => {
     setEditing(`${kind}-${item.id}`);
-    setForm(kind === "doctor" ? {name:item.name,specialty:item.specialty_value,hospitalId:hospitals.find(h=>h.name===item.hospital)?.id || "",city:item.city,about:item.about || "",experience:item.experience || "",education:item.education || "",image:item.image || ""} : kind === "hospital" ? {name:item.name,city:item.city,location:item.location,type:item.type_value || "private",phone:item.phone || "",license:item.license_number || "",services:item.services || "",description:item.description || "",image:item.image || ""} : {name:item.name,value:item.value,department:item.department || "",image:item.image || ""});
+    setForm(kind === "doctor" ? {name:item.name,email:item.email || "",specialty:item.specialty_value,hospitalId:hospitals.find(h=>h.name===item.hospital)?.id || "",city:item.city,about:item.about || "",experience:item.experience || "",education:item.education || "",image:item.image || ""} : kind === "hospital" ? {name:item.name,city:item.city,location:item.location,type:item.type_value || "private",phone:item.phone || "",license:item.license_number || "",services:item.services || "",description:item.description || "",image:item.image || ""} : {name:item.name,value:item.value,department:item.department || "",image:item.image || ""});
   };
   const saveItem = async (kind, id) => {
     if(kind === "hospital" && (!form.name || !form.city || !form.location || !form.phone || !form.license)){setError("Complete the hospital name, city, address, phone and license number");return;}
@@ -141,7 +128,7 @@ export default function AdminDashboard({ language }) {
     catch(e){setError(e.message);}
   };
   const addCatalog = async kind => {
-    if (!form.name || !form.city || (kind === "hospital" && (!form.location || !form.phone || !form.license || !form.image)) || (kind === "doctor" && (!form.specialty || !form.hospitalId))) {
+    if (!form.name || !form.city || (kind === "doctor" && !form.email) || (kind === "hospital" && (!form.location || !form.phone || !form.license || !form.image)) || (kind === "doctor" && (!form.specialty || !form.hospitalId))) {
       setError("Complete all required fields"); return;
     }
     try {
@@ -179,18 +166,13 @@ export default function AdminDashboard({ language }) {
       {emailMessage && <p role="status" className="bg-green-50 text-green-700 rounded-xl p-4 mt-5">{emailMessage}</p>}
       {error && <p role="alert" className="bg-red-50 text-red-700 rounded-xl p-4 mt-5">{error}</p>}
       {loading ? <p className="p-6 dark:text-white">{t.loadingText}</p> : <div className="mt-7 space-y-4">
-        {tab === "requests" && <div className="flex gap-3 flex-wrap"><span className="rounded-lg bg-amber-100 text-amber-800 px-4 py-2">Pending: {requests.filter(r=>r.status==="pending").length}</span><span className="rounded-lg bg-green-100 text-green-800 px-4 py-2">Approved: {requests.filter(r=>r.status==="approved").length}</span></div>}
+        
         {tab === "requests" && (requests.length ? requests.map(r=><article key={r.id} className="bg-white dark:bg-slate-800 dark:text-white rounded-2xl shadow-sm p-6 transition hover:shadow-lg">
           <div className="flex justify-between flex-wrap gap-3"><div><h3 className="font-bold text-lg">{title(r)}</h3><p className="text-sm text-gray-500 dark:text-gray-300 mt-1">{r.email} · {r.phone}</p></div><span className={`rounded-full px-4 py-2 h-fit text-sm ${r.status==="approved"?"bg-green-100 text-green-700":r.status==="rejected"?"bg-red-100 text-red-700":"bg-amber-100 text-amber-700"}`}>{r.status==="approved"?t.requestApproved:r.status==="rejected"?t.requestRejected:t.requestPending}</span></div>
           {detailsOf(r).photoUrl && <img src={detailsOf(r).photoUrl} alt={r.name} className="mt-4 w-32 h-32 rounded-xl object-cover" />}
           <div className="grid sm:grid-cols-2 gap-3 mt-4 text-sm text-gray-600 dark:text-gray-300">
             {Object.entries(detailsOf(r)).filter(([key,value])=>key!=="photoUrl" && key!=="type" && value).map(([key,value])=><p key={key} className="rounded-lg bg-gray-50 dark:bg-slate-700 p-3"><strong className="capitalize">{key.replace(/([A-Z])/g," $1")}: </strong>{String(value)}</p>)}
           </div>
-          {r.status === "approved" && <button
-            onClick={() => resendActivation(r.id)}
-            disabled={sendingId !== null}
-            className="mt-4 mr-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl px-5 py-2 cursor-pointer"
-          >{sendingId === r.id ? "Sending..." : "Resend Activation Email"}</button>}
           {r.status === "pending" && <><label className="block mt-5 mb-2 text-sm font-semibold">{t.adminReviewNote}</label><textarea value={notes[r.id] ?? r.review_note ?? ""} onChange={e=>setNotes({...notes,[r.id]:e.target.value})} rows={2} className="w-full rounded-xl border p-3 dark:bg-slate-700 dark:border-slate-600" placeholder={t.adminReviewPlaceholder}/>
           <div className="flex gap-3 mt-3"><button onClick={()=>decide(r,"approved")} className="bg-teal-600 hover:bg-teal-700 text-white rounded-xl px-5 py-2 transition cursor-pointer">{t.adminApprove}</button><button onClick={()=>decide(r,"rejected")} className="bg-red-100 hover:bg-red-200 text-red-700 rounded-xl px-5 py-2 transition cursor-pointer">{t.adminReject}</button></div></>}
         </article>) : <p className="dark:text-white">{t.adminEmpty}</p>)}
@@ -202,10 +184,10 @@ export default function AdminDashboard({ language }) {
         {tab === "appointments" && (appointments.length ? appointments.map(a=><article key={a.id} className="bg-white dark:bg-slate-800 dark:text-white rounded-2xl p-5 shadow-sm flex flex-wrap justify-between gap-4 items-center"><div><h3 className="font-bold">{a.patient_name}</h3><p className="text-sm text-gray-500 dark:text-gray-300">#{a.doctor_id} · {a.date} · {a.time} · {a.status}</p></div><div className="flex gap-2"><button onClick={()=>changeAppointment(a.id,"confirmed")} className="bg-teal-600 text-white px-4 py-2 rounded-lg cursor-pointer">{t.adminConfirm}</button><button onClick={()=>changeAppointment(a.id,"cancelled")} className="bg-red-100 text-red-700 px-4 py-2 rounded-lg cursor-pointer">{t.adminCancel}</button></div></article>) : <p className="dark:text-white">{t.adminEmpty}</p>)}
 
         {(["doctors","hospitals","specialties"].includes(tab)) && <>
-          {(tab === "doctors" || tab === "hospitals") && <button onClick={()=>{setEditing(`new-${tab}`);setForm(tab === "doctors" ? {name:"",specialty:"",hospitalId:"",city:"",about:"",image:""} : {name:"",type:"private",city:"",location:"",phone:"",license:"",services:"",description:"",image:""});}} className="bg-teal-600 text-white rounded-xl px-4 py-2">+ Add {tab === "doctors" ? "Doctor" : "Hospital / Clinic"}</button>}
+          {(tab === "doctors" || tab === "hospitals") && <button onClick={()=>{setEditing(`new-${tab}`);setForm(tab === "doctors" ? {name:"",email:"",specialty:"",hospitalId:"",city:"",about:"",image:""} : {name:"",type:"private",city:"",location:"",phone:"",license:"",services:"",description:"",image:""});}} className="bg-teal-600 text-white rounded-xl px-4 py-2">+ Add {tab === "doctors" ? "Doctor" : "Hospital / Clinic"}</button>}
           {(editing === "new-doctors" || editing === "new-hospitals") && <div className="bg-white rounded-xl p-5 grid sm:grid-cols-2 gap-3">
             {field("name","Name *")}
-            {editing === "new-doctors" ? <>{field("specialty","Specialty *","select",specialtiesList.map(x=>({value:x.value,label:x.name})))}{field("hospitalId","Hospital *","select",hospitals.map(x=>({value:x.id,label:x.name})))}{field("city","City *")}{field("experience","Experience")}{field("education","Education")}{field("about","About")}</> : <>{field("type","Hospital / Clinic type *","select",[{value:"private",label:"Private Hospital"},{value:"government",label:"Government Hospital"},{value:"clinic",label:"Clinic"}])}{field("city","City *")}{field("location","Full address *")}{field("phone","Contact phone *")}{field("license","License number *")}{field("services","Medical services")}{field("description","About the hospital / clinic")}</>}
+            {editing === "new-doctors" ? <>{field("email","Email *")}{field("specialty","Specialty *","select",specialtiesList.map(x=>({value:x.value,label:x.name})))}{field("hospitalId","Hospital *","select",hospitals.map(x=>({value:x.id,label:x.name})))}{field("city","City *")}{field("experience","Experience")}{field("education","Education")}{field("about","About")}</> : <>{field("type","Hospital / Clinic type *","select",[{value:"private",label:"Private Hospital"},{value:"government",label:"Government Hospital"},{value:"clinic",label:"Clinic"}])}{field("city","City *")}{field("location","Full address *")}{field("phone","Contact phone *")}{field("license","License number *")}{field("services","Medical services")}{field("description","About the hospital / clinic")}</>}
             {catalogImageField()}
             <button disabled={uploadingImage} onClick={()=>addCatalog(editing === "new-doctors" ? "doctor" : "hospital")} className="bg-teal-600 text-white rounded-xl px-4 py-2">Save</button>
             <button onClick={()=>setEditing(null)} className="border rounded-xl px-4 py-2">Cancel</button>
@@ -218,13 +200,13 @@ export default function AdminDashboard({ language }) {
             return <article key={item.id} className="bg-white dark:bg-slate-800 dark:text-white rounded-2xl p-5 shadow-sm">
               <div className="flex items-center gap-4 flex-wrap">
                 {item.image && <img src={item.image} alt={item.name} className="w-20 h-20 object-cover rounded-xl" />}
-                <div className="flex-1"><h3 className="font-bold">{item.name}</h3><p className="text-sm text-gray-500">{kind === "doctor" ? `${item.specialty} · ${item.hospital} · ${item.city}` : kind === "hospital" ? `${item.city} · ${item.location}` : `${item.value} · ${item.department || "No department"}`}</p></div>
+                <div className="flex-1"><h3 className="font-bold">{item.name}</h3><p className="text-sm text-gray-500">{kind === "doctor" ? `${item.specialty} · ${item.hospital} · ${item.city} · ${item.email || ""}` : kind === "hospital" ? `${item.city} · ${item.location}` : `${item.value} · ${item.department || "No department"}`}</p></div>
                 <button onClick={()=>active?setEditing(null):startEdit(kind,item)} className="flex gap-1 items-center border rounded-lg px-3 py-2"><Pencil size={16}/> {active?"Cancel":"Edit"}</button>
                 <button onClick={()=>deleteItem(kind,item.id)} className="flex gap-1 items-center bg-red-100 text-red-700 rounded-lg px-3 py-2"><Trash2 size={16}/> Delete</button>
               </div>
               {active && <div className="grid sm:grid-cols-2 gap-3 mt-5">
                 {field("name","Name")}
-                {kind === "doctor" && <>{field("specialty","Specialty","select",specialtiesList.map(x=>({value:x.value,label:x.name})))}{field("hospitalId","Hospital","select",hospitals.map(x=>({value:x.id,label:x.name})))}{field("city","City")}{field("experience","Experience")}{field("education","Education")}{field("about","About")}{catalogImageField()}</>}
+                {kind === "doctor" && <>{field("email","Email *")}{field("specialty","Specialty","select",specialtiesList.map(x=>({value:x.value,label:x.name})))}{field("hospitalId","Hospital","select",hospitals.map(x=>({value:x.id,label:x.name})))}{field("city","City")}{field("experience","Experience")}{field("education","Education")}{field("about","About")}{catalogImageField()}</>}
                 {kind === "hospital" && <>{field("type","Hospital / Clinic type","select",[{value:"private",label:"Private Hospital"},{value:"government",label:"Government Hospital"},{value:"clinic",label:"Clinic"}])}{field("city","City")}{field("location","Full address *")}{field("phone","Contact phone *")}{field("license","License number *")}{field("services","Medical services")}{field("description","About the hospital / clinic")}{catalogImageField()}</>}
                 {kind === "specialty" && <>{field("value","Code")}{field("department","Specialty department")}{specialtyImageField()}</>}
                 <button disabled={uploadingImage} onClick={()=>saveItem(kind,item.id)} className="bg-teal-600 text-white rounded-xl px-4 py-2 flex items-center justify-center gap-2"><Save size={17}/> Save changes</button>
@@ -232,7 +214,7 @@ export default function AdminDashboard({ language }) {
             </article>;
           })}
         </>}
-        {tab === "providers" && (providers.length ? providers.map(p=><article key={p.id} className="bg-white dark:bg-slate-800 dark:text-white rounded-2xl p-5 shadow-sm flex flex-wrap justify-between gap-4 items-center"><div><h3 className="font-bold">{p.provider_type==="doctor"?t.registerDoctor:p.provider_type==="clinic"?t.registerClinic:t.registerHospital} {p.name}</h3><p className="text-sm text-gray-500 dark:text-gray-300">{p.city} · {p.phone}</p></div><div className="flex gap-2"><button onClick={()=>toggleProvider(p)} className={`px-4 py-2 rounded-xl cursor-pointer ${p.active?"bg-red-100 text-red-700":"bg-green-100 text-green-700"}`}>{p.active?t.adminDeactivate:t.adminActivate}</button><button onClick={()=>deleteProvider(p)} className="px-4 py-2 rounded-xl bg-red-600 text-white cursor-pointer">Delete</button></div></article>) : <p className="dark:text-white">{t.adminEmpty}</p>)}
+        {tab === "providers" && (providers.length ? providers.map(p=><article key={p.id} className="bg-white dark:bg-slate-800 dark:text-white rounded-2xl p-5 shadow-sm flex flex-wrap justify-between gap-4 items-center"><div><h3 className="font-bold">{p.provider_type==="doctor"?t.registerDoctor:p.provider_type==="clinic"?t.registerClinic:t.registerHospital} {p.name}</h3><p className="text-sm text-gray-500 dark:text-gray-300">{p.city} · {p.phone} · {p.email || ""}</p></div><div className="flex gap-2">{p.email_verified === false && <button disabled={sendingId !== null} onClick={()=>resendActivation(p.id)} className="px-4 py-2 rounded-xl bg-blue-600 text-white disabled:opacity-50">{sendingId === p.id ? "Sending..." : "Resend Activation Email"}</button>}<button onClick={()=>toggleProvider(p)} className={`px-4 py-2 rounded-xl cursor-pointer ${p.active?"bg-red-100 text-red-700":"bg-green-100 text-green-700"}`}>{p.active?t.adminDeactivate:t.adminActivate}</button><button onClick={()=>deleteProvider(p)} className="px-4 py-2 rounded-xl bg-red-600 text-white cursor-pointer">Delete</button></div></article>) : <p className="dark:text-white">{t.adminEmpty}</p>)}
       </div>}
     </div>
   </main>;

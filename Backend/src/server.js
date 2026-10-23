@@ -232,14 +232,14 @@ app.get('/api/specialties', asyncRoute(async (req,res) => {
  const r = await db.query('SELECT id,name,value,department,image FROM medical_specialties ORDER BY name'); res.json(r.rows);
 }));
 app.get('/api/doctors', asyncRoute(async (req, res) => {
- const result = await db.query('SELECT id,name,specialty,specialty_value AS "specialtyValue",hospital,city,city_value AS "cityValue",image,experience,education,about FROM doctors ORDER BY id');
+ const result = await db.query('SELECT id,name,email,specialty,specialty_value AS "specialtyValue",hospital,city,city_value AS "cityValue",image,experience,education,about FROM doctors ORDER BY id');
  const search = String(req.query.search || '').toLowerCase();
  const specialty = String(req.query.specialty || 'all');
  const city = String(req.query.city || 'all');
  res.json(result.rows.filter(d => (specialty === 'all' || d.specialtyValue === specialty) && (city === 'all' || d.cityValue === city) && (!search || [d.name,d.specialty,d.hospital].some(v => v.toLowerCase().includes(search)))));
 }));
 app.get('/api/doctors/:id', asyncRoute(async (req, res) => {
- const result = await db.query('SELECT id,name,specialty,specialty_value AS "specialtyValue",hospital,city,city_value AS "cityValue",image,experience,education,about FROM doctors WHERE id=$1', [req.params.id]);
+ const result = await db.query('SELECT id,name,email,specialty,specialty_value AS "specialtyValue",hospital,city,city_value AS "cityValue",image,experience,education,about FROM doctors WHERE id=$1', [req.params.id]);
  if (!result.rows[0]) return res.status(404).json({ message: 'Doctor not found' });
  res.json(result.rows[0]);
 }));
@@ -378,7 +378,7 @@ async function addProviderCard(client, request, details, providerId = null) {
   if (!hospital.rowCount) { const error=new Error('Select an existing hospital');error.status=400;throw error; }
   const next = await client.query('SELECT COALESCE(MAX(id),0)+1 AS id FROM doctors');
   const doctorId = next.rows[0].id;
-  await client.query('INSERT INTO doctors(id,name,specialty,specialty_value,hospital,city,city_value,image,about) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)', [doctorId,request.name,details.specialty || 'General',details.specialty || 'General',hospital.rows[0].name,details.city || '',details.city || '',details.photoUrl,details.information || '']);
+  await client.query('INSERT INTO doctors(id,name,email,specialty,specialty_value,hospital,city,city_value,image,about) VALUES($1,$2,$10,$3,$4,$5,$6,$7,$8,$9)', [doctorId,request.name,details.specialty || 'General',details.specialty || 'General',hospital.rows[0].name,details.city || '',details.city || '',details.photoUrl,details.information || '',request.email]);
   if (providerId) await client.query('INSERT INTO provider_doctors(provider_id,doctor_id) VALUES($1,$2)',[providerId,doctorId]);
  } else {
   const next = await client.query('SELECT COALESCE(MAX(id),0)+1 AS id FROM hospitals');
@@ -455,7 +455,7 @@ app.patch('/api/admin/appointments/:id/status', requireAuth, requireAdmin, async
  }
 }));
 app.get('/api/admin/provider-requests', requireAuth, requireAdmin, asyncRoute(async (req, res) => {
- const result = await db.query('SELECT * FROM provider_requests WHERE status IN (\'pending\',\'approved\') ORDER BY created_at DESC LIMIT 500');
+ const result = await db.query('SELECT * FROM provider_requests WHERE status=\'pending\' ORDER BY created_at DESC LIMIT 500');
  res.json(result.rows);
 }));
 app.patch('/api/admin/provider-requests/:id', requireAuth, requireAdmin, asyncRoute(async (req, res) => {
@@ -567,7 +567,18 @@ app.patch('/api/provider/dashboard/:id',requireAuth,requireProvider,asyncRoute(a
  if(!r.rows[0])return res.status(404).json({message:'Not found'});res.json(r.rows[0]);
 }));
 app.get('/api/admin/providers',requireAuth,requireAdmin,asyncRoute(async(req,res)=>{
- const r=await db.query('SELECT * FROM provider_profiles ORDER BY id DESC');res.json(r.rows);
+ const r=await db.query('SELECT p.*,u.email,u.email_verified FROM provider_profiles p JOIN users u ON u.id=p.user_id ORDER BY p.id DESC');res.json(r.rows);
+}));
+app.post('/api/admin/providers/:id/resend-activation',requireAuth,requireAdmin,asyncRoute(async(req,res)=>{
+ if(!process.env.SMTP_HOST)return res.status(503).json({message:'Email service is not configured'});
+ const result=await db.query("SELECT u.id,u.email FROM provider_profiles p JOIN users u ON u.id=p.user_id WHERE p.id=$1 AND u.role='provider' AND u.email_verified=false",[req.params.id]);
+ if(!result.rowCount)return res.status(404).json({message:'No inactive provider account found'});
+ const user=result.rows[0];
+ const token=randomToken();
+ await db.query('DELETE FROM provider_activation_tokens WHERE user_id=$1',[user.id]);
+ await db.query("INSERT INTO provider_activation_tokens(user_id,token_hash,expires_at) VALUES($1,$2,NOW() + INTERVAL '24 hours')",[user.id,tokenHash(token)]);
+ await sendAccountEmail(user.email,'Activate your NobatYar provider account',`Your application was approved. Set your password: ${siteUrl()}/activate-provider?token=${token}`);
+ res.json({message:'Activation email sent'});
 }));
 app.patch('/api/admin/providers/:id',requireAuth,requireAdmin,asyncRoute(async(req,res)=>{
  const d=valid(z.object({active:z.boolean()}),req.body);
@@ -623,24 +634,24 @@ app.post('/api/admin/hospitals',requireAuth,requireAdmin,asyncRoute(async(req,re
  }catch(e){await client.query('ROLLBACK');throw e;}finally{client.release();}
 }));
 app.post('/api/admin/doctors',requireAuth,requireAdmin,asyncRoute(async(req,res)=>{
- const d=valid(z.object({name:text(),specialty:text(),hospitalId:z.coerce.number().int().positive(),city:text(),about:z.string().max(3000).default(''),experience:z.string().max(200).default(''),education:z.string().max(200).default(''),image:z.string().min(1).max(1000)}),req.body);
+ const d=valid(z.object({name:text(),email:z.string().email().max(254),specialty:text(),hospitalId:z.coerce.number().int().positive(),city:text(),about:z.string().max(3000).default(''),experience:z.string().max(200).default(''),education:z.string().max(200).default(''),image:z.string().min(1).max(1000)}),req.body);
  const hospital=await db.query('SELECT name FROM hospitals WHERE id=$1',[d.hospitalId]);
  if(!hospital.rowCount)return res.status(400).json({message:'Hospital not found'});
  const sp=await db.query('SELECT value FROM medical_specialties WHERE value=$1',[d.specialty]);
  if(!sp.rowCount)return res.status(400).json({message:'Specialty not found'});
  const client=await db.connect();
  try {await client.query('BEGIN');await client.query('SELECT pg_advisory_xact_lock(20261023)');
-  const r=await client.query('INSERT INTO doctors(id,name,specialty,specialty_value,hospital,city,city_value,image,about,experience,education) VALUES((SELECT COALESCE(MAX(id),0)+1 FROM doctors),$1,$2,$2,$3,$4,$4,$5,$6,$7,$8) RETURNING *',[d.name,d.specialty,hospital.rows[0].name,d.city,d.image,d.about,d.experience,d.education]);
+  const r=await client.query('INSERT INTO doctors(id,name,email,specialty,specialty_value,hospital,city,city_value,image,about,experience,education) VALUES((SELECT COALESCE(MAX(id),0)+1 FROM doctors),$1,$9,$2,$2,$3,$4,$4,$5,$6,$7,$8) RETURNING *',[d.name,d.specialty,hospital.rows[0].name,d.city,d.image,d.about,d.experience,d.education,d.email]);
   await client.query('COMMIT');res.status(201).json(r.rows[0]);
  }catch(e){await client.query('ROLLBACK');throw e;}finally{client.release();}
 }));
 app.patch('/api/admin/doctors/:id',requireAuth,requireAdmin,asyncRoute(async(req,res)=>{
- const d=valid(z.object({name:text(),specialty:text(),hospitalId:z.coerce.number().int().positive(),city:text(),about:z.string().max(3000).default(''),experience:z.string().max(200).default(''),education:z.string().max(200).default(''),image:z.string().max(1000).optional()}),req.body);
+ const d=valid(z.object({name:text(),email:z.string().email().max(254),specialty:text(),hospitalId:z.coerce.number().int().positive(),city:text(),about:z.string().max(3000).default(''),experience:z.string().max(200).default(''),education:z.string().max(200).default(''),image:z.string().max(1000).optional()}),req.body);
  const h=await db.query('SELECT name FROM hospitals WHERE id=$1',[d.hospitalId]);
  if(!h.rowCount)return res.status(400).json({message:'Hospital not found'});
  const sp=await db.query('SELECT value FROM medical_specialties WHERE value=$1',[d.specialty]);
  if(!sp.rowCount)return res.status(400).json({message:'Specialty not found'});
- const r=await db.query('UPDATE doctors SET name=$1,specialty=$2,specialty_value=$2,hospital=$3,city=$4,city_value=$4,about=$5,image=COALESCE($7,image),experience=$8,education=$9 WHERE id=$6 RETURNING *',[d.name,d.specialty,h.rows[0].name,d.city,d.about,req.params.id,d.image||null,d.experience,d.education]);
+ const r=await db.query('UPDATE doctors SET name=$1,specialty=$2,specialty_value=$2,hospital=$3,city=$4,city_value=$4,about=$5,image=COALESCE($7,image),experience=$8,education=$9,email=$10 WHERE id=$6 RETURNING *',[d.name,d.specialty,h.rows[0].name,d.city,d.about,req.params.id,d.image||null,d.experience,d.education,d.email]);
  if(!r.rowCount)return res.status(404).json({message:'Doctor not found'});res.json(r.rows[0]);
 }));
 app.delete('/api/admin/doctors/:id',requireAuth,requireAdmin,asyncRoute(async(req,res)=>{

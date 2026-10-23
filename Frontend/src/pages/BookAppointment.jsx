@@ -32,11 +32,15 @@ export default function BookAppointment({ language }) {
 
   const [date, setDate] = useState("");
   const [bookableDays, setBookableDays] = useState([]);
-  const [calendarMonth, setCalendarMonth] = useState(() => new Date().toISOString().slice(0,7).replace('-', '/'));
+  const [calendarMonth, setCalendarMonth] = useState(() => new DateObject({ date: new Date(), calendar: persian }).convert(gregorian).format("YYYY/MM"));
   useEffect(() => {
     setBookableDays([]);
-    api(`/doctors/${id}/bookable-days?month=${calendarMonth}`)
-      .then(setBookableDays)
+    const [year, month] = calendarMonth.split("/").map(Number);
+    const nextMonth = new Date(Date.UTC(year, month, 1)).toISOString().slice(0, 7).replace("-", "/");
+    Promise.all([
+      api(`/doctors/${id}/bookable-days?month=${calendarMonth}`),
+      api(`/doctors/${id}/bookable-days?month=${nextMonth}`),
+    ]).then(([first, second]) => setBookableDays([...first, ...second]))
       .catch(() => setBookableDays([]));
   }, [id, calendarMonth]);
   const [time, setTime] = useState("");
@@ -157,6 +161,7 @@ export default function BookAppointment({ language }) {
                     }}
                     calendar={afghanCalendar}
                     locale={afghanLocale}
+                    onOpen={() => setCalendarMonth(new DateObject({ date: new Date(), calendar: persian }).convert(gregorian).format("YYYY/MM"))}
                     onMonthChange={(month) => { setCalendarMonth(new DateObject(month).convert(gregorian).format("YYYY/MM")); setDate(""); setTime(""); }}
                     mapDays={({ date: day }) => {
                       const value = new DateObject(day).convert(gregorian).format("YYYY/MM/DD");
@@ -276,13 +281,13 @@ export default function BookAppointment({ language }) {
               <div className="flex items-center gap-4 mb-6">
                 <img
                   src={doctor.image}
-                  alt={t[doctor.name]}
+                  alt={t[doctor.name] || doctor.name}
                   className="w-20 h-20 rounded-xl object-cover object-top bg-gray-100"
                 />
 
                 <div>
                   <h3 className="font-bold text-gray-900 dark:text-white">
-                    {t[doctor.name]}
+                    {t[doctor.name] || doctor.name}
                   </h3>
 
                   <p className="text-sm text-teal-600 dark:text-teal-400 mt-1">
@@ -294,7 +299,7 @@ export default function BookAppointment({ language }) {
               <div className="border-t border-gray-100 dark:border-slate-700 pt-5 space-y-4 text-sm text-gray-600 dark:text-gray-300">
                 <div className="flex items-center gap-3">
                   <Hospital size={19} className="text-teal-600 shrink-0" />
-                  <span>{t[doctor.hospital]}</span>
+                  <span>{t[doctor.hospital] || doctor.hospital}</span>
                 </div>
 
                 <div className="flex items-center gap-3">

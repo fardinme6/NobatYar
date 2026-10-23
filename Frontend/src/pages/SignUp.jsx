@@ -20,7 +20,6 @@ export default function SignUp({ language, onLogin }) {
   const navigate = useNavigate();
 
   const [fullName, setFullName] = useState("");
-  const [accountType, setAccountType] = useState("patient");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
@@ -57,11 +56,10 @@ export default function SignUp({ language, onLogin }) {
     try {
       const data = await api("/auth/register", {
         method: "POST",
-        body: JSON.stringify({ name: fullName, email, phone, password, accountType }),
+        body: JSON.stringify({ name: fullName, email, phone, password }),
       });
       onLogin(data.user);
-      if (accountType !== "patient") sessionStorage.setItem("nobatyarApplicationType", accountType);
-      navigate(accountType === "patient" ? "/my-appointments" : "/register-provider");
+      navigate("/my-appointments");
     } catch (error) {
       setError(true);
       setMessage(error.message);
@@ -109,15 +107,9 @@ export default function SignUp({ language, onLogin }) {
             >
               <div className="sm:col-span-2">
                 <label className="block mb-2 text-sm font-semibold text-gray-700 dark:text-gray-200">
-                  {language === "English" ? "Register as" : language === "Persian" ? "ثبت‌نام به عنوان" : "د حساب ډول"} *
+                  {language === "Persian" ? "نوع حساب: مریض" : "Account type: Patient"}
                 </label>
-                <select value={accountType} onChange={(e) => setAccountType(e.target.value)} className={inputStyle}>
-                  <option value="patient">{language === "English" ? "Patient" : language === "Persian" ? "مریض" : "ناروغ"}</option>
-                  <option value="doctor">{language === "English" ? "Doctor" : language === "Persian" ? "داکتر" : "ډاکټر"}</option>
-                  <option value="hospital">{language === "English" ? "Hospital" : language === "Persian" ? "شفاخانه" : "روغتون"}</option>
-                  <option value="clinic">{language === "English" ? "Clinic" : language === "Persian" ? "کلینیک" : "کلینیک"}</option>
-                </select>
-                {accountType !== "patient" && <p className="text-xs text-teal-600 mt-2">{language === "English" ? "After signup, complete the provider application. Admin approval is required." : language === "Persian" ? "پس از ثبت‌نام، فرم درخواست را تکمیل کنید. تأیید ادمین ضروری است." : "له نوم‌لیکنې وروسته د خدمت‌وړاندې کوونکي غوښتنلیک بشپړ کړئ."}</p>}
+                <p className="text-sm text-gray-600 dark:text-gray-300">{language === "Persian" ? "این ثبت‌نام فقط برای مریضان است. داکتران و شفاخانه‌ها از Join NobatYar درخواست می‌فرستند." : "Patient accounts only. Doctors and hospitals should apply through Join NobatYar."}</p>
               </div>
               <div>
                 <label className="block mb-2 text-sm font-semibold text-gray-700 dark:text-gray-200">

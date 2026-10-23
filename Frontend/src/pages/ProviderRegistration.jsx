@@ -28,7 +28,6 @@ export default function ProviderRegistration({ language, user }) {
 
   async function handleSubmit(e) {
     e.preventDefault(); setError("");
-    if (!user) { setError(t.loginToContinue); return; }
     setSaving(true);
     const form = new FormData(e.currentTarget);
     const data = Object.fromEntries(form.entries());
@@ -47,7 +46,6 @@ export default function ProviderRegistration({ language, user }) {
 
       setSubmitted(true);
       sessionStorage.removeItem("nobatyarApplicationType");
-      api("/provider-requests/mine").then(data => setRequests(data.filter(r => r.status === "pending"))).catch(()=>{});
     } catch (err) { setError(err.message); }
     finally { setSaving(false); }
   }
@@ -141,7 +139,6 @@ export default function ProviderRegistration({ language, user }) {
           </div>
 
           {error && <p role="alert" className="text-red-600 mb-5">{error}</p>}
-          {!user && <div className="flex gap-5 mb-5 text-teal-600"><Link to="/login" className="underline">Login / ورود</Link><Link to="/signup" className="underline">Sign Up / ثبت‌نام</Link></div>}
           {submitted ? (
             <div className="text-center py-12">
               <CheckCircle2
@@ -341,7 +338,7 @@ export default function ProviderRegistration({ language, user }) {
               </div>
 
               <button
-                disabled={saving || !user}
+                disabled={saving}
                 type="submit"
                 className="w-full mt-8 bg-teal-600 text-white font-semibold py-4 rounded-xl hover:bg-teal-700 transition-colors cursor-pointer"
               >

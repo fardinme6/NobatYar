@@ -13,7 +13,8 @@ export default function AccountRecovery({ language, mode }) {
   const token = params.get("token") || "";
   const verify = mode === "verify";
   const reset = mode === "reset";
-  const title = verify
+  const activate = mode === "activate";
+  const title = activate ? "Activate provider account / فعال‌سازی حساب" : verify
     ? t.verifyEmailTitle
     : reset
       ? t.resetPasswordTitle
@@ -25,10 +26,10 @@ export default function AccountRecovery({ language, mode }) {
     try {
       const path = verify
         ? "/auth/verify-email"
-        : reset
-          ? "/auth/reset-password"
+        : (reset || activate)
+          ? (activate ? "/auth/activate-provider" : "/auth/reset-password")
           : "/auth/forgot-password";
-      const body = verify ? { token } : reset ? { token, password } : { email };
+      const body = verify ? { token } : (reset || activate) ? { token, password } : { email };
       const data = await api(path, {
         method: "POST",
         body: JSON.stringify(body),
@@ -48,7 +49,7 @@ export default function AccountRecovery({ language, mode }) {
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
           {title}
         </h1>
-        {!verify && !reset && (
+        {!verify && !reset && !activate && (
           <input
             type="email"
             required
@@ -58,7 +59,7 @@ export default function AccountRecovery({ language, mode }) {
             className="w-full rounded-lg border p-3"
           />
         )}
-        {reset && (
+        {(reset || activate) && (
           <input
             type="password"
             required

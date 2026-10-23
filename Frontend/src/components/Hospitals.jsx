@@ -190,12 +190,12 @@ export default function Hospitals({ language, home = false, user }) {
                 <div className="relative overflow-hidden">
                   <img
                     src={hospital.image}
-                    alt={t[hospital.name]}
+                    alt={t[hospital.name] || hospital.name}
                     className="w-full h-56 object-cover hover:scale-105 transition-transform duration-500"
                   />
 
                   <span className="absolute top-4 start-4 bg-white/95 dark:bg-slate-800/95 text-teal-700 dark:text-teal-400 px-3 py-1.5 rounded-lg text-xs font-semibold shadow-sm">
-                    {t[hospital.type]}
+                    {t[hospital.type] || hospital.type}
                   </span>
                 </div>
 
@@ -206,14 +206,14 @@ export default function Hospitals({ language, home = false, user }) {
                   </div>
 
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                    {t[hospital.name]}
+                    {t[hospital.name] || hospital.name}
                   </h3>
 
                   <div className="flex items-start gap-2 text-gray-600 dark:text-gray-300 mb-6">
                     <MapPin size={18} className="shrink-0 mt-1 text-teal-600" />
 
                     <span className="text-sm leading-6">
-                      {t[hospital.city]}, {t[hospital.location]}
+                      {t[hospital.city] || hospital.city}, {t[hospital.location] || hospital.location}
                     </span>
                   </div>
 

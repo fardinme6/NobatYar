@@ -117,7 +117,7 @@ app.post('/api/auth/resend-verification',requireAuth,authLimiter,asyncRoute(asyn
 }));
 
 app.post('/api/auth/register', authLimiter, asyncRoute(async (req, res) => {
- const data = valid(z.object({ name: text(), email, password: z.string().min(8).max(128), phone: z.string().max(40).default(''), accountType: z.enum(['patient','doctor','hospital','clinic']).default('patient') }), req.body);
+ const data = valid(z.object({ name: text(), email, password: z.string().min(8).max(128), phone: z.string().max(40).default(''), accountType: z.literal('patient').default('patient') }), req.body);
  const hash = await bcrypt.hash(data.password, 12);
  try {
   const result = await db.query('INSERT INTO users(name,email,password_hash,phone) VALUES($1,$2,$3,$4) RETURNING id,name,email,phone,city,address,bio,birth_date,avatar,role', [data.name, data.email, hash, data.phone]);
@@ -357,18 +357,18 @@ const providerPhotoUpload = multer({
  limits: { fileSize: 3 * 1024 * 1024 },
  fileFilter: (req, file, cb) => cb(null, ['image/jpeg', 'image/png', 'image/webp'].includes(file.mimetype))
 });
-app.post('/api/provider-requests/photo', requireAuth, providerPhotoUpload.single('photo'), asyncRoute(async (req, res) => {
+app.post('/api/provider-requests/photo', authLimiter, providerPhotoUpload.single('photo'), asyncRoute(async (req, res) => {
  if (!cloudinaryEnabled()) return res.status(503).json({ message: 'Cloudinary is not configured' });
  if (!req.file) return res.status(400).json({ message: 'Select a JPG, PNG or WebP photo under 3 MB' });
  const b = req.file.buffer;
  const validImage = (b[0]===255 && b[1]===216 && b[2]===255) || b.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])) || (b.toString('ascii',0,4)==='RIFF' && b.toString('ascii',8,12)==='WEBP');
  if (!validImage) return res.status(400).json({ message: 'Invalid image file' });
- const photoUrl = await uploadProviderPhotoToCloudinary(b, req.user.id);
+ const photoUrl = await uploadProviderPhotoToCloudinary(b, crypto.randomUUID());
  res.json({ photoUrl });
 }));
-const validProviderPhoto = (url, userId) => {
+const validProviderPhoto = (url) => {
  const prefix = `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload/`;
- return cloudinaryEnabled() && typeof url === 'string' && url.startsWith(prefix) && url.includes(`/nobatyar/provider-requests/user_${userId}_`);
+ return cloudinaryEnabled() && typeof url === 'string' && url.startsWith(prefix) && url.includes(`/nobatyar/provider-requests/user_`);
 };
 
 async function addProviderCard(client, request, details, providerId = null) {
@@ -386,11 +386,11 @@ async function addProviderCard(client, request, details, providerId = null) {
  }
 }
 
-app.post('/api/provider-requests', requireAuth, asyncRoute(async (req, res) => {
+app.post('/api/provider-requests', authLimiter, asyncRoute(async (req, res) => {
  const data = valid(z.object({ name: text(), email, phone: text(40), details: text(3000), providerType: z.enum(['doctor','hospital','clinic']) }), req.body);
  let details;
  try { details = JSON.parse(data.details); } catch { return res.status(400).json({ message: 'Invalid provider details' }); }
- if (!details || !validProviderPhoto(details.photoUrl, req.user.id)) return res.status(400).json({ message: 'A valid photo is required for every doctor, hospital and clinic' });
+ if (!details || !validProviderPhoto(details.photoUrl)) return res.status(400).json({ message: 'A valid photo is required for every doctor, hospital and clinic' });
  if (!details.city || !details.address) return res.status(400).json({message:'City and address are required'});
  if (data.providerType === 'doctor' && !details.specialty) return res.status(400).json({message:'Medical specialty is required'});
  if (data.providerType === 'doctor' && !Number.isInteger(Number(details.hospitalId))) return res.status(400).json({message:'Select an existing hospital'});
@@ -400,22 +400,44 @@ app.post('/api/provider-requests', requireAuth, asyncRoute(async (req, res) => {
   const specialty = await db.query('SELECT id FROM medical_specialties WHERE value=$1',[details.specialty]);
   if (!specialty.rowCount) return res.status(400).json({message:'Selected specialty does not exist'});
  }
- const existing = await db.query("SELECT id FROM provider_requests WHERE user_id=$1 AND status='pending' LIMIT 1", [req.user.id]);
- if (existing.rowCount && req.user.role !== 'admin') return res.status(409).json({ message: 'You already have a pending provider request' });
+ const existing = await db.query("SELECT id FROM provider_requests WHERE LOWER(email)=LOWER($1) AND status='pending' LIMIT 1", [data.email]);
+ if (existing.rowCount) return res.status(409).json({ message: 'An application with this email is already pending' });
+ const registered = await db.query('SELECT id FROM users WHERE LOWER(email)=LOWER($1)', [data.email]);
+ if (registered.rowCount) return res.status(409).json({message:'This email already has an account. Contact support.'});
  const client = await db.connect();
  try {
   await client.query('BEGIN');
-  const admin = req.user.role === 'admin';
-  const result = await client.query('INSERT INTO provider_requests(user_id,name,email,phone,details,provider_type,status,reviewed_by,reviewed_at) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id', [req.user.id,data.name,data.email,data.phone,data.details,data.providerType,admin?'approved':'pending',admin?req.user.id:null,admin?new Date():null]);
-  if (admin) await addProviderCard(client,{name:data.name,provider_type:data.providerType},details);
+  const result = await client.query('INSERT INTO provider_requests(user_id,name,email,phone,details,provider_type,status) VALUES(NULL,$1,$2,$3,$4,$5,$6) RETURNING id', [data.name,data.email,data.phone,data.details,data.providerType,'pending']);
   await client.query('COMMIT');
-  res.status(201).json({message:admin?'Provider published':'Request received',id:result.rows[0].id,status:admin?'approved':'pending'});
+  res.status(201).json({message:'Request received. Wait for admin approval.',id:result.rows[0].id,status:'pending'});
  } catch (err) { await client.query('ROLLBACK'); throw err; }
  finally { client.release(); }
 }));
 app.get('/api/provider-requests/mine', requireAuth, asyncRoute(async (req, res) => {
  const result = await db.query('SELECT id,name,email,phone,details,provider_type AS "providerType",status,review_note AS "reviewNote",created_at AS "createdAt" FROM provider_requests WHERE user_id=$1 AND status=$2 ORDER BY created_at DESC', [req.user.id,'pending']);
  res.json(result.rows);
+}));
+app.post('/api/auth/activate-provider', authLimiter, asyncRoute(async(req,res)=>{
+ const data=valid(z.object({token:z.string().min(20).max(200),password:z.string().min(8).max(128)}),req.body);
+ const client=await db.connect();
+ try {
+  await client.query('BEGIN');
+  const result=await client.query('SELECT user_id FROM provider_activation_tokens WHERE token_hash=$1 AND expires_at>NOW() AND used_at IS NULL FOR UPDATE',[tokenHash(data.token)]);
+  if(!result.rowCount){await client.query('ROLLBACK');return res.status(400).json({message:'Invalid or expired activation link'});}
+  await client.query('UPDATE users SET password_hash=$1,email_verified=true WHERE id=$2',[await bcrypt.hash(data.password,12),result.rows[0].user_id]);
+  await client.query('UPDATE provider_activation_tokens SET used_at=NOW() WHERE user_id=$1',[result.rows[0].user_id]);
+  await client.query('COMMIT');res.json({message:'Account activated. You can now log in.'});
+ }catch(error){await client.query('ROLLBACK');throw error;}finally{client.release();}
+}));
+app.post('/api/admin/provider-requests/:id/resend-activation',requireAuth,requireAdmin,asyncRoute(async(req,res)=>{
+ if(!process.env.SMTP_HOST)return res.status(503).json({message:'Email service is not configured'});
+ const r=await db.query("SELECT u.id,u.email FROM provider_requests p JOIN users u ON u.id=p.user_id WHERE p.id=$1 AND p.status='approved' AND u.role='provider' AND u.email_verified=false",[req.params.id]);
+ if(!r.rowCount)return res.status(404).json({message:'No inactive approved account found'});
+ const token=randomToken();
+ await db.query('DELETE FROM provider_activation_tokens WHERE user_id=$1',[r.rows[0].id]);
+ await db.query("INSERT INTO provider_activation_tokens(user_id,token_hash,expires_at) VALUES($1,$2,NOW() + INTERVAL '24 hours')",[r.rows[0].id,tokenHash(token)]);
+ await sendAccountEmail(r.rows[0].email,'Activate your NobatYar provider account',`Set your password: ${siteUrl()}/activate-provider?token=${token}`);
+ res.json({message:'Activation email sent'});
 }));
 app.get('/api/admin/appointments', requireAuth, requireAdmin, asyncRoute(async (req, res) => {
  const result = await db.query('SELECT * FROM appointments ORDER BY created_at DESC LIMIT 500');
@@ -439,6 +461,8 @@ app.get('/api/admin/provider-requests', requireAuth, requireAdmin, asyncRoute(as
 app.patch('/api/admin/provider-requests/:id', requireAuth, requireAdmin, asyncRoute(async (req, res) => {
  const data = valid(z.object({ status: z.enum(['approved','rejected']), note: z.string().trim().max(1000).default('') }), req.body);
  if (data.status === 'rejected' && !data.note) return res.status(400).json({ message: 'A rejection reason is required' });
+ let activationToken = null;
+ let activationEmail = null;
  const client = await db.connect();
  try {
   await client.query('BEGIN');
@@ -446,20 +470,31 @@ app.patch('/api/admin/provider-requests/:id', requireAuth, requireAdmin, asyncRo
   const request = result.rows[0];
   if (!request) { await client.query('ROLLBACK'); return res.status(409).json({ message: 'Request not found or already reviewed' }); }
   if (request.status !== 'pending' && request.status !== data.status) { await client.query('ROLLBACK'); return res.status(409).json({ message: 'Request has already been reviewed' }); }
-  if (data.status === 'approved' && request.user_id) {
+  if (data.status === 'approved') {
    let details = {}; try { details = JSON.parse(request.details); } catch {}
-   if (!validProviderPhoto(details.photoUrl, request.user_id)) {
+   if (!validProviderPhoto(details.photoUrl)) {
     await client.query('ROLLBACK'); return res.status(400).json({ message: 'A valid provider photo is required. Ask the applicant to submit a new request.' });
    }
-   const currentProfile = await client.query('SELECT id FROM provider_profiles WHERE user_id=$1', [request.user_id]);
-   if (currentProfile.rowCount) {
-    await client.query('ROLLBACK'); return res.status(409).json({message:'This account already owns a provider profile. Use a separate account for another provider.'});
+   if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASSWORD || !process.env.EMAIL_FROM) {
+    await client.query('ROLLBACK'); return res.status(503).json({message:'Configure SMTP before approving provider requests'});
    }
-   const profile = await client.query('INSERT INTO provider_profiles(user_id,request_id,provider_type,name,specialty,city,address,phone,description) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id', [request.user_id,request.id,request.provider_type,request.name,details.specialty||'',details.city||'',details.address||'',request.phone,details.information||'']);
+   const exists = await client.query('SELECT id FROM users WHERE LOWER(email)=LOWER($1)', [request.email]);
+   if (exists.rowCount) { await client.query('ROLLBACK'); return res.status(409).json({message:'Email already belongs to an account'}); }
+   const temporaryPassword = await bcrypt.hash(randomToken(), 12);
+   const account = await client.query("INSERT INTO users(name,email,password_hash,phone,role,email_verified) VALUES($1,$2,$3,$4,'provider',false) RETURNING id", [request.name,request.email,temporaryPassword,request.phone]);
+   const userId = account.rows[0].id;
+   await client.query('UPDATE provider_requests SET user_id=$1 WHERE id=$2', [userId,request.id]);
+   const profile = await client.query('INSERT INTO provider_profiles(user_id,request_id,provider_type,name,specialty,city,address,phone,description) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id', [userId,request.id,request.provider_type,request.name,details.specialty||'',details.city||'',details.address||'',request.phone,details.information||'']);
    await addProviderCard(client,request,details,profile.rows[0].id);
-   await client.query("UPDATE users SET role='provider' WHERE id=$1 AND role='patient'", [request.user_id]);
+   activationToken = randomToken();
+   activationEmail = request.email;
+   await client.query("INSERT INTO provider_activation_tokens(user_id,token_hash,expires_at) VALUES($1,$2,NOW() + INTERVAL '24 hours')",[userId,tokenHash(activationToken)]);
   }
   await client.query('COMMIT');
+  if (activationToken) {
+   try { await sendAccountEmail(activationEmail, 'Activate your NobatYar provider account', `Your application was approved. Set your password here: ${siteUrl()}/activate-provider?token=${activationToken} (valid 24 hours)`); }
+   catch (error) { console.error('Provider activation email failed:',error.message); return res.status(503).json({message:'Approved, but activation email failed. Use the admin resend activation action.'}); }
+  }
   res.json(request);
  } catch (error) { await client.query('ROLLBACK'); throw error; }
  finally { client.release(); }

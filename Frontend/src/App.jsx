@@ -134,6 +134,7 @@ export default function App() {
           element={<HowItWorks language={language} />}
         />
         <Route path="/login" element={<Login language={language} onLogin={setUser} />} />
+        <Route path="/activate-provider" element={<AccountRecovery language={language} mode="activate" />} />
         <Route path="/signup" element={<SignUp language={language} onLogin={setUser} />} />
         <Route path="/admin" element={user?.role === "admin" ? <AdminDashboard language={language} /> : <Navigate to="/home" replace />} />
         <Route path="/provider-dashboard" element={user && ["provider","admin"].includes(user.role) ? (user.providerType === "hospital" || user.providerType === "clinic" ? <HospitalDashboard language={language} /> : <ProviderDashboard language={language} />) : <Navigate to="/home" replace />} />

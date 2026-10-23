@@ -256,7 +256,6 @@ export default function Contact({ language }) {
                       }}
                       placeholder={t.enterEmailAddress}
                       required
-                      dir="ltr"
                       className={inputStyle}
                     />
                   </div>

@@ -169,8 +169,8 @@ export default function SignUp({ language, onLogin }) {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="example@gmail.com"
-                    dir="ltr"
+                    placeholder={t.enterEmailAddress}
+                    dir={language === "English" ? "ltr" : "rtl"}
                     className="w-full bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl py-3 pl-11 pr-4 text-gray-900 dark:text-white outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/15 transition"
                   />
                 </div>

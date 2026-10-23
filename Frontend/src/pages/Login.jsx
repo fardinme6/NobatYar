@@ -85,9 +85,9 @@ export default function Login({ language, onLogin }) {
                   type="text"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Email or 07XXXXXXXX"
+                  placeholder={language === "English" ? "Email or 07XXXXXXXX" : "ایمیل آدرس یا شماره تلفن"}
                   required
-                  dir="ltr"
+                  dir={language === "English" ? "ltr" : "rtl"}
                   className="w-full border border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 text-gray-900 dark:text-white rounded-xl py-3 pl-12 pr-4 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/15 transition"
                 />
               </div>

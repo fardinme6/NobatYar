@@ -434,6 +434,7 @@ Herat Heart Hospital aims to improve the quality of cardiovascular healthcare, i
     currentPassword: "Current password to confirm",
     emailChanged: "Email updated successfully",
     cropTitle: "Adjust profile photo",
+    enterEmailAddress:"Please enter your email address...",
     cropHelp:
       "Drag the photo to position your face and adjust zoom before saving.",
     cropZoom: "Zoom",
@@ -845,6 +846,7 @@ Herat Heart Hospital aims to improve the quality of cardiovascular healthcare, i
     passwordsDoNotMatch: "رمزهای عبور با یکدیگر مطابقت ندارند.",
     agreeRequired: "لطفاً شرایط استفاده را بپذیرید.",
     signupNotAvailable: "امکان ثبت‌نام آنلاین به‌زودی فعال می‌شود.",
+    enterEmailAddress:"لطفا ایمیل آدرس خود را وارد کنید",
 
     aboutUsTitle: "درباره ما",
     aboutUsSubtitle:
@@ -1187,6 +1189,7 @@ Herat Heart Hospital aims to improve the quality of cardiovascular healthcare, i
     enterFullName: "بشپړ نوم یا د روغتون نوم ولیکئ",
     phoneNumber: "د اړیکې شمېره",
     emailAddress: "برېښنالیک",
+    enterEmailAddress:"مهرباني وکړئ خپل برېښنالیک پته دننه کړئ",
     cityLabel: "ښار",
     selectCity: "ښار وټاکئ",
     medicalSpecialty: "طبي تخصص",

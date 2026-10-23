@@ -13,7 +13,7 @@ import {
   SearchX,
 } from "lucide-react";
 import { translations } from "../data/translations.js";
-import { hospitalTypeLabel } from "../utils/hospitalType.js";
+import { hospitalTypeLabel } from "../data/hospitalType.js";
 
 export default function Hospitals({ language, home = false, user }) {
   const t = translations[language];

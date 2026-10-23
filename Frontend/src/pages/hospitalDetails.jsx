@@ -12,7 +12,7 @@ import { hospitals } from "../data/hospitalData.js";
 import { api } from "../api";
 import { useEffect, useState } from "react";
 import { translations } from "../data/translations.js";
-import { hospitalTypeLabel } from "../utils/hospitalType.js";
+import { hospitalTypeLabel } from "../data/hospitalType.js";
 
 export default function HospitalDetails({ language }) {
   const t = translations[language];

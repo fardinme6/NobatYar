@@ -72,7 +72,7 @@ export default function Login({ language, onLogin }) {
           <form onSubmit={handleLogin} className="space-y-3">
             <div>
               <label className="block mb-2 text-sm font-semibold text-gray-700 dark:text-gray-200">
-                {t.emailAddress}
+                {language === "Persian" ? "ایمیل یا شماره موبایل" : "Email or Phone Number"}
               </label>
 
               <div className="relative">
@@ -82,10 +82,10 @@ export default function Login({ language, onLogin }) {
                 />
 
                 <input
-                  type="email"
+                  type="text"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="example@gmail.com"
+                  placeholder="Email or 07XXXXXXXX"
                   required
                   dir="ltr"
                   className="w-full border border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 text-gray-900 dark:text-white rounded-xl py-3 pl-12 pr-4 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/15 transition"

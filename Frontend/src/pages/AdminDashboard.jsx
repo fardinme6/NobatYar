@@ -21,12 +21,17 @@ export default function AdminDashboard({ language }) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [sendingId, setSendingId] = useState(null);
+  const [catalogAccounts, setCatalogAccounts] = useState({doctors:[],hospitals:[]});
+  const [assigning, setAssigning] = useState(null);
+  const [assignEmail, setAssignEmail] = useState("");
   const [emailMessage, setEmailMessage] = useState("");
   const load = async () => {
     setError(""); setLoading(true);
     try {
       const [r, a, c, p, d, h, sp] = await Promise.all([api("/admin/provider-requests"), api("/admin/appointments"), api("/admin/contacts"), api("/admin/providers"), api("/admin/doctors"), api("/admin/hospitals"), api("/specialties")]);
       setRequests(r); setAppointments(a); setContacts(c); setProviders(p); setDoctors(d); setHospitals(h); setSpecialtiesList(sp);
+      const accounts = await api("/admin/catalog-accounts");
+      setCatalogAccounts(accounts);
     } catch (e) { setError(e.message); }
     finally { setLoading(false); }
   };
@@ -36,6 +41,26 @@ export default function AdminDashboard({ language }) {
     if (status === "rejected" && !note.trim()) { setError(t.adminReasonRequired); return; }
     try { await api(`/admin/provider-requests/${r.id}`, { method: "PATCH", body: JSON.stringify({ status, note }) }); await load(); }
     catch (e) { setError(e.message); }
+  };
+  const changeProviderEmail = async p => {
+    const newEmail = window.prompt(`New email for ${p.name}:`, p.email || "");
+    if (!newEmail || newEmail.trim().toLowerCase() === (p.email || "").toLowerCase()) return;
+    if (!window.confirm(`Send a verification link to ${newEmail.trim()}? The existing email remains active until verified.`)) return;
+    try {
+      const result = await api(`/admin/providers/${p.id}/change-email`, {method:"POST",body:JSON.stringify({email:newEmail.trim()})});
+      setEmailMessage(result.message); setError("");
+    } catch (e) {setError(e.message);}
+  };
+  const assignAccount = async () => {
+    setError(""); setEmailMessage("");
+    if (!assigning || !assignEmail.trim()) return;
+    setSendingId(assigning.id);
+    try {
+      const result = await api("/admin/assign-account", {method:"POST",body:JSON.stringify({type:assigning.type,id:assigning.id,email:assignEmail.trim()})});
+      setAssigning(null); setAssignEmail("");
+      await load(); setEmailMessage(result.message);
+    } catch(e) {setError(e.message);await load();}
+    finally {setSendingId(null);}
   };
   const resendActivation = async (id) => {
     setError("");
@@ -201,6 +226,10 @@ export default function AdminDashboard({ language }) {
               <div className="flex items-center gap-4 flex-wrap">
                 {item.image && <img src={item.image} alt={item.name} className="w-20 h-20 object-cover rounded-xl" />}
                 <div className="flex-1"><h3 className="font-bold">{item.name}</h3><p className="text-sm text-gray-500">{kind === "doctor" ? `${item.specialty} · ${item.hospital} · ${item.city} · ${item.email || ""}` : kind === "hospital" ? `${item.city} · ${item.location}` : `${item.value} · ${item.department || "No department"}`}</p></div>
+                {(kind === "doctor" || kind === "hospital") && (() => {
+                  const account=(kind === "doctor" ? catalogAccounts.doctors : catalogAccounts.hospitals).find(x=>Number(x.id)===Number(item.id));
+                  return account?.email ? <span className="text-xs text-green-700 bg-green-50 rounded-lg px-3 py-2">Assigned: {account.email}</span> : <button onClick={()=>{setAssigning({type:kind,id:item.id,name:item.name});setAssignEmail(item.email||"");}} className="bg-teal-600 text-white px-3 py-2 rounded-lg">Assign Account</button>;
+                })()}
                 <button onClick={()=>active?setEditing(null):startEdit(kind,item)} className="flex gap-1 items-center border rounded-lg px-3 py-2"><Pencil size={16}/> {active?"Cancel":"Edit"}</button>
                 <button onClick={()=>deleteItem(kind,item.id)} className="flex gap-1 items-center bg-red-100 text-red-700 rounded-lg px-3 py-2"><Trash2 size={16}/> Delete</button>
               </div>
@@ -214,7 +243,17 @@ export default function AdminDashboard({ language }) {
             </article>;
           })}
         </>}
-        {tab === "providers" && (providers.length ? providers.map(p=><article key={p.id} className="bg-white dark:bg-slate-800 dark:text-white rounded-2xl p-5 shadow-sm flex flex-wrap justify-between gap-4 items-center"><div><h3 className="font-bold">{p.provider_type==="doctor"?t.registerDoctor:p.provider_type==="clinic"?t.registerClinic:t.registerHospital} {p.name}</h3><p className="text-sm text-gray-500 dark:text-gray-300">{p.city} · {p.phone} · {p.email || ""}</p></div><div className="flex gap-2">{p.email_verified === false && <button disabled={sendingId !== null} onClick={()=>resendActivation(p.id)} className="px-4 py-2 rounded-xl bg-blue-600 text-white disabled:opacity-50">{sendingId === p.id ? "Sending..." : "Resend Activation Email"}</button>}<button onClick={()=>toggleProvider(p)} className={`px-4 py-2 rounded-xl cursor-pointer ${p.active?"bg-red-100 text-red-700":"bg-green-100 text-green-700"}`}>{p.active?t.adminDeactivate:t.adminActivate}</button><button onClick={()=>deleteProvider(p)} className="px-4 py-2 rounded-xl bg-red-600 text-white cursor-pointer">Delete</button></div></article>) : <p className="dark:text-white">{t.adminEmpty}</p>)}
+        {tab === "providers" && (providers.length ? providers.map(p=><article key={p.id} className="bg-white dark:bg-slate-800 dark:text-white rounded-2xl p-5 shadow-sm flex flex-wrap justify-between gap-4 items-center"><div><h3 className="font-bold">{p.provider_type==="doctor"?t.registerDoctor:p.provider_type==="clinic"?t.registerClinic:t.registerHospital} {p.name}</h3><p className="text-sm text-gray-500 dark:text-gray-300">{p.city} · {p.phone} · {p.email || ""}</p></div><div className="flex gap-2 flex-wrap"><button onClick={()=>changeProviderEmail(p)} className="px-4 py-2 rounded-xl border border-teal-500 text-teal-700 dark:text-teal-200">Edit Email</button>{p.email_verified === false && <button disabled={sendingId !== null} onClick={()=>resendActivation(p.id)} className="px-4 py-2 rounded-xl bg-blue-600 text-white disabled:opacity-50">{sendingId === p.id ? "Sending..." : "Resend Activation Email"}</button>}<button onClick={()=>toggleProvider(p)} className={`px-4 py-2 rounded-xl cursor-pointer ${p.active?"bg-red-100 text-red-700":"bg-green-100 text-green-700"}`}>{p.active?t.adminDeactivate:t.adminActivate}</button><button onClick={()=>deleteProvider(p)} className="px-4 py-2 rounded-xl bg-red-600 text-white cursor-pointer">Delete</button></div></article>) : <p className="dark:text-white">{t.adminEmpty}</p>)}
+      </div>}
+      {assigning && <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <div className="bg-white dark:bg-slate-800 dark:text-white p-6 rounded-2xl w-full max-w-md shadow-xl">
+          <h3 className="font-bold text-xl mb-2">Assign Account</h3>
+          <p className="text-sm mb-4">{assigning.name} — existing profile #{assigning.id}</p>
+          <label className="block mb-2">Provider email (required)</label>
+          <input type="email" required value={assignEmail} onChange={e=>setAssignEmail(e.target.value)} className="border rounded-xl p-3 w-full text-black" placeholder="doctor@example.com" />
+          <p className="text-xs text-gray-500 mt-2">An activation link will be emailed. The existing profile will not be duplicated.</p>
+          <div className="flex gap-2 mt-5"><button disabled={sendingId!==null || !assignEmail.trim()} onClick={assignAccount} className="bg-teal-600 text-white px-4 py-2 rounded-lg disabled:opacity-50">{sendingId!==null?"Sending...":"Send activation"}</button><button onClick={()=>setAssigning(null)} className="border px-4 py-2 rounded-lg">Cancel</button></div>
+        </div>
       </div>}
     </div>
   </main>;

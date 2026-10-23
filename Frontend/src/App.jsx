@@ -3,6 +3,8 @@ import { api } from "./api";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import SignUp from "./pages/SignUp.jsx";
+import VerifyPhone from "./pages/VerifyPhone.jsx";
+import CheckEmail from "./pages/CheckEmail.jsx";
 import Header from "./components/Header.jsx";
 import Hero from "./components/Hero.jsx";
 import Specialties from "./components/Specialties.jsx";
@@ -84,6 +86,8 @@ export default function App() {
           <Route path="/forgot-password" element={<AccountRecovery language={language} mode="forgot" />} />
           <Route path="/reset-password" element={<AccountRecovery language={language} mode="reset" />} />
           <Route path="/verify-email" element={<AccountRecovery language={language} mode="verify" />} />
+          <Route path="/verify-phone" element={<VerifyPhone />} />
+          <Route path="/check-email" element={<CheckEmail language={language} />} />
         <Route path="/" element={<Navigate to="/home" replace />} />
 
         <Route

@@ -99,6 +99,14 @@ app.post('/api/auth/verify-email', authLimiter, asyncRoute(async (req,res) => {
  const client=await db.connect();
  try {
   await client.query('BEGIN');
+  // A pending email change is applied only after the NEW mailbox proves ownership.
+  const change=await client.query("SELECT user_id,new_email FROM provider_email_changes WHERE token_hash=$1 AND expires_at>NOW() FOR UPDATE",[tokenHash(data.token)]);
+  if(change.rows[0]) {
+   const updated=await client.query("UPDATE users SET email=$1,email_verified=true WHERE id=$2 AND role='provider' RETURNING id",[change.rows[0].new_email,change.rows[0].user_id]);
+   if(!updated.rowCount){await client.query('ROLLBACK');return res.status(400).json({message:'Provider account not found'});}
+   await client.query('DELETE FROM provider_email_changes WHERE user_id=$1',[change.rows[0].user_id]);
+   await client.query('COMMIT');return res.json({message:'New email verified and updated successfully. Please sign in again.'});
+  }
   const result=await client.query("SELECT id,user_id FROM email_verification_tokens WHERE token_hash=$1 AND expires_at>NOW() AND used_at IS NULL FOR UPDATE",[tokenHash(data.token)]);
   if (!result.rows[0]) { await client.query('ROLLBACK'); return res.status(400).json({message:'Invalid or expired verification link'}); }
   await client.query('UPDATE users SET email_verified=true WHERE id=$1',[result.rows[0].user_id]);
@@ -116,25 +124,89 @@ app.post('/api/auth/resend-verification',requireAuth,authLimiter,asyncRoute(asyn
  res.json({message:'If verification was needed, an email has been sent.'});
 }));
 
+app.post('/api/auth/resend-verification-email', authLimiter, asyncRoute(async(req,res)=>{
+ const data=valid(z.object({email}),req.body);
+ if(!process.env.SMTP_HOST) return res.status(503).json({message:'Email service is not configured'});
+ const result=await db.query("SELECT id,email FROM users WHERE LOWER(email)=LOWER($1) AND role='patient' AND email_verified=false",[data.email]);
+ if(result.rows[0]) await sendVerification(result.rows[0]);
+ res.json({message:'If the account needs verification, a new email has been sent.'});
+}));
+
+// Phone signup is enabled only after Infobip 2FA is configured and SMS delivery works.
+// Temporarily require email verification for all patient signups.
+const phoneSignupEnabled = () => false;
+const afghanPhone = input => {
+ const digits = normalizeDigits(String(input || '')).replace(/[^0-9]/g, '');
+ const normalized = digits.startsWith('0093') ? digits.slice(2) : digits.startsWith('0') ? '93' + digits.slice(1) : digits;
+ return /^937[0-9]{8}$/.test(normalized) ? normalized : null;
+};
+async function infobip2fa(endpoint, payload) {
+ const base = process.env.INFOBIP_BASE_URL;
+ if (!/^https:\/\/[a-z0-9.-]+\.api\.infobip\.com$/i.test(base || '')) throw new Error('Invalid Infobip host');
+ const response = await fetch(`${base}${endpoint}`, {method:'POST', headers:{Authorization:`App ${process.env.INFOBIP_API_KEY}`,'Content-Type':'application/json',Accept:'application/json'}, body:JSON.stringify(payload), signal:AbortSignal.timeout(12000)});
+ const body = await response.json().catch(()=>({}));
+ if (!response.ok) { console.error('Infobip 2FA request failed',response.status); const error = new Error('SMS verification is temporarily unavailable');error.status=503;throw error; }
+ return body;
+}
+app.get('/api/auth/phone-signup-status', (req,res)=>res.json({enabled:phoneSignupEnabled()}));
+app.post('/api/auth/phone-register',authLimiter,asyncRoute(async(req,res)=>{
+ if(!phoneSignupEnabled()) return res.status(503).json({message:'Phone registration is not yet available'});
+ const data=valid(z.object({name:text(),phone:z.string(),email:z.union([email,z.literal('')]).default(''),password:z.string().min(8).max(128)}),req.body);
+ const phone=afghanPhone(data.phone);
+ if(!phone) return res.status(400).json({message:'Enter a valid Afghanistan mobile number'});
+ const existing=await db.query("SELECT 1 FROM users WHERE phone=$1 OR ($2::text <> '' AND LOWER(email)=LOWER($2)) LIMIT 1",[phone,data.email]);
+ if(existing.rowCount) return res.status(409).json({message:'Phone or email already registered'});
+ const pending=await db.query('SELECT sent_at FROM pending_phone_signups WHERE phone=$1',[phone]);
+ if(pending.rows[0] && Date.now()-new Date(pending.rows[0].sent_at).getTime()<60000) return res.status(429).json({message:'Please wait before requesting another code'});
+ const result=await infobip2fa('/2fa/2/pin',{applicationId:process.env.INFOBIP_2FA_APP_ID,messageId:process.env.INFOBIP_2FA_MESSAGE_ID,to:phone});
+ if(!result.pinId) return res.status(503).json({message:'Could not send verification code'});
+ const hash=await bcrypt.hash(data.password,12);
+ await db.query(`INSERT INTO pending_phone_signups(phone,name,email,password_hash,pin_id,sent_at,expires_at)
+ VALUES($1,$2,$3,$4,$5,NOW(),NOW()+INTERVAL '10 minutes')
+ ON CONFLICT(phone) DO UPDATE SET name=EXCLUDED.name,email=EXCLUDED.email,password_hash=EXCLUDED.password_hash,pin_id=EXCLUDED.pin_id,sent_at=NOW(),expires_at=EXCLUDED.expires_at`,[phone,data.name,data.email||null,hash,result.pinId]);
+ res.status(202).json({message:'Verification code requested. Check your phone.'});
+}));
+app.post('/api/auth/phone-verify',authLimiter,asyncRoute(async(req,res)=>{
+ if(!phoneSignupEnabled()) return res.status(503).json({message:'Phone verification unavailable'});
+ const data=valid(z.object({phone:z.string(),code:z.string().regex(/^\d{4,8}$/)}),req.body);
+ const phone=afghanPhone(data.phone);
+ if(!phone) return res.status(400).json({message:'Invalid phone number'});
+ const client=await db.connect();
+ try {
+  await client.query('BEGIN');
+  const r=await client.query('SELECT * FROM pending_phone_signups WHERE phone=$1 AND expires_at>NOW() FOR UPDATE',[phone]);
+  if(!r.rows[0]) {await client.query('ROLLBACK');return res.status(400).json({message:'Code expired. Register again.'});}
+  if(r.rows[0].attempts>=5) {await client.query('ROLLBACK');return res.status(429).json({message:'Too many attempts'});}
+  await client.query('UPDATE pending_phone_signups SET attempts=attempts+1 WHERE phone=$1',[phone]);
+  const verified=await infobip2fa(`/2fa/2/pin/${encodeURIComponent(r.rows[0].pin_id)}/verify`,{pin:data.code});
+  if(!verified.verified) {await client.query('COMMIT');return res.status(400).json({message:'Incorrect verification code'});}
+  await client.query("INSERT INTO users(name,email,password_hash,phone,role,email_verified,phone_verified) VALUES($1,$2,$3,$4,'patient',false,true)",[r.rows[0].name,r.rows[0].email,r.rows[0].password_hash,phone]);
+  await client.query('DELETE FROM pending_phone_signups WHERE phone=$1',[phone]);
+  await client.query('COMMIT');
+  res.json({message:'Phone verified. You can now sign in.'});
+ } catch(e){await client.query('ROLLBACK');if(e.code==='23505')return res.status(409).json({message:'Account already exists'});throw e;} finally {client.release();}
+}));
+
 app.post('/api/auth/register', authLimiter, asyncRoute(async (req, res) => {
  const data = valid(z.object({ name: text(), email, password: z.string().min(8).max(128), phone: z.string().max(40).default(''), accountType: z.literal('patient').default('patient') }), req.body);
+ if (!process.env.SMTP_HOST) return res.status(503).json({message:'Email verification is not configured'});
  const hash = await bcrypt.hash(data.password, 12);
  try {
   const result = await db.query('INSERT INTO users(name,email,password_hash,phone) VALUES($1,$2,$3,$4) RETURNING id,name,email,phone,city,address,bio,birth_date,avatar,role', [data.name, data.email, hash, data.phone]);
-  setSession(res, result.rows[0].id);
-  if (process.env.SMTP_HOST) await sendVerification(result.rows[0]);
-  res.status(201).json({ user: publicUser(result.rows[0]), applicationRequired: data.accountType !== 'patient' });
+  await sendVerification(result.rows[0]);
+  res.status(201).json({ message: "Please check your email to verify your account." });
  } catch (error) {
   if (error.code === '23505') return res.status(409).json({ message: 'Email already registered' });
   throw error;
  }
 }));
 app.post('/api/auth/login', authLimiter, asyncRoute(async (req, res) => {
- const data = valid(z.object({ email, password: z.string().min(1), rememberMe: z.boolean().optional().default(false) }), req.body);
- const result = await db.query('SELECT * FROM users WHERE LOWER(email)=LOWER($1)', [data.email]);
+ const data = valid(z.object({ email: z.string().trim().min(3).max(254), password: z.string().min(1), rememberMe: z.boolean().optional().default(false) }), req.body);
+ const phone = afghanPhone(data.email);
+ const result = await db.query('SELECT * FROM users WHERE ($1::text IS NOT NULL AND phone=$1) OR LOWER(email)=LOWER($2)', [phone,data.email]);
  const user = result.rows[0];
  if (!user || !(await bcrypt.compare(data.password, user.password_hash))) return res.status(401).json({ message: 'Invalid email or password' });
- if (process.env.REQUIRE_VERIFIED_EMAIL === 'true' && !user.email_verified) return res.status(403).json({message:'Please verify your email before signing in'});
+ if (!user.email_verified && !(user.role === 'patient' && user.phone_verified) && (user.role === 'patient' || process.env.REQUIRE_VERIFIED_EMAIL === 'true')) return res.status(403).json({message:'Please verify your email before signing in'});
  setSession(res, user.id, data.rememberMe);
  res.json({ user: publicUser(user) });
 }));
@@ -594,6 +666,9 @@ app.patch('/api/admin/contacts/:id',requireAuth,requireAdmin,asyncRoute(async(re
  const r=await db.query('UPDATE contacts SET status=$1,admin_reply=$2,replied_at=CASE WHEN $1=\'replied\' THEN NOW() ELSE replied_at END WHERE id=$3 RETURNING *',[d.status,d.reply,req.params.id]);
  if(!r.rows[0]) return res.status(404).json({message:'Not found'});res.json(r.rows[0]);
 }));
+app.get('/api/provider/my-hospitals',requireAuth,requireProvider,asyncRoute(async(req,res)=>{
+ const r=await db.query('SELECT h.* FROM hospitals h JOIN provider_hospitals ph ON ph.hospital_id=h.id JOIN provider_profiles p ON p.id=ph.provider_id WHERE p.user_id=$1',[req.user.id]);res.json(r.rows);
+}));
 app.get('/api/provider/dashboard',requireAuth,requireProvider,asyncRoute(async(req,res)=>{
  const r=await db.query('SELECT * FROM provider_profiles WHERE user_id=$1 ORDER BY id',[req.user.id]);res.json(r.rows);
 }));
@@ -601,6 +676,73 @@ app.patch('/api/provider/dashboard/:id',requireAuth,requireProvider,asyncRoute(a
  const d=valid(z.object({name:text(),phone:z.string().max(40),address:z.string().max(240),city:z.string().max(100),specialty:z.string().max(120),description:z.string().max(3000),services:z.string().max(3000),active:z.boolean()}),req.body);
  const r=await db.query('UPDATE provider_profiles SET name=$1,phone=$2,address=$3,city=$4,specialty=$5,description=$6,services=$7,active=$8 WHERE id=$9 AND user_id=$10 RETURNING *',[d.name,d.phone,d.address,d.city,d.specialty,d.description,d.services,d.active,req.params.id,req.user.id]);
  if(!r.rows[0])return res.status(404).json({message:'Not found'});res.json(r.rows[0]);
+}));
+// Link an existing catalog entry to a new provider login; never create a duplicate doctor/hospital.
+app.get('/api/admin/catalog-accounts',requireAuth,requireAdmin,asyncRoute(async(req,res)=>{
+ const doctors=await db.query(`SELECT d.id,d.name,u.email FROM doctors d LEFT JOIN provider_doctors pd ON pd.doctor_id=d.id LEFT JOIN provider_profiles p ON p.id=pd.provider_id LEFT JOIN users u ON u.id=p.user_id ORDER BY d.id`);
+ const hospitals=await db.query(`SELECT h.id,h.name,u.email FROM hospitals h LEFT JOIN provider_hospitals ph ON ph.hospital_id=h.id LEFT JOIN provider_profiles p ON p.id=ph.provider_id LEFT JOIN users u ON u.id=p.user_id ORDER BY h.id`);
+ res.json({doctors:doctors.rows,hospitals:hospitals.rows});
+}));
+app.post('/api/admin/assign-account',requireAuth,requireAdmin,asyncRoute(async(req,res)=>{
+ if(!process.env.SMTP_HOST)return res.status(503).json({message:'Email service is not configured'});
+ const data=valid(z.object({type:z.enum(['doctor','hospital']),id:z.number().int().positive(),email}),req.body);
+ const client=await db.connect();
+ let activationToken;
+ try {
+  await client.query('BEGIN');
+  const table=data.type==='doctor'?'doctors':'hospitals';
+  const linkTable=data.type==='doctor'?'provider_doctors':'provider_hospitals';
+  const linkColumn=data.type==='doctor'?'doctor_id':'hospital_id';
+  const record=await client.query(`SELECT * FROM ${table} WHERE id=$1 FOR UPDATE`,[data.id]);
+  if(!record.rowCount){await client.query('ROLLBACK');return res.status(404).json({message:'Catalog entry not found'});}
+  const linked=await client.query(`SELECT 1 FROM ${linkTable} WHERE ${linkColumn}=$1`,[data.id]);
+  if(linked.rowCount){await client.query('ROLLBACK');return res.status(409).json({message:'This entry already has an assigned account'});}
+  const existing=await client.query('SELECT 1 FROM users WHERE LOWER(email)=LOWER($1)',[data.email]);
+  if(existing.rowCount){await client.query('ROLLBACK');return res.status(409).json({message:'Email already belongs to an account. Use a different email.'});}
+  // Synthetic approved request satisfies the existing provider_profiles.request_id constraint.
+  const request=await client.query(`INSERT INTO provider_requests(name,email,phone,details,provider_type,status) VALUES($1,$2,$3,$4,$5,'approved') RETURNING id`,[record.rows[0].name,data.email,'',JSON.stringify({assignedByAdmin:true,catalogId:data.id}),data.type]);
+  const user=await client.query("INSERT INTO users(name,email,password_hash,role,email_verified) VALUES($1,$2,$3,'provider',false) RETURNING id",[record.rows[0].name,data.email,await bcrypt.hash(randomToken(),12)]);
+  const profile=await client.query('INSERT INTO provider_profiles(user_id,request_id,provider_type,name,city,address,phone,specialty) VALUES($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id',[user.rows[0].id,request.rows[0].id,data.type,record.rows[0].name,record.rows[0].city||'',record.rows[0].location||'',record.rows[0].phone||'',record.rows[0].specialty||'']);
+  await client.query(`INSERT INTO ${linkTable}(provider_id,${linkColumn}) VALUES($1,$2)`,[profile.rows[0].id,data.id]);
+  activationToken=randomToken();
+  await client.query("INSERT INTO provider_activation_tokens(user_id,token_hash,expires_at) VALUES($1,$2,NOW()+INTERVAL '24 hours')",[user.rows[0].id,tokenHash(activationToken)]);
+  await client.query('COMMIT');
+ } catch(error){await client.query('ROLLBACK');if(error.code==='23505')return res.status(409).json({message:'This account or catalog entry is already assigned'});throw error;}
+ finally{client.release();}
+ try {await sendAccountEmail(data.email,'Activate your NobatYar provider account',`Set your password: ${siteUrl()}/activate-provider?token=${activationToken} (valid 24 hours)`);}
+ catch(error){console.error('Assign account email failed:',error.message);return res.status(503).json({message:'Account linked, but email failed. Go to Manage Providers and resend activation.'});}
+ res.status(201).json({message:'Account assigned. Activation email sent.'});
+}));
+// Admin requests an email change; old email remains active until new address is verified.
+app.post('/api/admin/providers/:id/change-email',requireAuth,requireAdmin,authLimiter,asyncRoute(async(req,res)=>{
+ if(!process.env.SMTP_HOST)return res.status(503).json({message:'Email service is not configured'});
+ const d=valid(z.object({email}),req.body);
+ const p=await db.query("SELECT u.id,u.email FROM provider_profiles p JOIN users u ON u.id=p.user_id WHERE p.id=$1 AND u.role='provider'",[req.params.id]);
+ if(!p.rows[0])return res.status(404).json({message:'Provider not found'});
+ if(p.rows[0].email.toLowerCase()===d.email)return res.status(400).json({message:'This is already the current email'});
+ const existing=await db.query('SELECT 1 FROM users WHERE LOWER(email)=LOWER($1)',[d.email]);
+ if(existing.rowCount)return res.status(409).json({message:'This email is already in use'});
+ const token=randomToken();
+ await db.query(`INSERT INTO provider_email_changes(user_id,new_email,token_hash,expires_at)
+ VALUES($1,$2,$3,NOW()+INTERVAL '24 hours')
+ ON CONFLICT(user_id) DO UPDATE SET new_email=EXCLUDED.new_email,token_hash=EXCLUDED.token_hash,expires_at=EXCLUDED.expires_at`,[p.rows[0].id,d.email,tokenHash(token)]);
+ try {await sendAccountEmail(d.email,'Confirm your new NobatYar email',`Confirm your new email: ${siteUrl()}/verify-email?token=${token} (valid 24 hours)`);}
+ catch(err){console.error('Email change delivery failed:',err.message);return res.status(503).json({message:'Verification email could not be sent. The original email remains active.'});}
+ res.json({message:'Verification link sent to the new email. The old email stays active until confirmation.'});
+}));
+// Hospital owners may edit only hospitals explicitly assigned to their account.
+app.patch('/api/provider/hospitals/:id',requireAuth,requireProvider,asyncRoute(async(req,res)=>{
+ const d=valid(z.object({name:text(),type:z.enum(['government','private','clinic','hospital']),city:text(),location:text(240),description:z.string().max(3000),phone:z.string().max(40),services:z.string().max(3000),license_number:z.string().max(120)}),req.body);
+ const client=await db.connect();
+ try {
+  await client.query('BEGIN');
+  const old=await client.query(`SELECT h.name,ph.provider_id FROM hospitals h JOIN provider_hospitals ph ON ph.hospital_id=h.id JOIN provider_profiles p ON p.id=ph.provider_id WHERE h.id=$1 AND p.user_id=$2 AND p.active=true FOR UPDATE OF h`,[req.params.id,req.user.id]);
+  if(!old.rowCount){await client.query('ROLLBACK');return res.status(403).json({message:'This hospital is not assigned to your active account'});}
+  const r=await client.query(`UPDATE hospitals SET name=$1,type=$2,type_value=$2,city=$3,city_value=$3,location=$4,description=$5,phone=$6,services=$7,license_number=$8 WHERE id=$9 RETURNING *`,[d.name,d.type,d.city,d.location,d.description,d.phone,d.services,d.license_number,req.params.id]);
+  await client.query('UPDATE doctors SET hospital=$1 WHERE hospital=$2',[d.name,old.rows[0].name]);
+  await client.query('UPDATE provider_profiles SET name=$1,city=$2,address=$3,phone=$4,description=$5,services=$6 WHERE id=$7',[d.name,d.city,d.location,d.phone,d.description,d.services,old.rows[0].provider_id]);
+  await client.query('COMMIT');res.json(r.rows[0]);
+ }catch(err){await client.query('ROLLBACK');throw err;}finally{client.release();}
 }));
 app.get('/api/admin/providers',requireAuth,requireAdmin,asyncRoute(async(req,res)=>{
  const r=await db.query('SELECT p.*,u.email,u.email_verified FROM provider_profiles p JOIN users u ON u.id=p.user_id ORDER BY p.id DESC');res.json(r.rows);
@@ -651,7 +793,7 @@ app.get('/api/provider/appointments',requireAuth,requireProvider,asyncRoute(asyn
 }));
 app.patch('/api/provider/appointments/:id',requireAuth,requireProvider,asyncRoute(async(req,res)=>{
  const d=valid(z.object({status:z.enum(['confirmed','cancelled'])}),req.body);
- const r=await db.query('UPDATE appointments SET status=$1 WHERE id=$2 AND doctor_id IN (SELECT pd.doctor_id FROM provider_doctors pd JOIN provider_profiles p ON p.id=pd.provider_id WHERE p.user_id=$3) RETURNING id,status',[d.status,req.params.id,req.user.id]);
+ const r=await db.query('UPDATE appointments SET status=$1 WHERE id=$2 AND status=\'pending\' AND doctor_id IN (SELECT pd.doctor_id FROM provider_doctors pd JOIN provider_profiles p ON p.id=pd.provider_id WHERE p.user_id=$3) RETURNING id,status',[d.status,req.params.id,req.user.id]);
  if(!r.rows[0])return res.status(404).json({message:'Not found'});res.json(r.rows[0]);
 }));
 app.delete('/api/provider/appointments/:id',requireAuth,requireProvider,asyncRoute(async(req,res)=>{

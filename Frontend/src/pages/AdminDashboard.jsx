@@ -74,9 +74,10 @@ export default function AdminDashboard({ language }) {
   };
   const startEdit = (kind, item) => {
     setEditing(`${kind}-${item.id}`);
-    setForm(kind === "doctor" ? {name:item.name,specialty:item.specialty_value,hospitalId:hospitals.find(h=>h.name===item.hospital)?.id || "",city:item.city,about:item.about || "",experience:item.experience || "",education:item.education || "",image:item.image || ""} : kind === "hospital" ? {name:item.name,city:item.city,location:item.location,type:item.type_value || "private",description:item.description || "",image:item.image || ""} : {name:item.name,value:item.value,department:item.department || "",image:item.image || ""});
+    setForm(kind === "doctor" ? {name:item.name,specialty:item.specialty_value,hospitalId:hospitals.find(h=>h.name===item.hospital)?.id || "",city:item.city,about:item.about || "",experience:item.experience || "",education:item.education || "",image:item.image || ""} : kind === "hospital" ? {name:item.name,city:item.city,location:item.location,type:item.type_value || "private",phone:item.phone || "",license:item.license_number || "",services:item.services || "",description:item.description || "",image:item.image || ""} : {name:item.name,value:item.value,department:item.department || "",image:item.image || ""});
   };
   const saveItem = async (kind, id) => {
+    if(kind === "hospital" && (!form.name || !form.city || !form.location || !form.phone || !form.license)){setError("Complete the hospital name, city, address, phone and license number");return;}
     if(kind === "specialty" && (!form.image || !form.department || !form.name || !form.value)){setError("Name, code, department and image are required");return;}
     try { await api(`/admin/${kind === "doctor" ? "doctors" : kind === "hospital" ? "hospitals" : "specialties"}/${id}`, {method:"PATCH",body:JSON.stringify(form)});setEditing(null);await load(); }
     catch(e){setError(e.message);}
@@ -102,7 +103,9 @@ export default function AdminDashboard({ language }) {
     setUploadingImage(true);setError("");
     try {
       const body = new FormData();body.append("photo",file);
-      const result = await api("/admin/catalog/photo",{method:"POST",body});
+      const response = await fetch(`${API_URL}/api/admin/catalog/photo`, {method:"POST",credentials:"include",body});
+      const result = await response.json();
+      if(!response.ok) throw new Error(result.message || "Upload failed");
       setForm(previous=>({...previous,image:result.image}));
     } catch(e) {setError(e.message);} finally {setUploadingImage(false);}
   };
@@ -123,7 +126,7 @@ export default function AdminDashboard({ language }) {
     catch(e){setError(e.message);}
   };
   const addCatalog = async kind => {
-    if (!form.name || !form.city || (kind === "doctor" && (!form.specialty || !form.hospitalId))) {
+    if (!form.name || !form.city || (kind === "hospital" && (!form.location || !form.phone || !form.license || !form.image)) || (kind === "doctor" && (!form.specialty || !form.hospitalId))) {
       setError("Complete all required fields"); return;
     }
     try {
@@ -179,10 +182,10 @@ export default function AdminDashboard({ language }) {
         {tab === "appointments" && (appointments.length ? appointments.map(a=><article key={a.id} className="bg-white dark:bg-slate-800 dark:text-white rounded-2xl p-5 shadow-sm flex flex-wrap justify-between gap-4 items-center"><div><h3 className="font-bold">{a.patient_name}</h3><p className="text-sm text-gray-500 dark:text-gray-300">#{a.doctor_id} · {a.date} · {a.time} · {a.status}</p></div><div className="flex gap-2"><button onClick={()=>changeAppointment(a.id,"confirmed")} className="bg-teal-600 text-white px-4 py-2 rounded-lg cursor-pointer">{t.adminConfirm}</button><button onClick={()=>changeAppointment(a.id,"cancelled")} className="bg-red-100 text-red-700 px-4 py-2 rounded-lg cursor-pointer">{t.adminCancel}</button></div></article>) : <p className="dark:text-white">{t.adminEmpty}</p>)}
 
         {(["doctors","hospitals","specialties"].includes(tab)) && <>
-          {(tab === "doctors" || tab === "hospitals") && <button onClick={()=>{setEditing(`new-${tab}`);setForm(tab === "doctors" ? {name:"",specialty:"",hospitalId:"",city:"",about:"",image:""} : {name:"",type:"private",city:"",location:"",description:"",image:""});}} className="bg-teal-600 text-white rounded-xl px-4 py-2">+ Add {tab === "doctors" ? "Doctor" : "Hospital / Clinic"}</button>}
+          {(tab === "doctors" || tab === "hospitals") && <button onClick={()=>{setEditing(`new-${tab}`);setForm(tab === "doctors" ? {name:"",specialty:"",hospitalId:"",city:"",about:"",image:""} : {name:"",type:"private",city:"",location:"",phone:"",license:"",services:"",description:"",image:""});}} className="bg-teal-600 text-white rounded-xl px-4 py-2">+ Add {tab === "doctors" ? "Doctor" : "Hospital / Clinic"}</button>}
           {(editing === "new-doctors" || editing === "new-hospitals") && <div className="bg-white rounded-xl p-5 grid sm:grid-cols-2 gap-3">
             {field("name","Name *")}
-            {editing === "new-doctors" ? <>{field("specialty","Specialty *","select",specialtiesList.map(x=>({value:x.value,label:x.name})))}{field("hospitalId","Hospital *","select",hospitals.map(x=>({value:x.id,label:x.name})))}{field("city","City *")}{field("experience","Experience")}{field("education","Education")}{field("about","About")}</> : <>{field("type","Hospital / Clinic type *","select",[{value:"private",label:"Private Hospital"},{value:"government",label:"Government Hospital"},{value:"clinic",label:"Clinic"}])}{field("city","City *")}{field("location","Full address *")}{field("description","Hospital / clinic services and description")}</>}
+            {editing === "new-doctors" ? <>{field("specialty","Specialty *","select",specialtiesList.map(x=>({value:x.value,label:x.name})))}{field("hospitalId","Hospital *","select",hospitals.map(x=>({value:x.id,label:x.name})))}{field("city","City *")}{field("experience","Experience")}{field("education","Education")}{field("about","About")}</> : <>{field("type","Hospital / Clinic type *","select",[{value:"private",label:"Private Hospital"},{value:"government",label:"Government Hospital"},{value:"clinic",label:"Clinic"}])}{field("city","City *")}{field("location","Full address *")}{field("phone","Contact phone *")}{field("license","License number *")}{field("services","Medical services")}{field("description","About the hospital / clinic")}</>}
             {catalogImageField()}
             <button disabled={uploadingImage} onClick={()=>addCatalog(editing === "new-doctors" ? "doctor" : "hospital")} className="bg-teal-600 text-white rounded-xl px-4 py-2">Save</button>
             <button onClick={()=>setEditing(null)} className="border rounded-xl px-4 py-2">Cancel</button>
@@ -202,7 +205,7 @@ export default function AdminDashboard({ language }) {
               {active && <div className="grid sm:grid-cols-2 gap-3 mt-5">
                 {field("name","Name")}
                 {kind === "doctor" && <>{field("specialty","Specialty","select",specialtiesList.map(x=>({value:x.value,label:x.name})))}{field("hospitalId","Hospital","select",hospitals.map(x=>({value:x.id,label:x.name})))}{field("city","City")}{field("experience","Experience")}{field("education","Education")}{field("about","About")}{catalogImageField()}</>}
-                {kind === "hospital" && <>{field("type","Hospital / Clinic type","select",[{value:"private",label:"Private Hospital"},{value:"government",label:"Government Hospital"},{value:"clinic",label:"Clinic"}])}{field("city","City")}{field("location","Full address")}{field("description","Hospital / clinic services and description")}{catalogImageField()}</>}
+                {kind === "hospital" && <>{field("type","Hospital / Clinic type","select",[{value:"private",label:"Private Hospital"},{value:"government",label:"Government Hospital"},{value:"clinic",label:"Clinic"}])}{field("city","City")}{field("location","Full address *")}{field("phone","Contact phone *")}{field("license","License number *")}{field("services","Medical services")}{field("description","About the hospital / clinic")}{catalogImageField()}</>}
                 {kind === "specialty" && <>{field("value","Code")}{field("department","Specialty department")}{specialtyImageField()}</>}
                 <button disabled={uploadingImage} onClick={()=>saveItem(kind,item.id)} className="bg-teal-600 text-white rounded-xl px-4 py-2 flex items-center justify-center gap-2"><Save size={17}/> Save changes</button>
               </div>}

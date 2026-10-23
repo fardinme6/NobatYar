@@ -1,4 +1,3 @@
-
 import { ArrowUpRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { translations } from "../data/translations";

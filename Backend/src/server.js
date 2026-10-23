@@ -117,13 +117,13 @@ app.post('/api/auth/resend-verification',requireAuth,authLimiter,asyncRoute(asyn
 }));
 
 app.post('/api/auth/register', authLimiter, asyncRoute(async (req, res) => {
- const data = valid(z.object({ name: text(), email, password: z.string().min(8).max(128), phone: z.string().max(40).default('') }), req.body);
+ const data = valid(z.object({ name: text(), email, password: z.string().min(8).max(128), phone: z.string().max(40).default(''), accountType: z.enum(['patient','doctor','hospital','clinic']).default('patient') }), req.body);
  const hash = await bcrypt.hash(data.password, 12);
  try {
   const result = await db.query('INSERT INTO users(name,email,password_hash,phone) VALUES($1,$2,$3,$4) RETURNING id,name,email,phone,city,address,bio,birth_date,avatar,role', [data.name, data.email, hash, data.phone]);
   setSession(res, result.rows[0].id);
   if (process.env.SMTP_HOST) await sendVerification(result.rows[0]);
-  res.status(201).json({ user: publicUser(result.rows[0]) });
+  res.status(201).json({ user: publicUser(result.rows[0]), applicationRequired: data.accountType !== 'patient' });
  } catch (error) {
   if (error.code === '23505') return res.status(409).json({ message: 'Email already registered' });
   throw error;
@@ -580,10 +580,10 @@ app.delete('/api/provider/appointments/:id',requireAuth,requireProvider,asyncRou
 app.get('/api/admin/doctors',requireAuth,requireAdmin,asyncRoute(async(req,res)=>{const r=await db.query('SELECT * FROM doctors ORDER BY id');res.json(r.rows);}));
 app.get('/api/admin/hospitals',requireAuth,requireAdmin,asyncRoute(async(req,res)=>{const r=await db.query('SELECT * FROM hospitals ORDER BY id');res.json(r.rows);}));
 app.post('/api/admin/hospitals',requireAuth,requireAdmin,asyncRoute(async(req,res)=>{
- const d=valid(z.object({name:text(),type:z.enum(['government','private','clinic','hospital']).default('private'),city:text(),location:text(),description:z.string().max(3000).default(''),image:z.string().min(1).max(1000)}),req.body);
+ const d=valid(z.object({name:text(),type:z.enum(['government','private','clinic','hospital']).default('private'),city:text(),location:text(),description:z.string().max(3000).default(''),services:z.string().max(3000).default(''),phone:text(40),license:text(120),image:z.string().min(1).max(1000)}),req.body);
  const client=await db.connect();
  try {await client.query('BEGIN');await client.query('SELECT pg_advisory_xact_lock(20261023)');
-  const r=await client.query('INSERT INTO hospitals(id,name,type,type_value,city,city_value,location,image,description) VALUES((SELECT COALESCE(MAX(id),0)+1 FROM hospitals),$1,$2,$2,$3,$3,$4,$5,$6) RETURNING *',[d.name,d.type,d.city,d.location,d.image,d.description]);
+  const r=await client.query('INSERT INTO hospitals(id,name,type,type_value,city,city_value,location,image,description,phone,license_number,services) VALUES((SELECT COALESCE(MAX(id),0)+1 FROM hospitals),$1,$2,$2,$3,$3,$4,$5,$6,$7,$8,$9) RETURNING *',[d.name,d.type,d.city,d.location,d.image,d.description,d.phone,d.license,d.services]);
   await client.query('COMMIT');res.status(201).json(r.rows[0]);
  }catch(e){await client.query('ROLLBACK');throw e;}finally{client.release();}
 }));
@@ -615,12 +615,12 @@ app.delete('/api/admin/doctors/:id',requireAuth,requireAdmin,asyncRoute(async(re
  if(!r.rowCount)return res.status(404).json({message:'Doctor not found'});res.json({ok:true});
 }));
 app.patch('/api/admin/hospitals/:id',requireAuth,requireAdmin,asyncRoute(async(req,res)=>{
- const d=valid(z.object({name:text(),location:text(),city:text(),type:z.enum(['government','private','clinic','hospital']).default('private'),description:z.string().max(3000),image:z.string().max(1000).optional()}),req.body);
+ const d=valid(z.object({name:text(),location:text(),city:text(),type:z.enum(['government','private','clinic','hospital']).default('private'),description:z.string().max(3000),services:z.string().max(3000).default(''),phone:text(40),license:text(120),image:z.string().max(1000).optional()}),req.body);
  const client=await db.connect();
  try {await client.query('BEGIN');
   const old=await client.query('SELECT name FROM hospitals WHERE id=$1 FOR UPDATE',[req.params.id]);
   if(!old.rowCount){await client.query('ROLLBACK');return res.status(404).json({message:'Hospital not found'});}
-  const r=await client.query('UPDATE hospitals SET name=$1,location=$2,city=$3,city_value=$3,description=$4,image=COALESCE($6,image),type=$7,type_value=$7 WHERE id=$5 RETURNING *',[d.name,d.location,d.city,d.description,req.params.id,d.image||null,d.type]);
+  const r=await client.query('UPDATE hospitals SET name=$1,location=$2,city=$3,city_value=$3,description=$4,image=COALESCE($6,image),type=$7,type_value=$7,phone=$8,license_number=$9,services=$10 WHERE id=$5 RETURNING *',[d.name,d.location,d.city,d.description,req.params.id,d.image||null,d.type,d.phone,d.license,d.services]);
   await client.query('UPDATE doctors SET hospital=$1 WHERE hospital=$2',[d.name,old.rows[0].name]);
   await client.query('COMMIT');res.json(r.rows[0]);
  }catch(e){await client.query('ROLLBACK');throw e;}finally{client.release();}

@@ -32,8 +32,16 @@ export default function Login({ language, onLogin }) {
         method: "POST",
         body: JSON.stringify({ email, password, rememberMe }),
       });
-      onLogin(data.user);
-      navigate(data.user.role === "admin" ? "/admin" : data.user.role === "provider" ? "/provider-dashboard" : "/profile");
+      const account = await api("/auth/me");
+      onLogin(account.user);
+      let destination = "/profile";
+      if (account.user.role === "admin") destination = "/admin";
+      if (account.user.role === "provider") destination = ["hospital", "clinic"].includes(account.user.providerType) ? "/hospital-dashboard" : "/provider-dashboard";
+      if (account.user.role === "patient") {
+        const requests = await api("/provider-requests/mine").catch(() => []);
+        if (requests.length) destination = "/register-provider";
+      }
+      navigate(destination);
     } catch (error) {
       setMessage(error.message);
     }

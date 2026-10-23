@@ -57,9 +57,10 @@ export default function SignUp({ language, onLogin }) {
     try {
       const data = await api("/auth/register", {
         method: "POST",
-        body: JSON.stringify({ name: fullName, email, phone, password }),
+        body: JSON.stringify({ name: fullName, email, phone, password, accountType }),
       });
       onLogin(data.user);
+      if (accountType !== "patient") sessionStorage.setItem("nobatyarApplicationType", accountType);
       navigate(accountType === "patient" ? "/my-appointments" : "/register-provider");
     } catch (error) {
       setError(true);

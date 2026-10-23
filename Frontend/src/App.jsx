@@ -23,6 +23,7 @@ import SpecialtiesPage from "./pages/SpecialtiesPage.jsx";
 import UserProfile from "./pages/UserProfile.jsx";
 import AdminDashboard from "./pages/AdminDashboard.jsx";
 import ProviderDashboard from "./pages/ProviderDashboard.jsx";
+import HospitalDashboard from "./pages/HospitalDashboard.jsx";
 
 export default function App() {
   const [language, setLanguage] = useState(() => {
@@ -135,7 +136,8 @@ export default function App() {
         <Route path="/login" element={<Login language={language} onLogin={setUser} />} />
         <Route path="/signup" element={<SignUp language={language} onLogin={setUser} />} />
         <Route path="/admin" element={user?.role === "admin" ? <AdminDashboard language={language} /> : <Navigate to="/home" replace />} />
-        <Route path="/provider-dashboard" element={user && ["provider","admin"].includes(user.role) ? <ProviderDashboard language={language} /> : <Navigate to="/home" replace />} />
+        <Route path="/provider-dashboard" element={user && ["provider","admin"].includes(user.role) ? (user.providerType === "hospital" || user.providerType === "clinic" ? <HospitalDashboard language={language} /> : <ProviderDashboard language={language} />) : <Navigate to="/home" replace />} />
+        <Route path="/hospital-dashboard" element={user && ["provider","admin"].includes(user.role) && ["hospital","clinic"].includes(user.providerType) ? <HospitalDashboard language={language} /> : <Navigate to="/home" replace />} />
         <Route path="/about" element={<About language={language} />} />
         <Route path="/contact" element={<Contact language={language} />} />
         <Route

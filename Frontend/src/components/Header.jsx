@@ -144,7 +144,7 @@ export default function Header({
                   <NavLink to="/profile" className="flex items-center gap-2 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 dark:text-white"><UserRound size={18} />{t.myProfile}</NavLink>
                   {user?.role !== "admin" && user?.role !== "provider" && <NavLink to="/my-appointments" className="flex items-center gap-2 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 dark:text-white"><CalendarDays size={18} />{t.myAppointments}</NavLink>}
                   {user?.role === "admin" && <NavLink to="/admin" className="flex items-center gap-2 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 dark:text-white"><LayoutDashboard size={18} />{t.adminTitle}</NavLink>}
-                  {user?.role === "provider" && <NavLink to="/provider-dashboard" className="flex items-center gap-2 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 dark:text-white"><Stethoscope size={18} />{t.providerDashboard}</NavLink>}
+                  {user?.role === "provider" && <NavLink to={user?.providerType === "hospital" || user?.providerType === "clinic" ? "/hospital-dashboard" : "/provider-dashboard"} className="flex items-center gap-2 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 dark:text-white"><Stethoscope size={18} />{t.providerDashboard}</NavLink>}
                   <button onClick={onLogout} className="w-full flex items-center gap-2 p-3 rounded-lg text-red-600 hover:bg-red-50 cursor-pointer"><LogOut size={18} />{t.logout}</button>
                 </div>
               </div>
@@ -317,7 +317,7 @@ export default function Header({
             <div className="w-full flex flex-col gap-3">
               <NavLink to="/profile" onClick={() => setMenu(false)} className="flex items-center gap-2 text-teal-600 dark:text-teal-400"><UserRound size={20} />{t.myProfile}</NavLink>
               {user?.role === "admin" && <NavLink to="/admin" onClick={() => setMenu(false)} className="text-teal-600 dark:text-teal-400"><LayoutDashboard size={18} />{t.adminTitle}</NavLink>}
-              {user?.role === "provider" && <NavLink to="/provider-dashboard" onClick={() => setMenu(false)} className="flex items-center gap-2 text-teal-600 dark:text-teal-400"><Stethoscope size={20} />{t.providerDashboard}</NavLink>}
+              {user?.role === "provider" && <NavLink to={user?.providerType === "hospital" || user?.providerType === "clinic" ? "/hospital-dashboard" : "/provider-dashboard"} onClick={() => setMenu(false)} className="flex items-center gap-2 text-teal-600 dark:text-teal-400"><Stethoscope size={20} />{t.providerDashboard}</NavLink>}
               <button onClick={() => { onLogout(); setMenu(false); }} className="flex items-center gap-2 text-red-600 cursor-pointer"><LogOut size={20} />{t.logout}</button>
             </div>
           )}

@@ -3,7 +3,7 @@ import { api } from "../api";
 import { translations } from "../data/translations";
 import { Stethoscope, Save, CalendarDays, Building2 } from "lucide-react";
 
-export default function ProviderDashboard({ language }) {
+export default function ProviderDashboard({ language, facility = false }) {
   const t = translations[language];
   const [profiles, setProfiles] = useState([]);
   const [appointments, setAppointments] = useState([]);
@@ -18,7 +18,7 @@ export default function ProviderDashboard({ language }) {
   const [schedule, setSchedule] = useState([]);
   const [message, setMessage] = useState("");
   const load = async () => {
-    try { const [p,a,d]=await Promise.all([api("/provider/dashboard"),api("/provider/appointments"),api("/provider/doctors")]);setProfiles(p);setAppointments(a);setDoctors(d);if(d.length)setDoctorId(old=>old||String(d[0].id)); }
+    try { const [p,a,d]=await Promise.all([api("/provider/dashboard"),api("/provider/appointments"),api("/provider/doctors")]);setProfiles(p.filter(x => facility ? x.provider_type !== "doctor" : x.provider_type === "doctor"));setAppointments(a);setDoctors(d);if(d.length)setDoctorId(old=>old||String(d[0].id)); }
     catch(e){setMessage(e.message);}
   };
   useEffect(()=>{load();},[]);
@@ -35,14 +35,16 @@ export default function ProviderDashboard({ language }) {
     try {await api(`/provider/appointments/${a.id}`,{method:"PATCH",body:JSON.stringify({status:s})});await load();}
     catch(e){setMessage(e.message);}
   };
-  const fields = [["name",t.fullName],["phone",t.phoneNumber],["city",t.profileCity],["address",t.profileAddress],["specialty",t.providerSpecialty],["services",t.providerServices],["description",t.profileBio]];
+  const fields = [["name",facility ? (language === "Persian" ? "نام شفاخانه / کلینیک" : language === "English" ? "Hospital / Clinic name" : "د روغتون / کلینیک نوم") : t.fullName],["phone",t.phoneNumber],["city",t.profileCity],["address",t.profileAddress],["specialty",t.providerSpecialty],["services",t.providerServices],["description",t.profileBio]];
   return <main className="min-h-screen bg-teal-50 dark:bg-slate-900 px-4 py-12"><div className="max-w-5xl mx-auto">
     <header className="bg-gradient-to-r from-teal-700 to-cyan-600 rounded-3xl p-8 text-white shadow-lg">
       {profiles[0]?.provider_type === "doctor" ? <Stethoscope size={38}/> : <Building2 size={38}/>}
       <h1 className="text-3xl font-bold mt-3">{language === "English" ? `Hello, ${profiles[0]?.name || ""}! Welcome` : language === "Persian" ? `سلام ${profiles[0]?.name || ""}، خوش آمدید!` : `سلام ${profiles[0]?.name || ""}، ښه راغلاست!`}</h1>
       <p className="mt-2 text-teal-50">{profiles[0]?.provider_type === "doctor" ? t.registerDoctor : profiles[0]?.provider_type === "clinic" ? t.registerClinic : t.registerHospital} — {t.providerDashboard}</p>
     </header>
+    {facility && <p className="mt-4 text-teal-800 dark:text-teal-200">{language === "English" ? "Hospital / Clinic management" : language === "Persian" ? "مدیریت شفاخانه و کلینیک" : "د روغتون او کلینیک مدیریت"}</p>}
     {message && <p className="mt-5 p-4 rounded-xl bg-white dark:bg-slate-800 text-teal-700">{message}</p>}
+    {!profiles.length && <p className="mt-6 text-amber-700">{language === "Persian" ? "حساب تأییدشده‌ای برای این پنل پیدا نشد." : "No approved profile was found for this dashboard."}</p>}
     {profiles.map(p=><section key={p.id} className="bg-white dark:bg-slate-800 dark:text-white rounded-2xl shadow-md p-6 mt-6">
       <h2 className="text-xl font-bold mb-5">{p.provider_type==="doctor"?t.registerDoctor:p.provider_type==="clinic"?t.registerClinic:t.registerHospital} {p.name}</h2>
       <div className="grid md:grid-cols-2 gap-4">{fields.filter(([key]) => p.provider_type === "doctor" || key !== "specialty").map(([key,label])=><label key={key} className="block text-sm font-medium">{label}{key==="services"||key==="description"?<textarea rows={3} value={p[key]||""} onChange={e=>edit(p.id,key,e.target.value)} className="mt-2 block w-full rounded-xl border border-gray-200 dark:border-slate-600 dark:bg-slate-700 p-3"/>:<input value={p[key]||""} onChange={e=>edit(p.id,key,e.target.value)} className="mt-2 block w-full rounded-xl border border-gray-200 dark:border-slate-600 dark:bg-slate-700 p-3"/>}</label>)}</div>

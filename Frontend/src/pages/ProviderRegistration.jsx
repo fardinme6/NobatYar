@@ -9,7 +9,7 @@ import { Link } from "react-router-dom";
 export default function ProviderRegistration({ language, user }) {
   const t = translations[language];
 
-  const [providerType, setProviderType] = useState("doctor");
+  const [providerType, setProviderType] = useState(() => sessionStorage.getItem("nobatyarApplicationType") || "doctor");
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
@@ -46,6 +46,7 @@ export default function ProviderRegistration({ language, user }) {
       const created = await api("/provider-requests", { method: "POST", body: JSON.stringify({ name: data.name, email: data.email, phone: data.phone, providerType, details }) });
 
       setSubmitted(true);
+      sessionStorage.removeItem("nobatyarApplicationType");
       api("/provider-requests/mine").then(data => setRequests(data.filter(r => r.status === "pending"))).catch(()=>{});
     } catch (err) { setError(err.message); }
     finally { setSaving(false); }
@@ -71,6 +72,7 @@ export default function ProviderRegistration({ language, user }) {
           </p>
         </div>
 
+        {requests.length > 0 && <div className="mb-6 rounded-xl border border-amber-300 bg-amber-50 text-amber-900 p-4">{language === "English" ? "Pending: your provider application is awaiting admin approval. You cannot access the provider dashboard yet." : language === "Persian" ? "در انتظار تأیید: درخواست شما ثبت شده و منتظر بررسی ادمین است. تا زمان تأیید، پنل داکتر یا شفاخانه فعال نمی‌شود." : "ستاسو غوښتنلیک د اډمین تایید ته منتظر دی. تر تایید مخکې د خدمت ورکوونکي پینل نه فعالېږي."}</div>}
         <form
           onSubmit={handleSubmit}
           className="bg-white dark:bg-slate-800 rounded-3xl shadow-lg p-6 md:p-10"

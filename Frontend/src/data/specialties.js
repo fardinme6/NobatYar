@@ -1,4 +1,3 @@
-
 export const specialties = [
   {
     id: 1,

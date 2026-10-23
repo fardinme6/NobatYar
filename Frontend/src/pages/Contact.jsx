@@ -254,7 +254,7 @@ export default function Contact({ language }) {
                         setEmail(e.target.value);
                         setSubmitted(false);
                       }}
-                      placeholder="example@gmail.com"
+                      placeholder={t.enterEmailAddress}
                       required
                       dir="ltr"
                       className={inputStyle}

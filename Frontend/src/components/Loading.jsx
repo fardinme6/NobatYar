@@ -9,7 +9,6 @@ export default function Loading({ language = "Persian" }) {
       </div>
       <strong>{language === "English" ? "NobatYar" : language === "Pashto" ? "نوبت یار" : "نوبت یار"}</strong>
       <p>{label}</p>
-      <div className="ny-loading-dots"><i/><i/><i/></div>
     </div>
   );
 }

@@ -671,10 +671,24 @@ const requireProvider = (req,res,next) => ['provider','admin'].includes(req.user
 app.get('/api/admin/contacts', requireAuth, requireAdmin, asyncRoute(async(req,res)=>{
  const r=await db.query('SELECT * FROM contacts ORDER BY created_at DESC LIMIT 500'); res.json(r.rows);
 }));
-app.patch('/api/admin/contacts/:id',requireAuth,requireAdmin,asyncRoute(async(req,res)=>{
- const d=valid(z.object({status:z.enum(['unread','read','replied']),reply:z.string().max(3000).default('')}),req.body);
- const r=await db.query('UPDATE contacts SET status=$1,admin_reply=$2,replied_at=CASE WHEN $1=\'replied\' THEN NOW() ELSE replied_at END WHERE id=$3 RETURNING *',[d.status,d.reply,req.params.id]);
- if(!r.rows[0]) return res.status(404).json({message:'Not found'});res.json(r.rows[0]);
+// Admin inbox: delete a contact message.
+app.delete('/api/admin/contacts/:id',requireAuth,requireAdmin,asyncRoute(async(req,res)=>{
+ const result=await db.query('DELETE FROM contacts WHERE id=$1 RETURNING id',[req.params.id]);
+ if(!result.rowCount)return res.status(404).json({message:'Message not found'});
+ res.json({ok:true});
+}));
+// Send a real email to the contact's submitted address, then record the reply.
+app.post('/api/admin/contacts/:id/reply',requireAuth,requireAdmin,asyncRoute(async(req,res)=>{
+ const data=valid(z.object({reply:z.string().trim().min(1).max(3000)}),req.body);
+ const result=await db.query('SELECT id,name,email FROM contacts WHERE id=$1',[req.params.id]);
+ const contact=result.rows[0];
+ if(!contact)return res.status(404).json({message:'Message not found'});
+ if(!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASSWORD || !process.env.EMAIL_FROM){
+  return res.status(503).json({message:'Email service is not configured'});
+ }
+ await sendAccountEmail(contact.email,'Reply from NobatYar',data.reply);
+ await db.query("UPDATE contacts SET status='replied',admin_reply=$1,replied_at=NOW() WHERE id=$2",[data.reply,contact.id]);
+ res.json({ok:true,message:'Reply email sent successfully'});
 }));
 app.get('/api/provider/my-hospitals',requireAuth,requireProvider,asyncRoute(async(req,res)=>{
  const r=await db.query('SELECT h.* FROM hospitals h JOIN provider_hospitals ph ON ph.hospital_id=h.id JOIN provider_profiles p ON p.id=ph.provider_id WHERE p.user_id=$1',[req.user.id]);res.json(r.rows);

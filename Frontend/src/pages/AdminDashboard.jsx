@@ -18,6 +18,8 @@ export default function AdminDashboard({ language }) {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [notes, setNotes] = useState({});
   const [replies, setReplies] = useState({});
+  const [openReplyId, setOpenReplyId] = useState(null);
+  const [contactBusyId, setContactBusyId] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [sendingId, setSendingId] = useState(null);
@@ -104,9 +106,27 @@ export default function AdminDashboard({ language }) {
     try { await api(`/admin/appointments/${id}/status`, { method: "PATCH", body: JSON.stringify({ status }) }); await load(); }
     catch (e) { setError(e.message); }
   };
-  const changeContact = async (c, status) => {
-    try { await api(`/admin/contacts/${c.id}`, { method: "PATCH", body: JSON.stringify({ status, reply: replies[c.id] ?? c.admin_reply ?? "" }) }); await load(); }
-    catch (e) { setError(e.message); }
+  const deleteContact = async c => {
+    if (!window.confirm(t.adminDeleteContactConfirm || 'Delete this message permanently?')) return;
+    setError(''); setContactBusyId(c.id);
+    try {
+      await api(`/admin/contacts/${c.id}`, {method:'DELETE'});
+      setContacts(previous => previous.filter(item => item.id !== c.id));
+    } catch(e) { setError(e.message); }
+    finally { setContactBusyId(null); }
+  };
+  const sendContactReply = async c => {
+    const reply = (replies[c.id] ?? '').trim();
+    if (!reply) { setError(t.adminReplyRequired || 'Write your reply first.'); return; }
+    setError(''); setEmailMessage(''); setContactBusyId(c.id);
+    try {
+      await api(`/admin/contacts/${c.id}/reply`, {method:'POST',body:JSON.stringify({reply})});
+      setEmailMessage(t.adminReplySent || 'Reply email sent successfully.');
+      setOpenReplyId(null);
+      setReplies(previous => ({...previous,[c.id]:''}));
+      await load();
+    } catch(e) { setError(e.message); }
+    finally { setContactBusyId(null); }
   };
   const toggleProvider = async p => {
     try { await api(`/admin/providers/${p.id}`, { method: "PATCH", body: JSON.stringify({ active: !p.active }) }); await load(); }
@@ -220,9 +240,16 @@ export default function AdminDashboard({ language }) {
           <div className="flex gap-3 mt-3"><button onClick={()=>decide(r,"approved")} className="bg-teal-600 hover:bg-teal-700 text-white rounded-xl px-5 py-2 transition cursor-pointer">{t.adminApprove}</button><button onClick={()=>decide(r,"rejected")} className="bg-red-100 hover:bg-red-200 text-red-700 rounded-xl px-5 py-2 transition cursor-pointer">{t.adminReject}</button></div></>}
         </article>) : <p className="dark:text-white">{t.adminEmpty}</p>)}
         {tab === "contacts" && (contacts.length ? contacts.map(c=><article key={c.id} className="bg-white dark:bg-slate-800 dark:text-white rounded-2xl shadow-sm p-6">
-          <div className="flex justify-between gap-3"><div><h3 className="font-bold">{c.name}</h3><p className="text-sm text-teal-600">{c.email}</p></div><span className="text-sm text-gray-500">{c.status}</span></div>
-          <p className="whitespace-pre-wrap mt-4">{c.message}</p><textarea value={replies[c.id] ?? c.admin_reply ?? ""} onChange={e=>setReplies({...replies,[c.id]:e.target.value})} className="mt-4 w-full border rounded-xl p-3 dark:bg-slate-700 dark:border-slate-600" rows={3} placeholder={t.adminReplyPlaceholder}/>
-          <div className="flex gap-3 mt-3"><button onClick={()=>changeContact(c,"read")} className="border border-teal-600 text-teal-700 dark:text-teal-300 rounded-xl px-4 py-2 cursor-pointer">{t.adminMarkRead}</button><button onClick={()=>changeContact(c,"replied")} className="bg-teal-600 text-white rounded-xl px-4 py-2 cursor-pointer">{t.adminSaveReply}</button></div>
+          <div className="flex justify-between gap-3"><div><h3 className="font-bold">{c.name}</h3><p className="text-sm text-teal-600">{c.email}</p></div><span className="text-sm text-gray-500">{c.status || 'unread'}</span></div>
+          <p className="whitespace-pre-wrap mt-4">{c.message}</p>
+          {c.admin_reply && <div className="mt-4 rounded-xl bg-teal-50 dark:bg-slate-700 p-3"><strong>{t.adminPreviousReply || 'Sent reply'}:</strong><p className="whitespace-pre-wrap">{c.admin_reply}</p></div>}
+          <div className="flex flex-wrap gap-3 mt-4">
+            <button disabled={contactBusyId===c.id} onClick={()=>{setOpenReplyId(openReplyId===c.id?null:c.id);setError('');}} className="bg-teal-600 hover:bg-teal-700 active:bg-teal-800 disabled:opacity-50 text-white rounded-xl px-4 py-2 transition-colors cursor-pointer">{t.adminReplyEmail || 'Reply'}</button>
+            <button disabled={contactBusyId===c.id} onClick={()=>deleteContact(c)} className="bg-red-50 hover:bg-red-100 active:bg-red-200 text-red-700 rounded-xl px-4 py-2 transition-colors cursor-pointer disabled:opacity-50">{t.adminDeleteMessage || 'Delete'}</button>
+          </div>
+          {openReplyId===c.id && <div className="mt-4"><textarea value={replies[c.id] ?? ''} onChange={e=>setReplies({...replies,[c.id]:e.target.value})} className="w-full border rounded-xl p-3 dark:bg-slate-700 dark:border-slate-600" rows={4} maxLength={3000} placeholder={t.adminReplyPlaceholder}/>
+            <button disabled={contactBusyId===c.id || !(replies[c.id]||'').trim()} onClick={()=>sendContactReply(c)} className="mt-3 bg-teal-600 hover:bg-teal-700 active:bg-teal-800 disabled:opacity-50 text-white rounded-xl px-5 py-2 cursor-pointer transition-colors">{contactBusyId===c.id ? (t.loadingText || 'Sending...') : (t.adminSendReply || 'Send email')}</button>
+          </div>}
         </article>) : <p className="dark:text-white">{t.adminEmpty}</p>)}
         {tab === "appointments" && (appointments.length ? appointments.map(a=><article key={a.id} className="bg-white dark:bg-slate-800 dark:text-white rounded-2xl p-5 shadow-sm flex flex-wrap justify-between gap-4 items-center"><div><h3 className="font-bold">{a.patient_name}</h3><p className="text-sm text-gray-500 dark:text-gray-300">#{a.doctor_id} · {a.date} · {a.time} · {a.status}</p></div><div className="flex gap-2"><button onClick={()=>changeAppointment(a.id,"confirmed")} className="bg-teal-600 text-white px-4 py-2 rounded-lg cursor-pointer">{t.adminConfirm}</button><button onClick={()=>changeAppointment(a.id,"cancelled")} className="bg-red-100 text-red-700 px-4 py-2 rounded-lg cursor-pointer">{t.adminCancel}</button></div></article>) : <p className="dark:text-white">{t.adminEmpty}</p>)}
 

@@ -1,5 +1,12 @@
 export const translations = {
   English: {
+    adminReplyEmail: 'Reply',
+    adminDeleteMessage: 'Delete',
+    adminSendReply: 'Send email',
+    adminReplySent: 'Reply email sent successfully.',
+    adminReplyRequired: 'Write your reply first.',
+    adminDeleteContactConfirm: 'Delete this message permanently?',
+    adminPreviousReply: 'Sent reply',
     forgotPasswordTitle: "Forgot password?",
     resetPasswordTitle: "Reset password",
     verifyEmailTitle: "Verify email",
@@ -454,6 +461,13 @@ Herat Heart Hospital aims to improve the quality of cardiovascular healthcare, i
   },
 
   Persian: {
+    adminReplyEmail: 'پاسخ',
+    adminDeleteMessage: 'حذف',
+    adminSendReply: 'ارسال ایمیل',
+    adminReplySent: 'پاسخ با موفقیت ایمیل شد.',
+    adminReplyRequired: 'ابتدا متن پاسخ را بنویسید.',
+    adminDeleteContactConfirm: 'این پیام برای همیشه حذف شود؟',
+    adminPreviousReply: 'پاسخ ارسال\u200cشده',
     forgotPasswordTitle: "فراموشی رمز عبور؟",
     resetPasswordTitle: "تغییر رمز عبور",
     verifyEmailTitle: "تأیید ایمیل",
@@ -959,6 +973,13 @@ Herat Heart Hospital aims to improve the quality of cardiovascular healthcare, i
   },
 
   Pashto: {
+    adminReplyEmail: 'ځواب',
+    adminDeleteMessage: 'حذف',
+    adminSendReply: 'ایمیل واستوئ',
+    adminReplySent: 'ځواب په بریالیتوب سره د ایمیل له لارې واستول شو.',
+    adminReplyRequired: 'لومړی خپل ځواب ولیکئ.',
+    adminDeleteContactConfirm: 'دا پیغام د تل لپاره حذف شي؟',
+    adminPreviousReply: 'لېږل شوی ځواب',
     dermatologist: "د پوستکي او وېښتانو متخصص",
     forgotPasswordTitle: "پټنوم مو هېر شوی؟",
     resetPasswordTitle: "پټنوم بدلول",

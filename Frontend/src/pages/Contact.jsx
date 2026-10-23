@@ -24,10 +24,24 @@ export default function Contact({ language }) {
   const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); setError(""); setSending(true);
-    try { await api("/contact", { method: "POST", body: JSON.stringify({ name, email, message: `${subject}\n\n${message}` }) }); setSubmitted(true); }
-    catch (err) { setError(err.message); }
-    finally { setSending(false); }
+    e.preventDefault();
+    setError("");
+    setSending(true);
+    try {
+      await api("/contact", {
+        method: "POST",
+        body: JSON.stringify({
+          name,
+          email,
+          message: `${subject}\n\n${message}`,
+        }),
+      });
+      setSubmitted(true);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSending(false);
+    }
   };
 
   const inputStyle =
@@ -58,9 +72,7 @@ export default function Contact({ language }) {
             {t.contactPageTitle}
           </h1>
 
-          <p className="text-teal-50 leading-8">
-            {t.contactPageSubtitle}
-          </p>
+          <p className="text-teal-50 leading-8">{t.contactPageSubtitle}</p>
         </div>
       </section>
 
@@ -77,8 +89,14 @@ export default function Contact({ language }) {
               </p>
             </div>
 
-            <div className={`${cardStyle} p-5 flex items-center gap-4 hover:shadow-md transition`}>
-              <a href="mailto:fardinmehry7@gmail.com" target="_blank" className={iconStyle}>
+            <div
+              className={`${cardStyle} p-5 flex items-center gap-4 hover:shadow-md transition`}
+            >
+              <a
+                href="mailto:fardinmehry7@gmail.com"
+                target="_blank"
+                className={iconStyle}
+              >
                 <Mail size={22} />
               </a>
 
@@ -97,7 +115,9 @@ export default function Contact({ language }) {
               </div>
             </div>
 
-            <div className={`${cardStyle} p-5 flex items-center gap-4 hover:shadow-md transition`}>
+            <div
+              className={`${cardStyle} p-5 flex items-center gap-4 hover:shadow-md transition`}
+            >
               <a href="tel:+93797952149" className={iconStyle}>
                 <Phone size={22} />
               </a>
@@ -120,7 +140,11 @@ export default function Contact({ language }) {
 
             <div className={`${cardStyle} p-5 flex-1 flex flex-col gap-4`}>
               <div className="flex items-center gap-4">
-                <a href="https://www.google.com/maps/search/?api=1&query=Herat%2C%20Afghanistan" target="_blank" className={iconStyle}>
+                <a
+                  href="https://www.google.com/maps/search/?api=1&query=Herat%2C%20Afghanistan"
+                  target="_blank"
+                  className={iconStyle}
+                >
                   <MapPin size={22} />
                 </a>
 
@@ -203,7 +227,9 @@ export default function Contact({ language }) {
           </div>
 
           <div className="lg:col-span-3 flex">
-            <div className={`${cardStyle} w-full h-full p-6 md:p-8 flex flex-col`}>
+            <div
+              className={`${cardStyle} w-full h-full p-6 md:p-8 flex flex-col`}
+            >
               <div className="flex items-center gap-3 mb-3">
                 <div className={iconStyle}>
                   <MessageSquare size={24} />
@@ -218,7 +244,11 @@ export default function Contact({ language }) {
                 {t.contactFormDescription}
               </p>
 
-              {error && <p role="alert" className="text-red-600">{error}</p>}
+              {error && (
+                <p role="alert" className="text-red-600">
+                  {error}
+                </p>
+              )}
               <form
                 onSubmit={handleSubmit}
                 className="flex flex-col flex-1 gap-5"
@@ -256,9 +286,9 @@ export default function Contact({ language }) {
                         setEmail(e.target.value);
                         setSubmitted(false);
                       }}
-                      placeholder="example@gmail.com"
+                      placeholder={t.enterEmailAddress}
+                      dir={language === "English" ? "ltr" : "rtl"}
                       required
-                      dir="ltr"
                       className={inputStyle}
                     />
                   </div>

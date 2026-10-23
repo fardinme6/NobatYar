@@ -833,7 +833,13 @@ app.post('/api/admin/profile-translations/suggest',requireAuth,requireAdmin,asyn
  if(!response.ok)return res.status(502).json({message:'Translation provider failed. Check API configuration and billing.'});
  const body=await response.json();let parsed;
  try {const raw=body.choices?.[0]?.message?.content||'';parsed=JSON.parse(raw.replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/,'').trim());}catch{return res.status(502).json({message:'Invalid translation response'});}
- const clean={};for(const lang of ['fa','ps','en']){clean[lang]={};for(const field of translationFields[kind])clean[lang][field]=String(parsed?.[lang]?.[field]||'').slice(0,3000);}
+ const existing=await db.query('SELECT translations FROM profile_translations WHERE kind=$1 AND profile_id=$2',[kind,id]);
+ const saved=existing.rows[0]?.translations||{};
+ const clean={};for(const lang of ['fa','ps','en']){clean[lang]={};for(const field of translationFields[kind]){
+   const oldText=String(saved?.[lang]?.[field]||'').trim();
+   const suggestion=String(parsed?.[lang]?.[field]||'').trim();
+   clean[lang][field]=(oldText||suggestion).slice(0,3000);
+ }}
  await db.query(`INSERT INTO profile_translations(kind,profile_id,translations,approved,source_snapshot,updated_at) VALUES($1,$2,$3::jsonb,false,$4::jsonb,NOW()) ON CONFLICT(kind,profile_id) DO UPDATE SET translations=EXCLUDED.translations,approved=false,source_snapshot=EXCLUDED.source_snapshot,updated_at=NOW()`,[kind,id,JSON.stringify(clean),JSON.stringify(fields)]);
  res.json({translations:clean,approved:false});
 }));

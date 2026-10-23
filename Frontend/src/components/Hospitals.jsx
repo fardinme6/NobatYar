@@ -13,11 +13,12 @@ import {
   SearchX,
 } from "lucide-react";
 import { translations } from "../data/translations.js";
+import { hospitalTypeLabel } from "../utils/hospitalType.js";
 
 export default function Hospitals({ language, home = false, user }) {
   const t = translations[language];
   const [onlineHospitals,setOnlineHospitals] = useState([]);
-  useEffect(()=>{api(`/hospitals?lang=${language === "Persian" ? "fa" : language === "Pashto" ? "ps" : "en"}`).then(setOnlineHospitals).catch(()=>{});},[]);
+  useEffect(()=>{api(`/hospitals?lang=${language === "Persian" ? "fa" : language === "Pashto" ? "ps" : "en"}`).then(setOnlineHospitals).catch(()=>{});},[language]);
   const allHospitals = onlineHospitals;;
 
   const [search, setSearch] = useState("");
@@ -144,7 +145,7 @@ export default function Hospitals({ language, home = false, user }) {
                   <option value="all">{t.allHospitalTypes}</option>
                   <option value="government">{t.governmentHospital}</option>
                   <option value="private">{t.privateHospital}</option>
-                  <option value="clinics">{t.clinics}</option>
+                  <option value="clinic">{t.clinics}</option>
                 </select>
               </div>
 
@@ -195,7 +196,7 @@ export default function Hospitals({ language, home = false, user }) {
                   />
 
                   <span className="absolute top-4 start-4 bg-white/95 dark:bg-slate-800/95 text-teal-700 dark:text-teal-400 px-3 py-1.5 rounded-lg text-xs font-semibold shadow-sm">
-                    {t[hospital.type] || hospital.type}
+                    {hospitalTypeLabel(hospital.typeValue || hospital.type, t)}
                   </span>
                 </div>
 

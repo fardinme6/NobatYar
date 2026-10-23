@@ -12,6 +12,7 @@ import { hospitals } from "../data/hospitalData.js";
 import { api } from "../api";
 import { useEffect, useState } from "react";
 import { translations } from "../data/translations.js";
+import { hospitalTypeLabel } from "../utils/hospitalType.js";
 
 export default function HospitalDetails({ language }) {
   const t = translations[language];
@@ -66,7 +67,7 @@ export default function HospitalDetails({ language }) {
             />
 
             <span className="absolute top-5 start-5 bg-white/95 dark:bg-slate-800/95 text-teal-700 dark:text-teal-400 px-4 py-2 rounded-xl text-sm font-semibold shadow-sm">
-              {label(hospital.type)}
+              {hospitalTypeLabel(hospital.typeValue || hospital.type, t)}
             </span>
           </div>
 
@@ -94,7 +95,7 @@ export default function HospitalDetails({ language }) {
                 </div>
 
                 <p className="text-gray-600 dark:text-gray-300 leading-7">
-                  {label(hospital.type)}
+                  {hospitalTypeLabel(hospital.typeValue || hospital.type, t)}
                 </p>
               </div>
 

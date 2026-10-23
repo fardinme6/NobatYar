@@ -33,7 +33,7 @@ export default function AdminDashboard({ language }) {
   };
   const generateTranslation = async () => {
     setTranslationBusy(true);
-    try {const result=await api('/admin/profile-translations/suggest',{method:'POST',body:JSON.stringify({kind:translationEditor.kind,id:translationEditor.id})});setTranslationEditor({...translationEditor,translations:result.translations,approved:false});}
+    try {const result=await api('/admin/profile-translations/suggest',{method:'POST',body:JSON.stringify({kind:translationEditor.kind,id:translationEditor.id})});setTranslationEditor(prev=>({...prev,translations:Object.fromEntries(["fa","ps","en"].map(lang=>[lang,{...result.translations?.[lang],...Object.fromEntries(Object.entries(prev.translations?.[lang]||{}).filter(([,value])=>String(value||"").trim()))}])),approved:false}));}
     catch(e){setError(e.message);}finally{setTranslationBusy(false);}
   };
   const saveTranslation = async approved => {

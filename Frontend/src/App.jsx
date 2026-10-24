@@ -1,7 +1,7 @@
 import Loading from "./components/Loading.jsx";
 import AccountRecovery from "./pages/AccountRecovery.jsx";
 import { api } from "./api";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import SignUp from "./pages/SignUp.jsx";
 import VerifyPhone from "./pages/VerifyPhone.jsx";
@@ -29,6 +29,13 @@ import ProviderDashboard from "./pages/ProviderDashboard.jsx";
 import HospitalDashboard from "./pages/HospitalDashboard.jsx";
 
 export default function App() {
+  const location = useLocation();
+  const [pageLoading, setPageLoading] = useState(false);
+  useEffect(() => {
+    setPageLoading(true);
+    const timer = setTimeout(() => setPageLoading(false), 350);
+    return () => clearTimeout(timer);
+  }, [location.pathname]);
   const [language, setLanguage] = useState(() => {
     return localStorage.getItem("language") || "Persian";
   });
@@ -80,7 +87,7 @@ export default function App() {
 
   return (
     <>
-      {busy && <Loading language={language} />}
+      {(busy || pageLoading) && <Loading language={language} />}
       <Header
         imageURL="/logo.png"
         title="NobatYar Logo"

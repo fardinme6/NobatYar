@@ -699,7 +699,11 @@ app.get('/api/provider/dashboard',requireAuth,requireProvider,asyncRoute(async(r
 app.patch('/api/provider/dashboard/:id',requireAuth,requireProvider,asyncRoute(async(req,res)=>{
  const d=valid(z.object({name:text(),phone:z.string().max(40),address:z.string().max(240),city:z.string().max(100),specialty:z.string().max(120),description:z.string().max(3000),services:z.string().max(3000),active:z.boolean()}),req.body);
  const r=await db.query('UPDATE provider_profiles SET name=$1,phone=$2,address=$3,city=$4,specialty=$5,description=$6,services=$7,active=$8 WHERE id=$9 AND user_id=$10 RETURNING *',[d.name,d.phone,d.address,d.city,d.specialty,d.description,d.services,d.active,req.params.id,req.user.id]);
- if(!r.rows[0])return res.status(404).json({message:'Not found'});res.json(r.rows[0]);
+ if(!r.rows[0])return res.status(404).json({message:'Not found'});
+ if(r.rows[0].provider_type==='doctor'){
+  await db.query('UPDATE doctors SET name=$1 WHERE id IN (SELECT doctor_id FROM provider_doctors WHERE provider_id=$2)',[d.name,r.rows[0].id]);
+ }
+ res.json(r.rows[0]);
 }));
 // Link an existing catalog entry to a new provider login; never create a duplicate doctor/hospital.
 app.get('/api/admin/catalog-accounts',requireAuth,requireAdmin,asyncRoute(async(req,res)=>{

@@ -40,7 +40,10 @@ export default function ProviderDashboard({ language, facility = false }) {
     setDaysOff(scheduleData.daysOff);
   };
   useEffect(()=>{if(doctorId)refreshDates().catch(e=>setMessage(e.message));},[doctorId]);
-  const toGregorian = value => new DateObject(value).convert(gregorian).format("YYYY/MM/DD");
+  const toGregorian = value => {
+    const date = value.toDate();
+    return `${date.getFullYear()}/${String(date.getMonth()+1).padStart(2,"0")}/${String(date.getDate()).padStart(2,"0")}`;
+  };
   const toJalali = value => new DateObject({date:value,format:"YYYY/MM/DD",calendar:gregorian}).convert(persian).format("YYYY/MM/DD");
   const saveSchedule = async e => {
     e.preventDefault();
@@ -62,11 +65,11 @@ export default function ProviderDashboard({ language, facility = false }) {
     try {await api(`/provider/doctors/${doctorId}/available-dates/${date.replaceAll("/","-")}`,{method:"DELETE"});await refreshDates();setMessage("");}
     catch(e){setMessage(e.message);}
   };
-  const addDayOff = async e => {e.preventDefault();const date=dayOffDate ? new DateObject(dayOffDate).convert(gregorian).format("YYYY/MM/DD") : "";if(!date)return;try{await api(`/provider/doctors/${doctorId}/days-off`,{method:"POST",body:JSON.stringify({date})});await refreshDates();setDayOffDate(null);setMessage(t.adminScheduleSaved);}catch(e){setMessage(e.message);}};
+  const addDayOff = async e => {e.preventDefault();const date=dayOffDate ? toGregorian(dayOffDate) : "";if(!date)return;try{await api(`/provider/doctors/${doctorId}/days-off`,{method:"POST",body:JSON.stringify({date})});await refreshDates();setDayOffDate(null);setMessage(t.adminScheduleSaved);}catch(e){setMessage(e.message);}};
   const removeDayOff = async date => {try{await api(`/provider/doctors/${doctorId}/days-off/${date.replaceAll("/","-")}`,{method:"DELETE"});await refreshDates();}catch(e){setMessage(e.message);}};
   const edit = (id,key,value) => setProfiles(profiles.map(p=>p.id===id?{...p,[key]:value}:p));
   const save = async p => {
-    try { await api(`/provider/dashboard/${p.id}`,{method:"PATCH",body:JSON.stringify({name:p.name,phone:p.phone,address:p.address,city:p.city,specialty:p.specialty,description:p.description,services:p.services,active:p.active})});setMessage(t.providerSaved); }
+    try { await api(`/provider/dashboard/${p.id}`,{method:"PATCH",body:JSON.stringify({name:p.name,phone:p.phone,address:p.address,city:p.city,specialty:p.specialty,description:p.description,services:p.services,active:p.active})});await load();setMessage(t.providerSaved); }
     catch(e){setMessage(e.message);}
   };
   const status = async (a,s) => {
@@ -84,7 +87,7 @@ export default function ProviderDashboard({ language, facility = false }) {
     {!profiles.length && <p className="mt-6 text-amber-700">{language === "Persian" ? "حساب تأییدشده‌ای برای این پنل پیدا نشد." : "No approved profile was found for this dashboard."}</p>}
     {profiles.map(p=><section key={p.id} className="bg-white dark:bg-slate-800 dark:text-white rounded-2xl shadow-md p-6 mt-6">
       <div className="flex flex-wrap justify-between items-center gap-3 mb-4"><div><h2 className="font-bold text-xl">{language === "Persian" ? "مشخصات حرفه‌ای" : "Professional details"}</h2><p className="text-sm text-gray-500 mt-1">{language === "Persian" ? "این مشخصات مربوط به خدمات داکتر یا شفاخانه است؛ اطلاعات شخصی در My Profile قرار دارد." : "Professional details are separate from your personal account profile."}</p></div><a href="/profile" className="border border-teal-500 text-teal-700 dark:text-teal-300 rounded-xl px-4 py-2">My Profile</a></div>
-      <div className="grid md:grid-cols-2 gap-4">{[["specialty",t.providerSpecialty],["services",t.providerServices],["description",t.profileBio]].filter(([key])=>p.provider_type==="doctor"||key!=="specialty").map(([key,label])=><label key={key} className="text-sm font-medium">{label}<textarea rows={key==="description"?3:2} value={p[key]||""} onChange={e=>edit(p.id,key,e.target.value)} className="block w-full mt-2 rounded-xl border border-gray-200 dark:border-slate-600 dark:bg-slate-700 p-3"/></label>)}</div>
+      <div className="grid md:grid-cols-2 gap-4">{[["name",language === "Persian" ? "نام داکتر" : "Doctor name"],["specialty",t.providerSpecialty],["services",t.providerServices],["description",t.profileBio]].filter(([key])=>p.provider_type==="doctor"||key!=="specialty").map(([key,label])=><label key={key} className="text-sm font-medium">{label}<textarea rows={key==="description"?3:2} value={p[key]||""} onChange={e=>edit(p.id,key,e.target.value)} className="block w-full mt-2 rounded-xl border border-gray-200 dark:border-slate-600 dark:bg-slate-700 p-3"/></label>)}</div>
       <button onClick={()=>save(p)} className="mt-4 bg-teal-600 text-white rounded-xl px-5 py-3 cursor-pointer">{t.profileSave}</button>
     </section>)}
     <section className="bg-white dark:bg-slate-800 dark:text-white rounded-2xl shadow-md p-6 mt-6">

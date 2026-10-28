@@ -2544,7 +2544,7 @@ const translationFields = {
 };
 const translationTable = { doctor: "doctors", hospital: "hospitals", specialty: "medical_specialties" };
 const translationPayload = z.object({
-  kind: z.enum(["doctor", "hospital"]),
+  kind: z.enum(["doctor", "hospital", "specialty"]),
   id: z.number().int().positive(),
 });
 app.get(

@@ -353,6 +353,7 @@ export default function AdminDashboard({ language }) {
         ? {
             name: item.name,
             email: item.email || "",
+            phone: item.phone || "",
             specialty: item.specialty_value,
             hospitalId:
               hospitals.find((h) => h.name === item.hospital)?.id || "",
@@ -383,6 +384,10 @@ export default function AdminDashboard({ language }) {
     );
   };
   const saveItem = async (kind, id) => {
+    if (kind === "doctor" && !form.phone?.trim()) {
+      setError(t.adminRequiredFields);
+      return;
+    }
     if (
       kind === "hospital" &&
       (!form.name ||
@@ -541,7 +546,7 @@ export default function AdminDashboard({ language }) {
     if (
       !form.name ||
       !form.city ||
-      (kind === "doctor" && !form.email) ||
+      (kind === "doctor" && (!form.email || !form.phone)) ||
       (kind === "hospital" &&
         (!form.location || !form.phone || !form.license || !form.image)) ||
       (kind === "doctor" && (!form.specialty || !form.hospitalId))
@@ -577,6 +582,13 @@ export default function AdminDashboard({ language }) {
             </option>
           ))}
         </select>
+      ) : ["about", "education", "experience", "description", "services", "location"].includes(name) ? (
+        <textarea
+          rows={name === "location" ? 3 : 7}
+          value={form[name] ?? ""}
+          onChange={(e) => setForm({ ...form, [name]: e.target.value })}
+          className="mt-1 w-full p-3 rounded-xl border text-gray-900 resize-y"
+        />
       ) : (
         <input
           value={form[name] ?? ""}
@@ -1109,6 +1121,7 @@ export default function AdminDashboard({ language }) {
                           {kind === "doctor" && (
                             <>
                               {field("email", `${t.profileEmail} *`)}
+                         {field("phone", `${t.adminContactPhone} *`)}
                               {field(
                                 "specialty",
                                 t.providerSpecialty,
@@ -1301,7 +1314,7 @@ export default function AdminDashboard({ language }) {
                       <label key={field} className="block mb-3 text-xs">
                         {modalText[field] || field}
                         <textarea
-                          rows={field === "name" ? 2 : 3}
+                          rows={field === "name" ? 2 : 8}
                           dir={lang === "en" ? "ltr" : "rtl"}
                           value={
                             translationEditor.translations?.[lang]?.[field] ||

@@ -868,7 +868,7 @@ app.get(
   "/api/doctors",
   asyncRoute(async (req, res) => {
     const result = await db.query(
-      'SELECT id,name,email,specialty,specialty_value AS "specialtyValue",hospital,city,city_value AS "cityValue",image,experience,education,about FROM doctors ORDER BY id',
+      'SELECT id,name,email,specialty,specialty_value AS "specialtyValue",hospital,city,city_value AS "cityValue",image,experience,education,about,phone FROM doctors ORDER BY id',
     );
     const search = String(req.query.search || "").toLowerCase();
     const specialty = String(req.query.specialty || "all");
@@ -894,7 +894,7 @@ app.get(
   "/api/doctors/:id",
   asyncRoute(async (req, res) => {
     const result = await db.query(
-      'SELECT id,name,email,specialty,specialty_value AS "specialtyValue",hospital,city,city_value AS "cityValue",image,experience,education,about FROM doctors WHERE id=$1',
+      'SELECT id,name,email,specialty,specialty_value AS "specialtyValue",hospital,city,city_value AS "cityValue",image,experience,education,about,phone FROM doctors WHERE id=$1',
       [req.params.id],
     );
     if (!result.rows[0])
@@ -2859,9 +2859,10 @@ app.post(
         specialty: text(),
         hospitalId: z.coerce.number().int().positive(),
         city: text(),
+        phone: text(40),
         about: z.string().max(3000).default(""),
-        experience: z.string().max(200).default(""),
-        education: z.string().max(200).default(""),
+        experience: z.string().max(3000).default(""),
+        education: z.string().max(3000).default(""),
         image: z.string().min(1).max(1000),
       }),
       req.body,
@@ -2882,7 +2883,7 @@ app.post(
       await client.query("BEGIN");
       await client.query("SELECT pg_advisory_xact_lock(20261023)");
       const r = await client.query(
-        "INSERT INTO doctors(id,name,email,specialty,specialty_value,hospital,city,city_value,image,about,experience,education) VALUES((SELECT COALESCE(MAX(id),0)+1 FROM doctors),$1,$9,$2,$2,$3,$4,$4,$5,$6,$7,$8) RETURNING *",
+        "INSERT INTO doctors(id,name,email,specialty,specialty_value,hospital,city,city_value,image,about,experience,education,phone) VALUES((SELECT COALESCE(MAX(id),0)+1 FROM doctors),$1,$9,$2,$2,$3,$4,$4,$5,$6,$7,$8,$10) RETURNING *",
         [
           d.name,
           d.specialty,
@@ -2893,6 +2894,7 @@ app.post(
           d.experience,
           d.education,
           d.email,
+          d.phone,
         ],
       );
       await client.query("COMMIT");
@@ -2917,9 +2919,10 @@ app.patch(
         specialty: text(),
         hospitalId: z.coerce.number().int().positive(),
         city: text(),
+        phone: text(40),
         about: z.string().max(3000).default(""),
-        experience: z.string().max(200).default(""),
-        education: z.string().max(200).default(""),
+        experience: z.string().max(3000).default(""),
+        education: z.string().max(3000).default(""),
         image: z.string().max(1000).optional(),
       }),
       req.body,
@@ -2936,7 +2939,7 @@ app.patch(
     if (!sp.rowCount)
       return res.status(400).json({ message: "Specialty not found" });
     const r = await db.query(
-      "UPDATE doctors SET name=$1,specialty=$2,specialty_value=$2,hospital=$3,city=$4,city_value=$4,about=$5,image=COALESCE($7,image),experience=$8,education=$9,email=$10 WHERE id=$6 RETURNING *",
+      "UPDATE doctors SET name=$1,specialty=$2,specialty_value=$2,hospital=$3,city=$4,city_value=$4,about=$5,image=COALESCE($7,image),experience=$8,education=$9,email=$10,phone=$11 WHERE id=$6 RETURNING *",
       [
         d.name,
         d.specialty,
@@ -2948,6 +2951,7 @@ app.patch(
         d.experience,
         d.education,
         d.email,
+        d.phone,
       ],
     );
     if (!r.rowCount)

@@ -109,6 +109,12 @@ export default function DoctorDetails({ language }) {
                   <span>{label(doctor.city)}</span>
                 </div>
 
+                {doctor.email && (
+                  <div className="flex items-center gap-3">
+                    <span className="text-teal-600 font-semibold">@</span>
+                    <a href={`mailto:${doctor.email}`} className="hover:text-teal-600 break-all">{doctor.email}</a>
+                  </div>
+                )}
                 {doctor.phone && (
                   <div className="flex items-center gap-3">
                     <Phone size={20} className="text-teal-600 shrink-0" />

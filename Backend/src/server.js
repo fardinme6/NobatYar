@@ -864,6 +864,31 @@ async function localizeProfiles(rows, kind, lang) {
     };
   });
 }
+// Localize the linked hospital name using its approved translation, and city names.
+async function localizeDoctorRelations(doctors, lang) {
+  if (!doctors.length || !["fa", "ps", "en"].includes(lang)) return doctors;
+  const names = [...new Set(doctors.map(d => d.hospital).filter(Boolean))];
+  const hospitals = names.length ? await db.query(
+    `SELECT h.name, pt.translations, pt.source_snapshot
+     FROM hospitals h LEFT JOIN profile_translations pt
+     ON pt.kind='hospital' AND pt.profile_id=h.id AND pt.approved=true
+     WHERE h.name = ANY($1::text[])`, [names]) : { rows: [] };
+  const lookup = new Map(hospitals.rows.map(h => [h.name, h]));
+  const cities = {
+    "هرات": { en: "Herat", ps: "هرات" },
+    "کابل": { en: "Kabul", ps: "کابل" },
+    "مزار شریف": { en: "Mazar-e-Sharif", ps: "مزار شریف" },
+    "قندهار": { en: "Kandahar", ps: "کندهار" },
+    "کندهار": { en: "Kandahar", ps: "کندهار" },
+    "جلال آباد": { en: "Jalalabad", ps: "جلال اباد" },
+  };
+  return doctors.map(d => {
+    const h = lookup.get(d.hospital);
+    const hospital = h && h.source_snapshot?.name === h.name
+      ? (h.translations?.[lang]?.name || d.hospital) : d.hospital;
+    return { ...d, hospital, city: cities[d.city]?.[lang] || d.city };
+  });
+}
 app.get(
   "/api/doctors",
   asyncRoute(async (req, res) => {
@@ -874,7 +899,7 @@ app.get(
     const specialty = String(req.query.specialty || "all");
     const city = String(req.query.city || "all");
     res.json(
-      await localizeProfiles(
+      await localizeDoctorRelations(await localizeProfiles(
         result.rows.filter(
           (d) =>
             (specialty === "all" || d.specialtyValue === specialty) &&
@@ -886,7 +911,7 @@ app.get(
         ),
         "doctor",
         String(req.query.lang || ""),
-      ),
+      ), String(req.query.lang || "")),
     );
   }),
 );
@@ -900,13 +925,10 @@ app.get(
     if (!result.rows[0])
       return res.status(404).json({ message: "Doctor not found" });
     res.json(
-      (
-        await localizeProfiles(
-          [result.rows[0]],
-          "doctor",
-          String(req.query.lang || ""),
-        )
-      )[0],
+      (await localizeDoctorRelations(
+        await localizeProfiles([result.rows[0]], "doctor", String(req.query.lang || "")),
+        String(req.query.lang || "")
+      ))[0],
     );
   }),
 );
@@ -1251,7 +1273,7 @@ async function addProviderCard(client, request, details, providerId = null) {
     );
     const doctorId = next.rows[0].id;
     await client.query(
-      "INSERT INTO doctors(id,name,email,specialty,specialty_value,hospital,city,city_value,image,about) VALUES($1,$2,$10,$3,$4,$5,$6,$7,$8,$9)",
+      "INSERT INTO doctors(id,name,email,specialty,specialty_value,hospital,city,city_value,image,about,phone) VALUES($1,$2,$10,$3,$4,$5,$6,$7,$8,$9,$11)",
       [
         doctorId,
         request.name,
@@ -1263,6 +1285,7 @@ async function addProviderCard(client, request, details, providerId = null) {
         details.photoUrl,
         details.information || "",
         request.email,
+        request.phone,
       ],
     );
     if (providerId)

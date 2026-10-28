@@ -23,27 +23,64 @@ export default function DoctorDetails({ language }) {
 
   const [onlineDoctor, setOnlineDoctor] = useState(null);
   const [doctorLoading, setDoctorLoading] = useState(true);
-  useEffect(() => { setDoctorLoading(true); api(`/doctors/${id}?lang=${language === "Persian" ? "fa" : language === "Pashto" ? "ps" : "en"}`).then(setOnlineDoctor).catch(()=>setOnlineDoctor(null)).finally(()=>setDoctorLoading(false)); }, [id, language]);
+  useEffect(() => {
+    setDoctorLoading(true);
+    api(
+      `/doctors/${id}?lang=${language === "Persian" ? "fa" : language === "Pashto" ? "ps" : "en"}`,
+    )
+      .then(setOnlineDoctor)
+      .catch(() => setOnlineDoctor(null))
+      .finally(() => setDoctorLoading(false));
+  }, [id, language]);
   const doctor = onlineDoctor;
-  const label = value => t[value] || value || "";
+  const label = (value) => t[value] || value || "";
 
   if (doctorLoading) return <Loading language={language} />;
 
   const infoTable = (value, headers) => {
     if (!value) return <span>—</span>;
-    const lines = value.split("\\n").map(line => line.trim()).filter(Boolean);
-    if (!lines.some(line => line.includes("|"))) {
+    const lines = value
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean);
+    if (!lines.some((line) => line.includes("|"))) {
       return <p className="whitespace-pre-line">{value}</p>;
     }
     return (
       <div className="overflow-x-auto mt-3">
-        <table className="w-full text-sm border-collapse">
-          <thead><tr>{headers.map((h) => <th key={h} className="p-3 bg-teal-50 dark:bg-slate-700 text-start">{h}</th>)}</tr></thead>
-          <tbody>{lines.map((line, i) => (
-            <tr key={i} className="border-b border-gray-100 dark:border-slate-700">
-              {line.split("|").map((cell, j) => <td key={j} className="p-3">{cell.trim()}</td>)}
+        <table className="w-full table-fixed border-collapse text-sm">
+          <thead>
+            <tr>
+              {headers.map((h) => (
+                <th
+                  key={h}
+                  className="p-3 bg-teal-50 dark:bg-slate-700 text-start"
+                >
+                  {h}
+                </th>
+              ))}
             </tr>
-          ))}</tbody>
+          </thead>
+          <tbody>
+            {lines.map((line, i) => (
+              <tr
+                key={i}
+                className="border-b border-gray-100 dark:border-slate-700"
+              >
+                {line
+                  .split("|")
+                  .slice(0, headers.length)
+                  .map((cell, j) => (
+                    <td
+                      key={j}
+                      className="p-3 text-sm whitespace-normal break-words"
+                    >
+                      {cell.trim()}
+                    </td>
+                  ))}
+              </tr>
+            ))}
+          </tbody>
         </table>
       </div>
     );
@@ -112,18 +149,31 @@ export default function DoctorDetails({ language }) {
                 {doctor.email && (
                   <div className="flex items-center gap-3">
                     <span className="text-teal-600 font-semibold">@</span>
-                    <a href={`mailto:${doctor.email}`} className="hover:text-teal-600 break-all">{doctor.email}</a>
+                    <a
+                      href={`mailto:${doctor.email}`}
+                      className="hover:text-teal-600 break-all"
+                    >
+                      {doctor.email}
+                    </a>
                   </div>
                 )}
                 {doctor.phone && (
                   <div className="flex items-center gap-3">
                     <Phone size={20} className="text-teal-600 shrink-0" />
-                    <a href={`tel:${doctor.phone}`} dir="ltr" className="hover:text-teal-600">{doctor.phone}</a>
+                    <a
+                      href={`tel:${doctor.phone}`}
+                      dir="ltr"
+                      className="hover:text-teal-600"
+                    >
+                      {doctor.phone}
+                    </a>
                   </div>
                 )}
                 <div className="flex items-center gap-3">
                   <Stethoscope size={20} className="text-teal-600 shrink-0" />
-                  <span>{doctorTitle(doctor.specialtyValue || doctor.specialty, t)}</span>
+                  <span>
+                    {doctorTitle(doctor.specialtyValue || doctor.specialty, t)}
+                  </span>
                 </div>
               </div>
 
@@ -164,7 +214,14 @@ export default function DoctorDetails({ language }) {
                       {t.education}
                     </p>
                     <p className="font-medium text-gray-900 dark:text-white">
-                      {infoTable(doctor.education, language === "English" ? ["Year", "Degree", "Institute"] : language === "Pashto" ? ["کال", "سند", "اداره"] : ["سال", "درجه", "مؤسسه"])}
+                      {infoTable(
+                        doctor.education,
+                        language === "English"
+                          ? ["Year", "Degree", "Institute"]
+                          : language === "Pashto"
+                            ? ["کال", "سند", "اداره"]
+                            : ["سال", "درجه", "مؤسسه"],
+                      )}
                     </p>
                   </div>
                 </div>
@@ -180,7 +237,14 @@ export default function DoctorDetails({ language }) {
                       {t.experience}
                     </p>
                     <p className="font-medium text-gray-900 dark:text-white">
-                      {infoTable(doctor.experience, language === "English" ? ["Years", "Position", "Department", "Hospital"] : language === "Pashto" ? ["کلونه", "دنده", "څانګه", "روغتون"] : ["سال‌ها", "وظیفه", "بخش", "شفاخانه"])}
+                      {infoTable(
+                        doctor.experience,
+                        language === "English"
+                          ? ["Years", "Position", "Department", "Hospital"]
+                          : language === "Pashto"
+                            ? ["کلونه", "دنده", "څانګه", "روغتون"]
+                            : ["سال‌ها", "وظیفه", "بخش", "شفاخانه"],
+                      )}
                     </p>
                   </div>
                 </div>

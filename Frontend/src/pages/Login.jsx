@@ -82,9 +82,7 @@ export default function Login({ language, onLogin }) {
             <form onSubmit={handleLogin} className="space-y-3">
               <div>
                 <label className="block mb-2 text-sm font-semibold text-gray-700 dark:text-gray-200">
-                  {language === "Persian"
-                    ? "ایمیل یا شماره موبایل"
-                    : "Email or Phone Number"}
+                  {t.emailOrPhone}
                 </label>
 
                 <div className="relative">
@@ -98,9 +96,7 @@ export default function Login({ language, onLogin }) {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder={
-                      language === "English"
-                        ? "Email or 07XXXXXXXX"
-                        : "ایمیل آدرس یا شماره تلفن"
+                      t.emailOrPhone
                     }
                     required
                     dir={language === "English" ? "ltr" : "rtl"}

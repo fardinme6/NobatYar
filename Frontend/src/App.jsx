@@ -60,9 +60,10 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const refreshUser = () => api("/auth/me")
-      .then((data) => setUser(data.user))
-      .catch(() => setUser(null));
+    const refreshUser = () =>
+      api("/auth/me")
+        .then((data) => setUser(data.user))
+        .catch(() => setUser(null));
     window.addEventListener("focus", refreshUser);
     return () => window.removeEventListener("focus", refreshUser);
   }, []);
@@ -99,11 +100,23 @@ export default function App() {
       />
 
       <Routes>
-          <Route path="/forgot-password" element={<AccountRecovery language={language} mode="forgot" />} />
-          <Route path="/reset-password" element={<AccountRecovery language={language} mode="reset" />} />
-          <Route path="/verify-email" element={<AccountRecovery language={language} mode="verify" />} />
-          <Route path="/verify-phone" element={<VerifyPhone />} />
-          <Route path="/check-email" element={<CheckEmail language={language} />} />
+        <Route
+          path="/forgot-password"
+          element={<AccountRecovery language={language} mode="forgot" />}
+        />
+        <Route
+          path="/reset-password"
+          element={<AccountRecovery language={language} mode="reset" />}
+        />
+        <Route
+          path="/verify-email"
+          element={<AccountRecovery language={language} mode="verify" />}
+        />
+        <Route path="/verify-phone" element={<VerifyPhone />} />
+        <Route
+          path="/check-email"
+          element={<CheckEmail language={language} />}
+        />
         <Route path="/" element={<Navigate to="/home" replace />} />
 
         <Route
@@ -119,9 +132,15 @@ export default function App() {
           }
         />
 
-        <Route path="/hospitals" element={<Hospitals language={language} user={user} />} />
+        <Route
+          path="/hospitals"
+          element={<Hospitals language={language} user={user} />}
+        />
 
-        <Route path="/doctors" element={<Doctors language={language} user={user} />} />
+        <Route
+          path="/doctors"
+          element={<Doctors language={language} user={user} />}
+        />
 
         <Route
           path="/doctors/:id"
@@ -134,11 +153,23 @@ export default function App() {
         />
         <Route
           path="/book-appointment/:id"
-          element={user ? <BookAppointment language={language} /> : <Navigate to="/login" replace />}
+          element={
+            user ? (
+              <BookAppointment language={language} />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
         />
         <Route
           path="/my-appointments"
-          element={user ? <MyAppointments language={language} /> : <Navigate to="/login" replace />}
+          element={
+            user ? (
+              <MyAppointments language={language} />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
         />
         <Route
           path="/hospitals/:id"
@@ -153,12 +184,55 @@ export default function App() {
           path="/how-it-works"
           element={<HowItWorks language={language} />}
         />
-        <Route path="/login" element={<Login language={language} onLogin={setUser} />} />
-        <Route path="/activate-provider" element={<AccountRecovery language={language} mode="activate" />} />
-        <Route path="/signup" element={<SignUp language={language} onLogin={setUser} />} />
-        <Route path="/admin" element={user?.role === "admin" ? <AdminDashboard language={language} /> : <Navigate to="/home" replace />} />
-        <Route path="/provider-dashboard" element={user && ["provider","admin"].includes(user.role) ? (user.providerType === "hospital" || user.providerType === "clinic" ? <HospitalDashboard language={language} /> : <ProviderDashboard language={language} />) : <Navigate to="/home" replace />} />
-        <Route path="/hospital-dashboard" element={user && ["provider","admin"].includes(user.role) && ["hospital","clinic"].includes(user.providerType) ? <HospitalDashboard language={language} /> : <Navigate to="/home" replace />} />
+        <Route
+          path="/login"
+          element={<Login language={language} onLogin={setUser} />}
+        />
+        <Route
+          path="/activate-provider"
+          element={<AccountRecovery language={language} mode="activate" />}
+        />
+        <Route
+          path="/signup"
+          element={<SignUp language={language} onLogin={setUser} />}
+        />
+        <Route
+          path="/admin"
+          element={
+            user?.role === "admin" ? (
+              <AdminDashboard language={language} />
+            ) : (
+              <Navigate to="/home" replace />
+            )
+          }
+        />
+        <Route
+          path="/provider-dashboard"
+          element={
+            user && ["provider", "admin"].includes(user.role) ? (
+              user.providerType === "hospital" ||
+              user.providerType === "clinic" ? (
+                <HospitalDashboard language={language} />
+              ) : (
+                <ProviderDashboard language={language} />
+              )
+            ) : (
+              <Navigate to="/home" replace />
+            )
+          }
+        />
+        <Route
+          path="/hospital-dashboard"
+          element={
+            user &&
+            ["provider", "admin"].includes(user.role) &&
+            ["hospital", "clinic"].includes(user.providerType) ? (
+              <HospitalDashboard language={language} />
+            ) : (
+              <Navigate to="/home" replace />
+            )
+          }
+        />
         <Route path="/about" element={<About language={language} />} />
         <Route path="/contact" element={<Contact language={language} />} />
         <Route
@@ -166,9 +240,15 @@ export default function App() {
           element={<SpecialtiesPage language={language} user={user} />}
         />
         <Route
-  path="/profile"
-  element={user ? <UserProfile language={language} user={user} setUser={setUser} /> : <Navigate to="/login" replace />}
-/>
+          path="/profile"
+          element={
+            user ? (
+              <UserProfile language={language} user={user} setUser={setUser} />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        />
       </Routes>
 
       <Footer language={language} />

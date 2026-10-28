@@ -33,7 +33,7 @@ export default function Footer({ language }) {
             </a>
 
             <a
-              href="https://instagram.com/fardinmehry10"
+              href="https://instagram.com/nobatyar.af"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Instagram"
@@ -43,7 +43,7 @@ export default function Footer({ language }) {
             </a>
 
             <a
-              href="https://facebook.com/fardinmehry10"
+              href="https://www.facebook.com/share/1LZxpATa5E/?mibextid=wwXIfr"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Facebook"
@@ -133,12 +133,12 @@ export default function Footer({ language }) {
 
           <div className="flex flex-col gap-4 text-gray-400">
             <a
-              href="mailto:fardinmehry7@gmail.com"
+              href="mailto:nobatyaraf@gmail.com"
               className="flex items-center gap-3 hover:text-teal-400 transition-colors"
             >
               <Mail className="w-5 h-5 text-teal-400 shrink-0" />
               <span dir="ltr" className="break-all">
-                fardinmehry7@gmail.com
+                nobatyaraf@gmail.com
               </span>
             </a>
 

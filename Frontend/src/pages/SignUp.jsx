@@ -123,12 +123,12 @@ export default function SignUp({ language, onLogin }) {
                   <label className="block mb-2 text-sm font-semibold text-gray-700 dark:text-gray-200">
                     {language === "Persian"
                       ? "نوع حساب: مریض"
-                      : "Account type: Patient"}
+                      : language === "English" ? "Account type: Patient" : "د حساب ډول: ناروغ"}
                   </label>
                   <p className="text-sm text-gray-600 dark:text-gray-300">
                     {language === "Persian"
-                      ? "این ثبت‌نام فقط برای مریضان است. داکتران و شفاخانه‌ها از Join NobatYar درخواست می‌فرستند."
-                      : "Patient accounts only. Doctors and hospitals should apply through Join NobatYar."}
+                      ? "این ثبت‌نام فقط برای مریضان است. داکتران و شفاخانه‌ها از طریق گزینه (به نوبت یار بپیوندید) درخواست می‌فرستند."
+                      : language === "English" ? "Patient accounts only. Doctors and hospitals should apply through (Join NobatYar) Button." : "دا نوم‌لیکنه یوازې د ناروغانو لپاره ده. ډاکټران او روغتونونه د «نوبت یار سره یوځای شئ» له لارې خپلې غوښتنې لېږي."}
                   </p>
                 </div>
                 <div>
@@ -150,7 +150,7 @@ export default function SignUp({ language, onLogin }) {
                       placeholder={
                         language === "Persian"
                           ? "نام مکمل خود را وارد کنید"
-                          : "Enter your full name"
+                          : language === "English" ? "Enter your full name" : "خپل بشپړ نوم ولیکئ"
                       }
                       required
                       className={inputStyle}

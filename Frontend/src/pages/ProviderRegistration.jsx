@@ -249,11 +249,13 @@ export default function ProviderRegistration({ language, user }) {
                     type="text"
                     name="name"
                     required
-                    placeholder={providerType === "doctor"
-                      ? t.enterFullName
-                      : providerType === "hospital"
-                        ? t.enterHospitalName
-                        : t.enterClinicName}
+                    placeholder={
+                      providerType === "doctor"
+                        ? t.enterFullName
+                        : providerType === "hospital"
+                          ? t.enterHospitalName
+                          : t.enterClinicName
+                    }
                     className={inputStyle}
                   />
                 </div>
@@ -310,26 +312,29 @@ export default function ProviderRegistration({ language, user }) {
 
                 <div className="md:col-span-2">
                   <label className="block mb-2 font-medium text-gray-700 dark:text-gray-200">
-                    Photo / عکس (required)
+                    {t.photoLabel} <span className="text-red-500">*</span>
                   </label>
-                  <input
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    required
-                    onChange={(e) => setDoctorPhoto(e.target.files[0] || null)}
-                    className={inputStyle}
-                  />
-                  {doctorPhoto && (
-                    <p className="text-sm text-teal-600 mt-2">
-                      {doctorPhoto.name}
-                    </p>
-                  )}
+
+                  <label className={`${inputStyle} block cursor-pointer`}>
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      required
+                      onChange={(e) =>
+                        setDoctorPhoto(e.target.files[0] || null)
+                      }
+                      className="hidden"
+                    />
+
+                    {doctorPhoto ? doctorPhoto.name : t.noFileChosen}
+                  </label>
                 </div>
                 {providerType === "doctor" && (
                   <>
                     <div>
                       <label className="block mb-2 font-medium text-gray-700 dark:text-gray-200">
-                        {t.medicalSpecialty}
+                        {t.medicalSpecialty}{" "}
+                        <span className="text-red-500">*</span>
                       </label>
 
                       <select
@@ -352,7 +357,8 @@ export default function ProviderRegistration({ language, user }) {
 
                     <div>
                       <label className="block mb-2 font-medium text-gray-700 dark:text-gray-200">
-                        {t.hospital || "Hospital"} *
+                        {t.hospital || "Hospital"}{" "}
+                        <span className="text-red-500">*</span>
                       </label>
                       <select
                         name="hospitalId"
@@ -361,7 +367,7 @@ export default function ProviderRegistration({ language, user }) {
                         className={inputStyle}
                       >
                         <option value="" disabled>
-                          Select a hospital / انتخاب شفاخانه
+                          {t.selectHospital}{" "}
                         </option>
                         {hospitalOptions.map((h) => (
                           <option key={h.id} value={h.id}>

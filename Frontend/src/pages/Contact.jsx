@@ -183,7 +183,7 @@ export default function Contact({ language }) {
                 </a>
 
                 <a
-                  href="https://instagram.com/fardinmehry10"
+                  href="https://instagram.com/nobatyar.af"
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Instagram"
@@ -193,7 +193,7 @@ export default function Contact({ language }) {
                 </a>
 
                 <a
-                  href="https://facebook.com/fardinmehry10"
+                  href="https://www.facebook.com/share/1LZxpATa5E/?mibextid=wwXIfr"
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Facebook"

@@ -2676,9 +2676,10 @@ Do not include explanations or Markdown.
     for (const lang of ["fa", "ps", "en"]) {
       clean[lang] = {};
       for (const field of translationFields[kind]) {
-        const oldText = String(saved?.[lang]?.[field] || "").trim();
         const suggestion = String(parsed?.[lang]?.[field] || "").trim();
-        clean[lang][field] = (oldText || suggestion).slice(0, 3000);
+        const oldText = String(saved?.[lang]?.[field] || "").trim();
+
+        clean[lang][field] = (suggestion || oldText).slice(0, 3000);
       }
     }
     await db.query(

@@ -12,6 +12,7 @@ import { api } from "../api";
 import { useEffect, useState } from "react";
 import { translations } from "../data/translations.js";
 import { hospitalTypeLabel } from "../data/hospitalType.js";
+import Loading from "../components/Loading.jsx";
 
 export default function HospitalDetails({ language }) {
   const t = translations[language];
@@ -25,7 +26,7 @@ export default function HospitalDetails({ language }) {
 
   const BackIcon = language === "English" ? ArrowLeft : ArrowRight;
 
-  if (hospitalLoading) return <p className="text-center p-10 dark:text-white">Loading...</p>;
+  if (hospitalLoading) return <Loading language={language} />;
 
   if (!hospital) {
     return (
@@ -111,7 +112,7 @@ export default function HospitalDetails({ language }) {
                 </div>
 
                 <p className="text-gray-600 dark:text-gray-300 leading-7">
-                  {label(hospital.city)}, {label(hospital.location)}
+                  {label(hospital.location)}
                 </p>
               </div>
             </div>
@@ -125,10 +126,24 @@ export default function HospitalDetails({ language }) {
                 </h2>
               </div>
 
-              <p className="text-gray-600 dark:text-gray-300 leading-8 text-justify">
+              <p className="text-gray-600 dark:text-gray-300 leading-8 whitespace-pre-line text-justify">
                 {label(hospital.description) || t.hospitalInformationPending}
               </p>
             </div>
+
+            {hospital.services && (
+              <div className="mt-8 border-t border-gray-100 dark:border-slate-700 pt-8">
+                <div className="flex items-center gap-3 mb-4">
+                  <Info size={23} className="text-teal-600 dark:text-teal-400" />
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                    {t.hospitalServices}
+                  </h2>
+                </div>
+                <p className="text-gray-600 dark:text-gray-300 leading-8 whitespace-pre-line text-justify">
+                  {label(hospital.services)}
+                </p>
+              </div>
+            )}
 
             <Link
               to={`/hospitals/${hospital.id}/doctors`}

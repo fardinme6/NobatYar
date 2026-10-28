@@ -295,6 +295,7 @@ export const translations = {
     noHospitalDoctors: "No doctors are registered at this hospital yet.",
     hospitalAddress: "Hospital Address",
     aboutHospital: "About Hospital",
+    hospitalServices: "Hospital Services",
     hospitalInformationPending: "Hospital information is not available yet.",
     hospitalDescriptionOne: `Herat Regional Hospital is one of Afghanistan's largest public hospitals and a major specialized teaching and medical center. It provides secondary and tertiary healthcare services to the western region of Afghanistan, primarily serving Herat, Badghis, Farah, and Ghor provinces. Patients from other provinces, including Faryab, Helmand, and Nimroz, also visit the hospital to receive specialized medical services that may not be available in their home provinces.
 
@@ -819,6 +820,7 @@ Herat Heart Hospital aims to improve the quality of cardiovascular healthcare, i
     noHospitalDoctors: "هنوز داکتری در این شفاخانه ثبت نشده است.",
     hospitalAddress: "آدرس شفاخانه",
     aboutHospital: "درباره شفاخانه",
+    hospitalServices: "خدمات شفاخانه",
     hospitalInformationPending: "معلومات شفاخانه هنوز ثبت نشده است.",
     hospitalDescriptionOne: `شفاخانه حوزوی هرات یکی از بزرگ‌ترین شفاخانه‌های دولتی و مراکز تخصصی و آموزشی صحی در افغانستان می‌باشد. این شفاخانه خدمات تخصصی ثانوی و ثالثی را در سطح حوزه غرب کشور، عمدتاً به ولایت‌های هرات، بادغیس، فراه و غور ارائه می‌کند. همچنان مریضان از ولایت‌های دیگر مانند فاریاب، هلمند و نیمروز نیز برای دریافت خدمات تخصصی که در ولایت‌های‌شان موجود نیست، به این شفاخانه مراجعه می‌کنند.
 
@@ -1331,6 +1333,7 @@ Herat Heart Hospital aims to improve the quality of cardiovascular healthcare, i
     noHospitalDoctors: "تر اوسه په دې روغتون کې کوم ډاکټر نه دی ثبت شوی.",
     hospitalAddress: "د روغتون پته",
     aboutHospital: "د روغتون په اړه",
+    hospitalServices: "د روغتون خدمات",
     hospitalInformationPending: "د روغتون معلومات لا نه دي ثبت شوي.",
     hospitalDescriptionOne: `د هرات حوزوي روغتون د افغانستان له سترو دولتي روغتونونو او مهمو تخصصي او ښوونیزو روغتیايي مرکزونو څخه دی. دغه روغتون د افغانستان د لوېدیځې حوزې ولایتونو، په ځانګړي ډول هرات، بادغیس، فراه او غور ته ثانوي او درېیمې کچې تخصصي روغتیايي خدمتونه وړاندې کوي. همدارنګه د فاریاب، هلمند او نیمروز په ګډون د نورو ولایتونو ناروغان هم د هغو تخصصي روغتیايي خدمتونو د ترلاسه کولو لپاره دې روغتون ته مراجعه کوي چې په خپلو ولایتونو کې ورته لاسرسی نه لري.
 

@@ -213,7 +213,7 @@ export default function Hospitals({ language, home = false, user }) {
                     <MapPin size={18} className="shrink-0 mt-1 text-teal-600" />
 
                     <span className="text-sm leading-6">
-                      {t[hospital.city] || hospital.city}, {t[hospital.location] || hospital.location}
+                      {hospital.location}
                     </span>
                   </div>
 

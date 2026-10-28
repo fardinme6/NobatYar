@@ -20,9 +20,9 @@ import {
 export default function AdminDashboard({ language }) {
   const t = translations[language];
   const modalText = {
-    English: { name: "Name", about: "About doctor", education: "Education", experience: "Work experience", description: "About hospital / clinic", services: "Medical services", location: "Full address", source: "Source language", generate: "Generate with AI", generating: "Generating...", draft: "Save draft", approve: "Approve & Publish", note: "AI translations are drafts. Review all information before publishing.", translate: "Translate" },
-    Persian: { name: "نام", about: "درباره داکتر", education: "تحصیلات", experience: "تجربه کاری", description: "درباره شفاخانه / کلینیک", services: "خدمات طبی", location: "آدرس مکمل", source: "زبان اصلی", generate: "ترجمه با هوش مصنوعی", generating: "در حال ترجمه...", draft: "ذخیره پیش‌نویس", approve: "تأیید و نشر", note: "ترجمه‌های هوش مصنوعی پیش‌نویس هستند. پیش از نشر، معلومات را بررسی کنید.", translate: "ترجمه" },
-    Pashto: { name: "نوم", about: "د ډاکټر په اړه", education: "زده کړې", experience: "کاري تجربه", description: "د روغتون / کلینیک په اړه", services: "روغتیايي خدمتونه", location: "بشپړه پته", source: "اصلي ژبه", generate: "د مصنوعي ځیرکتیا له لارې ژباړه", generating: "ژباړل کېږي...", draft: "مسوده خوندي کړئ", approve: "تایید او خپرول", note: "د مصنوعي ځیرکتیا ژباړې مسودې دي. تر خپرولو مخکې معلومات وګورئ.", translate: "ژباړه" },
+    English: { name: "Name", about: "About doctor", education: "Education", experience: "Work experience", description: "About hospital / clinic", services: "Medical services", location: "Full address", source: "Source language", generate: "Generate with AI", generating: "Generating...", draft: "Save draft", approve: "Approve & Publish", note: "AI translations are drafts. Review all information before publishing.", translate: "Translate", department: "Specialty department", success: "Translations approved and published.", saved: "Translation draft saved." },
+    Persian: { name: "نام", about: "درباره داکتر", education: "تحصیلات", experience: "تجربه کاری", description: "درباره شفاخانه / کلینیک", services: "خدمات طبی", location: "آدرس مکمل", source: "زبان اصلی", generate: "ترجمه با هوش مصنوعی", generating: "در حال ترجمه...", draft: "ذخیره پیش‌نویس", approve: "تأیید و نشر", note: "ترجمه‌های هوش مصنوعی پیش‌نویس هستند. پیش از نشر، معلومات را بررسی کنید.", translate: "ترجمه", department: "بخش تخصص", success: "ترجمه‌ها تأیید و نشر شدند.", saved: "پیش‌نویس ترجمه ذخیره شد." },
+    Pashto: { name: "نوم", about: "د ډاکټر په اړه", education: "زده کړې", experience: "کاري تجربه", description: "د روغتون / کلینیک په اړه", services: "روغتیايي خدمتونه", location: "بشپړه پته", source: "اصلي ژبه", generate: "د مصنوعي ځیرکتیا له لارې ژباړه", generating: "ژباړل کېږي...", draft: "مسوده خوندي کړئ", approve: "تایید او خپرول", note: "د مصنوعي ځیرکتیا ژباړې مسودې دي. تر خپرولو مخکې معلومات وګورئ.", translate: "ژباړه", department: "د تخصص څانګه", success: "ژباړې تایید او خپرې شوې.", saved: "د ژباړې مسوده خوندي شوه." },
   }[language] || {};
 
   const [tab, setTab] = useState(
@@ -126,8 +126,8 @@ export default function AdminDashboard({ language }) {
       setTranslationEditor(null);
       setEmailMessage(
         approved
-          ? "Translations approved and published."
-          : "Translation draft saved.",
+          ? modalText.success
+          : modalText.saved,
       );
     } catch (e) {
       setError(e.message);
@@ -1080,7 +1080,7 @@ export default function AdminDashboard({ language }) {
                               </button>
                             );
                           })()}
-                        {(kind === "doctor" || kind === "hospital") && (
+                        {(kind === "doctor" || kind === "hospital" || kind === "specialty") && (
                           <button
                             onClick={() => openTranslation(kind, item)}
                             className="rounded-lg border border-teal-500 text-teal-700 px-3 py-2"
@@ -1294,7 +1294,9 @@ export default function AdminDashboard({ language }) {
                     <h3 className="font-bold mb-3">{label}</h3>
                     {(translationEditor.kind === "doctor"
                       ? ["name", "about", "education", "experience"]
-                      : ["name", "description", "services", "location"]
+                      : translationEditor.kind === "specialty"
+                        ? ["name", "department"]
+                        : ["name", "description", "services", "location"]
                     ).map((field) => (
                       <label key={field} className="block mb-3 text-xs">
                         {modalText[field] || field}

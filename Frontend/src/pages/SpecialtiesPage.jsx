@@ -15,7 +15,7 @@ import { translations } from "../data/translations";
 export default function SpecialtiesPage({ language, user }) {
   const t = translations[language];
   const [onlineSpecialties,setOnlineSpecialties] = useState([]);
-  useEffect(()=>{api("/specialties").then(setOnlineSpecialties).catch(()=>{});},[]);
+  useEffect(()=>{api(`/specialties?lang=${language === "English" ? "en" : language === "Pashto" ? "ps" : "fa"}`).then(setOnlineSpecialties).catch(()=>{});},[language]);
   const allSpecialties = onlineSpecialties;
   const [onlineDoctors, setOnlineDoctors] = useState([]);
   useEffect(() => { api("/doctors").then(setOnlineDoctors).catch(() => {}); }, []);

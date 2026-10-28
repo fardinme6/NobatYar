@@ -13,6 +13,7 @@ import {
   BriefcaseMedical,
 } from "lucide-react";
 import { translations } from "../data/translations";
+import { doctorTitle } from "../data/doctorTitle";
 import { doctors } from "../data/doctorsData";
 
 export default function DoctorDetails({ language }) {
@@ -69,7 +70,7 @@ export default function DoctorDetails({ language }) {
 
             <div className="flex-1">
               <span className="inline-block bg-teal-50 dark:bg-slate-700 text-teal-700 dark:text-teal-400 px-4 py-2 rounded-full text-sm font-semibold">
-                {label(doctor.specialty)}
+                {doctorTitle(doctor.specialtyValue || doctor.specialty, t)}
               </span>
 
               <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mt-5">
@@ -89,7 +90,7 @@ export default function DoctorDetails({ language }) {
 
                 <div className="flex items-center gap-3">
                   <Stethoscope size={20} className="text-teal-600 shrink-0" />
-                  <span>{label(doctor.specialty)}</span>
+                  <span>{doctorTitle(doctor.specialtyValue || doctor.specialty, t)}</span>
                 </div>
               </div>
 

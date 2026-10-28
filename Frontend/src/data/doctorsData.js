@@ -2,7 +2,7 @@ export const doctors = [
   {
     id: 1,
     name: "doctorOne",
-    specialty: "cardiologist",
+    specialty: "Cardiologist",
     specialtyValue: "cardiology",
     hospital: "hospitalThree",
     city: "herat",
@@ -15,7 +15,7 @@ export const doctors = [
   {
     id: 2,
     name: "doctorTwo",
-    specialty: "dermatologist",
+    specialty: "Dermatologist",
     specialtyValue: "dermatology",
     hospital: "hospitalOne",
     city: "herat",
@@ -28,7 +28,7 @@ export const doctors = [
   {
     id: 3,
     name: "doctorThree",
-    specialty: "neurologist",
+    specialty: "Neurologist",
     specialtyValue: "neurology",
     hospital: "hospitalOne",
     city: "herat",

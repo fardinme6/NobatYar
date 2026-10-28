@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api, API_URL } from "../api";
 import { translations } from "../data/translations";
+import { doctorTitle } from "../data/doctorTitle";
 import {
   ShieldCheck,
   Mail,
@@ -31,6 +32,7 @@ export default function AdminDashboard({ language }) {
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({});
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [catalogFileName, setCatalogFileName] = useState("");
   const [notes, setNotes] = useState({});
   const [replies, setReplies] = useState({});
   const [openReplyId, setOpenReplyId] = useState(null);
@@ -337,6 +339,7 @@ export default function AdminDashboard({ language }) {
     }
   };
   const startEdit = (kind, item) => {
+    setCatalogFileName("");
     setEditing(`${kind}-${item.id}`);
     setForm(
       kind === "doctor"
@@ -440,6 +443,7 @@ export default function AdminDashboard({ language }) {
   };
   const uploadCatalogPhoto = async (file) => {
     if (!file) return;
+    setCatalogFileName(file.name);
     setUploadingImage(true);
     setError("");
     try {
@@ -460,22 +464,27 @@ export default function AdminDashboard({ language }) {
     }
   };
   const catalogImageField = () => (
-    <label className="block sm:col-span-2">
-      Change photo (JPG, PNG, WebP)
-      <input
-        type="file"
-        accept="image/jpeg,image/png,image/webp"
-        onChange={(e) => uploadCatalogPhoto(e.target.files[0])}
-        className="block w-full mt-2 border rounded-xl p-3"
-      />
+    <div className="block sm:col-span-2">
+      <label className="block cursor-pointer">
+        {t.adminCatalogPhoto}
+        <input
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          onChange={(e) => uploadCatalogPhoto(e.target.files[0])}
+          className="sr-only"
+        />
+        <span className="block w-full mt-2 border rounded-xl p-3 text-gray-700 dark:text-gray-200 dark:border-gray-500 text-sm">
+          {catalogFileName || t.noFileChosen}
+        </span>
+      </label>
       {form.image && (
         <img
           src={form.image}
-          alt="Preview"
+          alt={t.photoLabel}
           className="w-24 h-24 rounded-xl object-cover mt-2"
         />
       )}
-    </label>
+    </div>
   );
   const specialtyImageField = () => (
     <div className="sm:col-span-2 space-y-2">
@@ -548,7 +557,7 @@ export default function AdminDashboard({ language }) {
           onChange={(e) => setForm({ ...form, [name]: e.target.value })}
           className="mt-1 w-full p-3 rounded-xl border text-gray-900"
         >
-          <option value="">Select</option>
+          <option value="">{t.adminSelectOption}</option>
           {options.map((o) => (
             <option key={o.value} value={o.value}>
               {o.label}
@@ -868,6 +877,7 @@ export default function AdminDashboard({ language }) {
                   <button
                     onClick={() => {
                       setEditing(`new-${tab}`);
+                      setCatalogFileName("");
                       setForm(
                         tab === "doctors"
                           ? {
@@ -899,32 +909,32 @@ export default function AdminDashboard({ language }) {
                 )}
                 {(editing === "new-doctors" || editing === "new-hospitals") && (
                   <div className="bg-white rounded-xl p-5 grid sm:grid-cols-2 gap-3">
-                    {field("name", "Name *")}
+                    {field("name", editing === "new-doctors" ? `${t.adminDoctorName} *` : "Name *")}
                     {editing === "new-doctors" ? (
                       <>
-                        {field("email", "Email *")}
+                        {field("email", `${t.profileEmail} *`)}
                         {field(
                           "specialty",
-                          "Specialty *",
+                          `${t.providerSpecialty} *`,
                           "select",
                           specialtiesList.map((x) => ({
                             value: x.value,
-                            label: x.name,
+                            label: doctorTitle(x.value, t),
                           })),
                         )}
                         {field(
                           "hospitalId",
-                          "Hospital *",
+                          `${t.hospital} *`,
                           "select",
                           hospitals.map((x) => ({
                             value: x.id,
                             label: x.name,
                           })),
                         )}
-                        {field("city", "City *")}
-                        {field("experience", "Experience")}
-                        {field("education", "Education")}
-                        {field("about", "About")}
+                        {field("city", `${t.cityLabel} *`)}
+                        {field("experience", t.experience)}
+                        {field("education", t.education)}
+                        {field("about", t.aboutDoctor)}
                       </>
                     ) : (
                       <>
@@ -1022,7 +1032,7 @@ export default function AdminDashboard({ language }) {
                           <h3 className="font-bold">{item.name}</h3>
                           <p className="text-sm text-gray-500">
                             {kind === "doctor"
-                              ? `${item.specialty} · ${item.hospital} · ${item.city} · ${item.email || ""}`
+                              ? `${doctorTitle(item.specialty, t)} · ${item.hospital} · ${item.city} · ${item.email || ""}`
                               : kind === "hospital"
                                 ? `${item.city} · ${item.location}`
                                 : `${item.value} · ${item.department || "No department"}`}
@@ -1080,32 +1090,32 @@ export default function AdminDashboard({ language }) {
                       </div>
                       {active && (
                         <div className="grid sm:grid-cols-2 gap-3 mt-5">
-                          {field("name", "Name")}
+                          {field("name", kind === "doctor" ? t.adminDoctorName : "Name")}
                           {kind === "doctor" && (
                             <>
-                              {field("email", "Email *")}
+                              {field("email", `${t.profileEmail} *`)}
                               {field(
                                 "specialty",
-                                "Specialty",
+                                t.providerSpecialty,
                                 "select",
                                 specialtiesList.map((x) => ({
                                   value: x.value,
-                                  label: x.name,
+                                  label: doctorTitle(x.value, t),
                                 })),
                               )}
                               {field(
                                 "hospitalId",
-                                "Hospital",
+                                t.hospital,
                                 "select",
                                 hospitals.map((x) => ({
                                   value: x.id,
                                   label: x.name,
                                 })),
                               )}
-                              {field("city", "City")}
-                              {field("experience", "Experience")}
-                              {field("education", "Education")}
-                              {field("about", "About")}
+                              {field("city", t.cityLabel)}
+                              {field("experience", t.experience)}
+                              {field("education", t.education)}
+                              {field("about", t.aboutDoctor)}
                               {catalogImageField()}
                             </>
                           )}
@@ -1151,7 +1161,7 @@ export default function AdminDashboard({ language }) {
                             onClick={() => saveItem(kind, item.id)}
                             className="bg-teal-600 text-white rounded-xl px-4 py-2 flex items-center justify-center gap-2"
                           >
-                            <Save size={17} /> Save changes
+                            <Save size={17} /> {t.adminSaveChanges}
                           </button>
                         </div>
                       )}

@@ -14,6 +14,7 @@ import { api } from "../api";
 import { useEffect, useState } from "react";
 import { doctors } from "../data/doctorsData.js";
 import { translations } from "../data/translations.js";
+import { doctorTitle } from "../data/doctorTitle.js";
 
 export default function HospitalDoctors({ language }) {
   const t = translations[language];
@@ -127,7 +128,7 @@ export default function HospitalDoctors({ language }) {
                 <div className="flex flex-col flex-1 p-6">
                   <div className="flex items-center gap-2 text-teal-600 dark:text-teal-400 text-sm mb-3">
                     <UserRound size={17} />
-                    {t[doctor.specialty]}
+                    {doctorTitle(doctor.specialtyValue || doctor.specialty, t)}
                   </div>
 
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">

@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { doctors } from "../data/doctorsData.js";
 import { translations } from "../data/translations.js";
+import { doctorTitle } from "../data/doctorTitle.js";
 
 // تاریخ را همیشه با اعداد انگلیسی و قالب میلادی API می‌سازیم.
 function toApiDate(day) {
@@ -304,7 +305,7 @@ export default function BookAppointment({ language }) {
                   </h3>
 
                   <p className="text-sm text-teal-600 dark:text-teal-400 mt-1">
-                    {t[doctor.specialty]}
+                    {doctorTitle(doctor.specialtyValue || doctor.specialty, t)}
                   </p>
                 </div>
               </div>

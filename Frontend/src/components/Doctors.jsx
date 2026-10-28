@@ -14,6 +14,7 @@ import {
 import { translations } from "../data/translations.js";
 import { doctors } from "../data/doctorsData.js";
 import { specialties } from "../data/specialties.js";
+import { doctorTitle } from "../data/doctorTitle.js";
 
 export default function Doctors({ language, home = false, user }) {
   const t = translations[language];
@@ -32,7 +33,7 @@ export default function Doctors({ language, home = false, user }) {
 
     const matchSearch =
       label(doctor.name).toLowerCase().includes(keyword) ||
-      label(doctor.specialty).toLowerCase().includes(keyword) ||
+      doctorTitle(doctor.specialtyValue || doctor.specialty, t).toLowerCase().includes(keyword) ||
       label(doctor.city).toLowerCase().includes(keyword);
 
     const matchCity = city === "all" || doctor.cityValue === city;
@@ -202,7 +203,7 @@ export default function Doctors({ language, home = false, user }) {
                   />
 
                   <span className="absolute top-4 start-4 bg-white/95 dark:bg-slate-800/95 text-teal-700 dark:text-teal-400 px-3 py-1.5 rounded-lg text-xs font-semibold shadow-sm">
-                    {label(doctor.specialty)}
+                    {doctorTitle(doctor.specialtyValue || doctor.specialty, t)}
                   </span>
                 </div>
 

@@ -2545,7 +2545,7 @@ const translationFields = {
 const translationTable = { doctor: "doctors", hospital: "hospitals", specialty: "medical_specialties" };
 const translationPayload = z.object({
   kind: z.enum(["doctor", "hospital", "specialty"]),
-  id: z.number().int().positive(),
+  id: z.coerce.number().int().positive().safe(),
 });
 app.get(
   "/api/admin/profile-translations/:kind/:id",

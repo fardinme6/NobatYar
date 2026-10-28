@@ -1,10 +1,13 @@
 import { ArrowUpRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { translations } from "../data/translations";
-import { specialties } from "../data/specialties";
+import { useEffect, useState } from "react";
+import { api } from "../api";
 
 export default function Specialties({ language }) {
   const t = translations[language];
+  const [specialties, setSpecialties] = useState([]);
+  useEffect(() => { api("/specialties").then(setSpecialties).catch(() => {}); }, []);
 
   return (
     <section className="bg-white dark:bg-slate-800 px-6 py-20 md:px-12 lg:px-20">

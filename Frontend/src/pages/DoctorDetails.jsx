@@ -14,7 +14,6 @@ import {
 } from "lucide-react";
 import { translations } from "../data/translations";
 import { doctorTitle } from "../data/doctorTitle";
-import { doctors } from "../data/doctorsData";
 
 export default function DoctorDetails({ language }) {
   const t = translations[language];

@@ -9,10 +9,8 @@ import {
   UserRound,
   SearchX,
 } from "lucide-react";
-import { hospitals } from "../data/hospitalData.js";
 import { api } from "../api";
 import { useEffect, useState } from "react";
-import { doctors } from "../data/doctorsData.js";
 import { translations } from "../data/translations.js";
 import { doctorTitle } from "../data/doctorTitle.js";
 

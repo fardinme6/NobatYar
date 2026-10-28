@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { api } from "../api";
 import { UserRound, Hospital, ClipboardList, CheckCircle2 } from "lucide-react";
 import { translations } from "../data/translations";
-import { specialties } from "../data/specialties";
 import { Link } from "react-router-dom";
 
 export default function ProviderRegistration({ language, user }) {
@@ -17,7 +16,7 @@ export default function ProviderRegistration({ language, user }) {
   const [requests, setRequests] = useState([]);
   const [doctorPhoto, setDoctorPhoto] = useState(null);
   const [hospitalOptions, setHospitalOptions] = useState([]);
-  const [specialtyOptions, setSpecialtyOptions] = useState(specialties);
+  const [specialtyOptions, setSpecialtyOptions] = useState([]);
   useEffect(() => {
     api("/hospitals")
       .then(setHospitalOptions)

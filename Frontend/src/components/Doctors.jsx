@@ -12,13 +12,13 @@ import {
   SearchX,
 } from "lucide-react";
 import { translations } from "../data/translations.js";
-import { doctors } from "../data/doctorsData.js";
-import { specialties } from "../data/specialties.js";
 import { doctorTitle } from "../data/doctorTitle.js";
 
 export default function Doctors({ language, home = false, user }) {
   const t = translations[language];
   const [onlineDoctors, setOnlineDoctors] = useState([]);
+  const [specialties, setSpecialties] = useState([]);
+  useEffect(() => { api("/specialties").then(setSpecialties).catch(() => {}); }, []);
   useEffect(() => { api(`/doctors?lang=${language === "Persian" ? "fa" : language === "Pashto" ? "ps" : "en"}`).then(setOnlineDoctors).catch(()=>{}); }, [language]);
   const allDoctors = onlineDoctors;;
   const label = value => t[value] || value || "";
@@ -150,7 +150,7 @@ export default function Doctors({ language, home = false, user }) {
 
                   {specialties.map((item) => (
                     <option key={item.id} value={item.value}>
-                      {t[item.name]}
+                      {t[item.name] || item.name}
                     </option>
                   ))}
                 </select>

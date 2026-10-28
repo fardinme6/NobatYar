@@ -17,7 +17,6 @@ import {
   ArrowLeft,
   ArrowRight,
 } from "lucide-react";
-import { doctors } from "../data/doctorsData.js";
 import { translations } from "../data/translations.js";
 import { doctorTitle } from "../data/doctorTitle.js";
 

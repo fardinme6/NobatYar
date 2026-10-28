@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { api } from "../api";
 import { Link } from "react-router-dom";
-import { hospitals } from "../data/hospitalData.js";
 import {
   Search,
   MapPin,

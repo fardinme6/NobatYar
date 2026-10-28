@@ -19,6 +19,12 @@ import {
 
 export default function AdminDashboard({ language }) {
   const t = translations[language];
+  const modalText = {
+    English: { name: "Name", about: "About doctor", education: "Education", experience: "Work experience", description: "About hospital / clinic", services: "Medical services", location: "Full address", source: "Source language", generate: "Generate with AI", generating: "Generating...", draft: "Save draft", approve: "Approve & Publish", note: "AI translations are drafts. Review all information before publishing.", translate: "Translate" },
+    Persian: { name: "نام", about: "درباره داکتر", education: "تحصیلات", experience: "تجربه کاری", description: "درباره شفاخانه / کلینیک", services: "خدمات طبی", location: "آدرس مکمل", source: "زبان اصلی", generate: "ترجمه با هوش مصنوعی", generating: "در حال ترجمه...", draft: "ذخیره پیش‌نویس", approve: "تأیید و نشر", note: "ترجمه‌های هوش مصنوعی پیش‌نویس هستند. پیش از نشر، معلومات را بررسی کنید.", translate: "ترجمه" },
+    Pashto: { name: "نوم", about: "د ډاکټر په اړه", education: "زده کړې", experience: "کاري تجربه", description: "د روغتون / کلینیک په اړه", services: "روغتیايي خدمتونه", location: "بشپړه پته", source: "اصلي ژبه", generate: "د مصنوعي ځیرکتیا له لارې ژباړه", generating: "ژباړل کېږي...", draft: "مسوده خوندي کړئ", approve: "تایید او خپرول", note: "د مصنوعي ځیرکتیا ژباړې مسودې دي. تر خپرولو مخکې معلومات وګورئ.", translate: "ژباړه" },
+  }[language] || {};
+
   const [tab, setTab] = useState(
     new URLSearchParams(window.location.search).get("tab") || "requests",
   );
@@ -1242,7 +1248,7 @@ export default function AdminDashboard({ language }) {
             <div className="bg-white dark:bg-slate-800 dark:text-white rounded-2xl p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
               <div className="flex justify-between items-center mb-3">
                 <h2 className="text-xl font-bold">
-                  🌐 Translate: {translationEditor.name}
+                  🌐 {modalText.translate}: {translationEditor.name}
                 </h2>
                 <button
                   onClick={() => setTranslationEditor(null)}
@@ -1252,11 +1258,10 @@ export default function AdminDashboard({ language }) {
                 </button>
               </div>
               <p className="text-sm text-slate-500 mb-4">
-                AI translations are drafts. Review names, medical claims and
-                addresses before approving.
+                {modalText.note}
               </p>
               <label className="block text-sm mb-2">
-                Source language:{" "}
+                {modalText.source}:{" "}
                 <select
                   value={sourceLanguage}
                   onChange={(e) => setSourceLanguage(e.target.value)}
@@ -1277,7 +1282,7 @@ export default function AdminDashboard({ language }) {
                 onClick={generateTranslation}
                 className="bg-cyan-700 hover:bg-cyan-800 active:bg-cyan-900 text-white px-4 py-2 rounded-xl mb-4 cursor-pointer disabled:opacity-50 disabled:cursor-wait transition-colors"
               >
-                {translationBusy ? "Generating..." : "Generate with AI"}
+                {translationBusy ? modalText.generating : modalText.generate}
               </button>
               <div className="grid md:grid-cols-3 gap-4">
                 {[
@@ -1292,7 +1297,7 @@ export default function AdminDashboard({ language }) {
                       : ["name", "description", "services", "location"]
                     ).map((field) => (
                       <label key={field} className="block mb-3 text-xs">
-                        {field}
+                        {modalText[field] || field}
                         <textarea
                           rows={field === "name" ? 2 : 3}
                           dir={lang === "en" ? "ltr" : "rtl"}
@@ -1325,14 +1330,14 @@ export default function AdminDashboard({ language }) {
                   onClick={() => saveTranslation(false)}
                   className="bg-slate-200 hover:bg-slate-300 active:bg-slate-400 cursor-pointer transition-colors text-slate-900 px-4 py-2 rounded-lg"
                 >
-                  Save draft
+                  {modalText.draft}
                 </button>
                 <button
                   disabled={translationBusy}
                   onClick={() => saveTranslation(true)}
                   className="bg-green-600 hover:bg-green-700 active:bg-green-800 cursor-pointer transition-colors text-white px-4 py-2 rounded-lg"
                 >
-                  Approve & Publish
+                  {modalText.approve}
                 </button>
               </div>
             </div>

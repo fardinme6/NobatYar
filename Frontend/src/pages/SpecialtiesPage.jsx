@@ -11,14 +11,14 @@ import {
   Users,
 } from "lucide-react";
 import { translations } from "../data/translations";
-import { specialties } from "../data/specialties";
-import { doctors } from "../data/doctorsData";
 
 export default function SpecialtiesPage({ language, user }) {
   const t = translations[language];
   const [onlineSpecialties,setOnlineSpecialties] = useState([]);
   useEffect(()=>{api("/specialties").then(setOnlineSpecialties).catch(()=>{});},[]);
-  const allSpecialties = [...specialties.filter(s=>!onlineSpecialties.some(o=>o.value===s.value)),...onlineSpecialties.map(s=>({...s,image:s.image || specialties.find(x=>x.value===s.value)?.image || ""}))];
+  const allSpecialties = onlineSpecialties;
+  const [onlineDoctors, setOnlineDoctors] = useState([]);
+  useEffect(() => { api("/doctors").then(setOnlineDoctors).catch(() => {}); }, []);
   const [search, setSearch] = useState("");
 
   const filteredSpecialties = allSpecialties.filter((specialty) =>
@@ -75,7 +75,7 @@ export default function SpecialtiesPage({ language, user }) {
         {filteredSpecialties.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {filteredSpecialties.map((specialty) => {
-              const doctorCount = doctors.filter(
+              const doctorCount = onlineDoctors.filter(
                 (doctor) => doctor.specialtyValue === specialty.value
               ).length;
 

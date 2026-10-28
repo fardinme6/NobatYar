@@ -8,7 +8,6 @@ import {
   SearchX,
   Info,
 } from "lucide-react";
-import { hospitals } from "../data/hospitalData.js";
 import { api } from "../api";
 import { useEffect, useState } from "react";
 import { translations } from "../data/translations.js";

@@ -816,13 +816,11 @@ async function localizeProfiles(rows, kind, lang) {
   if (!["fa", "ps", "en"].includes(lang) || !rows.length) return rows;
   const ids = rows.map((row) => row.id);
   const result = await db.query(
-    "SELECT profile_id,translations,source_snapshot FROM profile_translations WHERE kind=$1 AND approved=true AND profile_id=ANY($2::int[])",
+    "SELECT profile_id,translations,source_snapshot FROM profile_translations WHERE kind=$1 AND approved=true AND profile_id=ANY($2::bigint[])",
     [kind, ids],
   );
-  const map = new Map(result.rows.map((row) => [row.profile_id, row]));
-  return rows.map((row) => {
-    const entry = map.get(row.id);
-    if (!entry) return row;
+const map = new Map(result.rows.map((row) => [String(row.profile_id), row]));  return rows.map((row) => {
+const entry = map.get(String(row.id));    if (!entry) return row;
     const fields = translationFields[kind];
     if (
       fields.some(

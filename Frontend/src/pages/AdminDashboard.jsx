@@ -340,6 +340,7 @@ export default function AdminDashboard({ language }) {
   };
   const startEdit = (kind, item) => {
     setCatalogFileName("");
+    setCatalogFileName("");
     setEditing(`${kind}-${item.id}`);
     setForm(
       kind === "doctor"
@@ -385,7 +386,7 @@ export default function AdminDashboard({ language }) {
         !form.license)
     ) {
       setError(
-        "Complete the hospital name, city, address, phone and license number",
+        t.adminHospitalRequired,
       );
       return;
     }
@@ -393,7 +394,7 @@ export default function AdminDashboard({ language }) {
       kind === "specialty" &&
       (!form.image || !form.department || !form.name || !form.value)
     ) {
-      setError("Name, code, department and image are required");
+      setError(t.adminSpecialtyRequired);
       return;
     }
     try {
@@ -408,7 +409,7 @@ export default function AdminDashboard({ language }) {
     }
   };
   const deleteItem = async (kind, id) => {
-    if (!window.confirm("Delete this item? This action cannot be undone."))
+    if (!window.confirm(t.adminCatalogDeleteConfirm))
       return;
     try {
       await api(
@@ -433,7 +434,7 @@ export default function AdminDashboard({ language }) {
         body,
       });
       const result = await response.json();
-      if (!response.ok) throw new Error(result.message || "Upload failed");
+      if (!response.ok) throw new Error(result.message || t.adminUploadFailed);
       setForm((previous) => ({ ...previous, image: result.image }));
     } catch (e) {
       setError(e.message);
@@ -455,7 +456,7 @@ export default function AdminDashboard({ language }) {
         body,
       });
       const result = await response.json();
-      if (!response.ok) throw new Error(result.message || "Upload failed");
+      if (!response.ok) throw new Error(result.message || t.adminUploadFailed);
       setForm((previous) => ({ ...previous, image: result.image }));
     } catch (e) {
       setError(e.message);
@@ -488,20 +489,26 @@ export default function AdminDashboard({ language }) {
   );
   const specialtyImageField = () => (
     <div className="sm:col-span-2 space-y-2">
-      <label className="block text-sm font-medium">
-        Specialty image * (JPG, PNG, WebP, max 3MB)
+      <label className="block cursor-pointer text-sm font-medium">
+        {t.adminSpecialtyImage}
         <input
           type="file"
           accept="image/jpeg,image/png,image/webp"
-          onChange={(e) => uploadSpecialtyPhoto(e.target.files[0])}
-          className="block mt-2 w-full border rounded-xl p-3"
+          onChange={(e) => {
+            setCatalogFileName(e.target.files[0]?.name || "");
+            uploadSpecialtyPhoto(e.target.files[0]);
+          }}
+          className="sr-only"
         />
+        <span className="block mt-2 w-full border rounded-xl p-3 text-gray-700 dark:text-gray-200 dark:border-gray-500">
+          {catalogFileName || t.noFileChosen}
+        </span>
       </label>
-      {uploadingImage && <p>Uploading image...</p>}
+      {uploadingImage && <p>{t.adminUploadingImage}</p>}
       {form.image && (
         <img
           src={form.image}
-          alt="Specialty"
+          alt={t.adminSpecialtyName}
           className="w-28 h-28 object-cover rounded-xl"
         />
       )}
@@ -509,7 +516,7 @@ export default function AdminDashboard({ language }) {
   );
   const addSpecialty = async () => {
     if (!form.image || !form.department || !form.name || !form.value) {
-      setError("Name, code, department and image are required");
+      setError(t.adminSpecialtyRequired);
       return;
     }
     try {
@@ -533,7 +540,7 @@ export default function AdminDashboard({ language }) {
         (!form.location || !form.phone || !form.license || !form.image)) ||
       (kind === "doctor" && (!form.specialty || !form.hospitalId))
     ) {
-      setError("Complete all required fields");
+      setError(t.adminRequiredFields);
       return;
     }
     try {
@@ -804,7 +811,7 @@ export default function AdminDashboard({ language }) {
                         onClick={() => deleteContact(c)}
                         className="bg-red-50 hover:bg-red-100 active:bg-red-200 text-red-700 rounded-xl px-4 py-2 transition-colors cursor-pointer disabled:opacity-50"
                       >
-                        {t.adminDeleteMessage || "Delete"}
+                        {t.adminDeleteMessage}
                       </button>
                     </div>
                     {openReplyId === c.id && (
@@ -828,7 +835,7 @@ export default function AdminDashboard({ language }) {
                           className="mt-3 bg-teal-600 hover:bg-teal-700 active:bg-teal-800 disabled:opacity-50 text-white rounded-xl px-5 py-2 cursor-pointer transition-colors"
                         >
                           {contactBusyId === c.id
-                            ? t.loadingText || "Sending..."
+                            ? t.loadingText || t.adminSending
                             : t.adminSendReply || "Send email"}
                         </button>
                       </div>
@@ -878,6 +885,7 @@ export default function AdminDashboard({ language }) {
                     onClick={() => {
                       setEditing(`new-${tab}`);
                       setCatalogFileName("");
+                      setCatalogFileName("");
                       setForm(
                         tab === "doctors"
                           ? {
@@ -904,12 +912,12 @@ export default function AdminDashboard({ language }) {
                     }}
                     className="bg-teal-600 hover:bg-teal-700 active:bg-teal-800 cursor-pointer transition-colors text-white rounded-xl px-4 py-2"
                   >
-                    + Add {tab === "doctors" ? "Doctor" : "Hospital / Clinic"}
+                    + {tab === "doctors" ? t.adminAddDoctor : t.adminAddHospital}
                   </button>
                 )}
                 {(editing === "new-doctors" || editing === "new-hospitals") && (
                   <div className="bg-white rounded-xl p-5 grid sm:grid-cols-2 gap-3">
-                    {field("name", editing === "new-doctors" ? `${t.adminDoctorName} *` : "Name *")}
+                    {field("name", editing === "new-doctors" ? `${t.adminDoctorName} *` : `${t.adminName} *`)}
                     {editing === "new-doctors" ? (
                       <>
                         {field("email", `${t.profileEmail} *`)}
@@ -938,17 +946,17 @@ export default function AdminDashboard({ language }) {
                       </>
                     ) : (
                       <>
-                        {field("type", "Hospital / Clinic type *", "select", [
-                          { value: "private", label: "Private Hospital" },
-                          { value: "government", label: "Government Hospital" },
-                          { value: "clinic", label: "Clinic" },
+                        {field("type", `${t.adminHospitalType} *`, "select", [
+                          { value: "private", label: t.privateHospital },
+                          { value: "government", label: t.governmentHospital },
+                          { value: "clinic", label: t.clinic },
                         ])}
-                        {field("city", "City *")}
-                        {field("location", "Full address *")}
-                        {field("phone", "Contact phone *")}
-                        {field("license", "License number *")}
-                        {field("services", "Medical services")}
-                        {field("description", "About the hospital / clinic")}
+                        {field("city", `${t.cityLabel} *`)}
+                        {field("location", `${t.fullAddress} *`)}
+                        {field("phone", `${t.adminContactPhone} *`)}
+                        {field("license", `${t.licenseNumber} *`)}
+                        {field("services", t.adminMedicalServices)}
+                        {field("description", t.adminAboutHospital)}
                       </>
                     )}
                     {catalogImageField()}
@@ -975,6 +983,7 @@ export default function AdminDashboard({ language }) {
                   <button
                     onClick={() => {
                       setEditing("new-specialty");
+                      setCatalogFileName("");
                       setForm({
                         name: "",
                         value: "",
@@ -984,14 +993,14 @@ export default function AdminDashboard({ language }) {
                     }}
                     className="bg-teal-600 hover:bg-teal-700 active:bg-teal-800 cursor-pointer transition-colors text-white rounded-xl px-4 py-2"
                   >
-                    + Add Specialty
+                    + {t.adminAddSpecialty}
                   </button>
                 )}
                 {editing === "new-specialty" && (
                   <div className="bg-white rounded-xl p-5 grid gap-3">
-                    {field("name", "Specialty name")}
-                    {field("value", "Code (e.g. cardiology)")}
-                    {field("department", "Specialty department")}
+                    {field("name", t.adminSpecialtyName)}
+                    {field("value", t.adminSpecialtyCodeExample)}
+                    {field("department", t.adminSpecialtyDepartment)}
                     {specialtyImageField()}
                     <button
                       disabled={uploadingImage}
@@ -1035,7 +1044,7 @@ export default function AdminDashboard({ language }) {
                               ? `${doctorTitle(item.specialty, t)} · ${item.hospital} · ${item.city} · ${item.email || ""}`
                               : kind === "hospital"
                                 ? `${item.city} · ${item.location}`
-                                : `${item.value} · ${item.department || "No department"}`}
+                                : `${item.value} · ${item.department || t.adminNoDepartment}`}
                           </p>
                         </div>
                         {(kind === "doctor" || kind === "hospital") &&
@@ -1047,7 +1056,7 @@ export default function AdminDashboard({ language }) {
                             ).find((x) => Number(x.id) === Number(item.id));
                             return account?.email ? (
                               <span className="text-xs text-green-700 bg-green-50 rounded-lg px-3 py-2">
-                                Assigned: {account.email}
+                                {t.adminAssigned}: {account.email}
                               </span>
                             ) : (
                               <button
@@ -1070,7 +1079,7 @@ export default function AdminDashboard({ language }) {
                             onClick={() => openTranslation(kind, item)}
                             className="rounded-lg border border-teal-500 text-teal-700 px-3 py-2"
                           >
-                            🌐 Translations
+                            🌐 {t.adminTranslations}
                           </button>
                         )}
                         <button
@@ -1079,18 +1088,18 @@ export default function AdminDashboard({ language }) {
                           }
                           className="flex gap-1 items-center border rounded-lg px-3 py-2"
                         >
-                          <Pencil size={16} /> {active ? "Cancel" : "Edit"}
+                          <Pencil size={16} /> {active ? t.adminCancel : t.adminEdit}
                         </button>
                         <button
                           onClick={() => deleteItem(kind, item.id)}
                           className="flex gap-1 items-center bg-red-100 text-red-700 rounded-lg px-3 py-2"
                         >
-                          <Trash2 size={16} /> Delete
+                          <Trash2 size={16} /> {t.adminDeleteMessage}
                         </button>
                       </div>
                       {active && (
                         <div className="grid sm:grid-cols-2 gap-3 mt-5">
-                          {field("name", kind === "doctor" ? t.adminDoctorName : "Name")}
+                          {field("name", kind === "doctor" ? t.adminDoctorName : t.adminName)}
                           {kind === "doctor" && (
                             <>
                               {field("email", `${t.profileEmail} *`)}
@@ -1123,36 +1132,36 @@ export default function AdminDashboard({ language }) {
                             <>
                               {field(
                                 "type",
-                                "Hospital / Clinic type",
+                                t.adminHospitalType,
                                 "select",
                                 [
                                   {
                                     value: "private",
-                                    label: "Private Hospital",
+                                    label: t.privateHospital,
                                   },
                                   {
                                     value: "government",
-                                    label: "Government Hospital",
+                                    label: t.governmentHospital,
                                   },
-                                  { value: "clinic", label: "Clinic" },
+                                  { value: "clinic", label: t.clinic },
                                 ],
                               )}
-                              {field("city", "City")}
-                              {field("location", "Full address *")}
-                              {field("phone", "Contact phone *")}
-                              {field("license", "License number *")}
-                              {field("services", "Medical services")}
+                              {field("city", t.cityLabel)}
+                              {field("location", `${t.fullAddress} *`)}
+                              {field("phone", `${t.adminContactPhone} *`)}
+                              {field("license", `${t.licenseNumber} *`)}
+                              {field("services", t.adminMedicalServices)}
                               {field(
                                 "description",
-                                "About the hospital / clinic",
+                                t.adminAboutHospital,
                               )}
                               {catalogImageField()}
                             </>
                           )}
                           {kind === "specialty" && (
                             <>
-                              {field("value", "Code")}
-                              {field("department", "Specialty department")}
+                              {field("value", t.adminSpecialtyCode)}
+                              {field("department", t.adminSpecialtyDepartment)}
                               {specialtyImageField()}
                             </>
                           )}
@@ -1204,7 +1213,7 @@ export default function AdminDashboard({ language }) {
                           className="px-4 py-2 rounded-xl bg-blue-600 text-white disabled:opacity-50"
                         >
                           {sendingId === p.id
-                            ? "Sending..."
+                            ? t.adminSending
                             : "Resend Activation Email"}
                         </button>
                       )}
@@ -1332,11 +1341,11 @@ export default function AdminDashboard({ language }) {
         {assigning && (
           <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
             <div className="bg-white dark:bg-slate-800 dark:text-white p-6 rounded-2xl w-full max-w-md shadow-xl">
-              <h3 className="font-bold text-xl mb-2">Assign Account</h3>
+              <h3 className="font-bold text-xl mb-2">{t.adminAssignAccount}</h3>
               <p className="text-sm mb-4">
-                {assigning.name} — existing profile #{assigning.id}
+                {assigning.name} — {t.adminExistingProfile} #{assigning.id}
               </p>
-              <label className="block mb-2">Provider email (required)</label>
+              <label className="block mb-2">{t.adminProviderEmailRequired}</label>
               <input
                 type="email"
                 required
@@ -1346,8 +1355,7 @@ export default function AdminDashboard({ language }) {
                 placeholder="doctor@example.com"
               />
               <p className="text-xs text-gray-500 mt-2">
-                An activation link will be emailed. The existing profile will
-                not be duplicated.
+                {t.adminActivationHint}
               </p>
               <div className="flex gap-2 mt-5">
                 <button
@@ -1355,7 +1363,7 @@ export default function AdminDashboard({ language }) {
                   onClick={assignAccount}
                   className="cursor-pointer hover:brightness-90 active:brightness-75 transition-colors bg-teal-600 text-white px-4 py-2 rounded-lg disabled:opacity-50"
                 >
-                  {sendingId !== null ? "Sending..." : "Send activation"}
+                  {sendingId !== null ? t.adminSending : t.adminSendActivation}
                 </button>
                 <button
                   onClick={() => setAssigning(null)}

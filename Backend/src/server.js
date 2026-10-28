@@ -813,28 +813,53 @@ app.get(
   }),
 );
 async function localizeProfiles(rows, kind, lang) {
-  if (!["fa", "ps", "en"].includes(lang) || !rows.length) return rows;
+  if (!["fa", "ps", "en"].includes(lang) || !rows.length) {
+    return rows;
+  }
+
   const ids = rows.map((row) => row.id);
+
   const result = await db.query(
-    "SELECT profile_id,translations,source_snapshot FROM profile_translations WHERE kind=$1 AND approved=true AND profile_id=ANY($2::bigint[])",
-    [kind, ids],
+    `SELECT profile_id, translations, source_snapshot
+     FROM profile_translations
+     WHERE kind = $1
+     AND approved = true
+     AND profile_id = ANY($2::bigint[])`,
+    [kind, ids]
   );
-const map = new Map(result.rows.map((row) => [String(row.profile_id), row]));  return rows.map((row) => {
-const entry = map.get(String(row.id));    if (!entry) return row;
-    const fields = translationFields[kind];
-    if (
-      fields.some(
-        (f) =>
-          String(row[f] || "") !== String(entry.source_snapshot?.[f] || ""),
-      )
-    )
+
+  const map = new Map(
+    result.rows.map((row) => [String(row.profile_id), row])
+  );
+
+  return rows.map((row) => {
+    const entry = map.get(String(row.id));
+
+    if (!entry) {
       return row;
+    }
+
+    const fields = translationFields[kind];
+
+    const changed = fields.some(
+      (field) =>
+        String(row[field] || "") !==
+        String(entry.source_snapshot?.[field] || "")
+    );
+
+    if (changed) {
+      return row;
+    }
+
     const translated = entry.translations?.[lang] || {};
+
     return {
       ...row,
       originalName: row.name,
       ...Object.fromEntries(
-        fields.filter((f) => translated[f]).map((f) => [f, translated[f]]),
+        fields
+          .filter((field) => translated[field])
+          .map((field) => [field, translated[field]])
       ),
     };
   });
@@ -889,8 +914,8 @@ app.get(
   "/api/hospitals",
   asyncRoute(async (req, res) => {
     const result = await db.query(
-      'SELECT id,name,type,type_value AS "typeValue",city,city_value AS "cityValue",location,image,description FROM hospitals ORDER BY id',
-    );
+  'SELECT id,name,type,type_value AS "typeValue",city,city_value AS "cityValue",location,image,description,services FROM hospitals ORDER BY id',
+);
     const search = String(req.query.search || "").toLowerCase();
     const type = String(req.query.type || "all");
     const city = String(req.query.city || "all");
@@ -915,9 +940,9 @@ app.get(
   "/api/hospitals/:id",
   asyncRoute(async (req, res) => {
     const result = await db.query(
-      'SELECT id,name,type,type_value AS "typeValue",city,city_value AS "cityValue",location,image,description FROM hospitals WHERE id=$1',
-      [req.params.id],
-    );
+  'SELECT id,name,type,type_value AS "typeValue",city,city_value AS "cityValue",location,image,description,services FROM hospitals WHERE id=$1',
+  [req.params.id],
+);
     if (!result.rows[0])
       return res.status(404).json({ message: "Hospital not found" });
     res.json(

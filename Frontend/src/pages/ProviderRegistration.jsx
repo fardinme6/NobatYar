@@ -4,6 +4,39 @@ import { UserRound, Hospital, ClipboardList, CheckCircle2 } from "lucide-react";
 import { translations } from "../data/translations";
 import { Link } from "react-router-dom";
 
+function SearchMultiSelect({ options, selected, setSelected, language, placeholder, name }) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const filtered = options.filter((item) => item.label.toLowerCase().includes(search.toLowerCase()));
+  return (
+    <div className="relative">
+      {selected.map((value) => <input key={value} type="hidden" name={name} value={value} />)}
+      <div className="min-h-14 border border-gray-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 p-2 flex flex-wrap items-center gap-2">
+        {selected.map((value) => {
+          const item = options.find((option) => String(option.value) === String(value));
+          return <span key={value} className="inline-flex items-center gap-2 bg-teal-50 dark:bg-slate-600 text-teal-800 dark:text-white px-3 py-1.5 rounded-lg text-sm">
+            {item?.label || value}
+            <button type="button" aria-label="Remove" onClick={() => setSelected(selected.filter((v) => v !== value))} className="hover:text-red-600">×</button>
+          </span>;
+        })}
+        <button type="button" onClick={() => setOpen(!open)} className="flex-1 min-w-32 text-start text-gray-500 dark:text-gray-200 p-2">
+          {placeholder} ▾
+        </button>
+      </div>
+      {open && <div className="mt-2 border border-gray-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 p-3 shadow-lg">
+        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={language === "English" ? "Search..." : language === "Pashto" ? "لټون وکړئ..." : "جستجو کنید..."} className="w-full border border-gray-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 dark:text-white p-3 mb-2 outline-none focus:border-teal-500" />
+        <div className="max-h-44 overflow-y-auto">
+          {filtered.map((item) => <button key={item.value} type="button" onClick={() => setSelected(selected.includes(item.value) ? selected.filter((v) => v !== item.value) : [...selected, item.value])} className="w-full text-start px-3 py-2 rounded-lg hover:bg-teal-50 dark:hover:bg-slate-600 dark:text-white flex justify-between gap-2">
+            <span>{item.label}</span><span className="text-teal-600">{selected.includes(item.value) ? "✓" : "+"}</span>
+          </button>)}
+          {!filtered.length && <p className="p-3 text-gray-500">{language === "English" ? "No results" : language === "Pashto" ? "پایلې نشته" : "نتیجه‌ای یافت نشد"}</p>}
+        </div>
+        <button type="button" onClick={() => setOpen(false)} className="mt-2 w-full bg-teal-600 text-white py-2 rounded-lg">{language === "English" ? "Done" : language === "Pashto" ? "تایید" : "تأیید انتخاب"}</button>
+      </div>}
+    </div>
+  );
+}
+
 export default function ProviderRegistration({ language, user }) {
   const t = translations[language];
 
@@ -17,6 +50,8 @@ export default function ProviderRegistration({ language, user }) {
   const [doctorPhoto, setDoctorPhoto] = useState(null);
   const [hospitalOptions, setHospitalOptions] = useState([]);
   const [specialtyOptions, setSpecialtyOptions] = useState([]);
+  const [selectedSpecialties, setSelectedSpecialties] = useState([]);
+  const [selectedHospitals, setSelectedHospitals] = useState([]);
   useEffect(() => {
     const lang = language === "Persian" ? "fa" : language === "Pashto" ? "ps" : "en";
     api(`/hospitals?lang=${lang}`).then(setHospitalOptions).catch(() => {});
@@ -342,14 +377,7 @@ export default function ProviderRegistration({ language, user }) {
                         <span className="text-red-500">*</span>
                       </label>
 
-                      <div className="border border-gray-200 dark:border-slate-600 rounded-xl p-4 space-y-3 max-h-48 overflow-y-auto">
-                        {specialtyOptions.map((specialty) => (
-                          <label key={specialty.id} className="flex items-center gap-3 cursor-pointer text-gray-800 dark:text-white">
-                            <input type="checkbox" name="specialtyValues" value={specialty.value} className="w-4 h-4 accent-teal-600" />
-                            {t[specialty.name] || specialty.name}
-                          </label>
-                        ))}
-                      </div>
+                      <SearchMultiSelect name="specialtyValues" language={language} options={specialtyOptions.map((s) => ({ value: s.value, label: t[s.name] || s.name }))} selected={selectedSpecialties} setSelected={setSelectedSpecialties} placeholder={language === "English" ? "Select specialties" : language === "Pashto" ? "تخصصونه وټاکئ" : "انتخاب تخصص‌ها"} />
                       <p className="text-xs text-gray-500 mt-1">{language === "English" ? "Choose one or more specialties" : language === "Pashto" ? "یو یا څو تخصصونه وټاکئ" : "یک یا چند تخصص انتخاب کنید"}</p>
                     </div>
 
@@ -357,14 +385,7 @@ export default function ProviderRegistration({ language, user }) {
                       <label className="block mb-2 font-medium text-gray-700 dark:text-gray-200">
                         {t.hospital || "Hospital"} <span className="text-red-500">*</span>
                       </label>
-                      <div className="border border-gray-200 dark:border-slate-600 rounded-xl p-4 space-y-3 max-h-48 overflow-y-auto">
-                        {hospitalOptions.map((h) => (
-                          <label key={h.id} className="flex items-center gap-3 cursor-pointer text-gray-800 dark:text-white">
-                            <input type="checkbox" name="hospitalIds" value={h.id} className="w-4 h-4 accent-teal-600" />
-                            {h.name} — {h.city}
-                          </label>
-                        ))}
-                      </div>
+                      <SearchMultiSelect name="hospitalIds" language={language} options={hospitalOptions.map((h) => ({ value: String(h.id), label: `${h.name} — ${t[h.city] || h.city}` }))} selected={selectedHospitals} setSelected={setSelectedHospitals} placeholder={language === "English" ? "Select hospitals" : language === "Pashto" ? "روغتونونه وټاکئ" : "انتخاب شفاخانه‌ها"} />
                       <p className="text-xs text-gray-500 mt-1">{language === "English" ? "Choose one or more hospitals" : language === "Pashto" ? "یو یا څو روغتونونه وټاکئ" : "یک یا چند شفاخانه انتخاب کنید"}</p>
                       {!hospitalOptions.length && (
                         <p className="text-sm text-amber-600 mt-2">{language === "English" ? "No hospitals available." : language === "Pashto" ? "هیڅ روغتون نشته." : "هیچ شفاخانه‌ای موجود نیست."}</p>

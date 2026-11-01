@@ -1,5 +1,5 @@
 
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import {
   ArrowLeft,
   ArrowRight,
@@ -18,6 +18,8 @@ import Loading from "../components/Loading.jsx";
 export default function HospitalDoctors({ language }) {
   const t = translations[language];
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const selectedSpecialty = searchParams.get("specialty");
 
   const [onlineHospital, setOnlineHospital] = useState(null);
   const [onlineDoctors, setOnlineDoctors] = useState([]);
@@ -51,7 +53,7 @@ export default function HospitalDoctors({ language }) {
   }
 
   const hospitalDoctors = onlineDoctors.filter(
-    (doctor) => doctor.hospital === hospital.name || doctor.hospital === hospital.originalName
+    (doctor) => (doctor.hospital === hospital.name || doctor.hospital === hospital.originalName) && (!selectedSpecialty || (doctor.specialtyValues || [doctor.specialtyValue]).includes(selectedSpecialty))
   );
 
   return (

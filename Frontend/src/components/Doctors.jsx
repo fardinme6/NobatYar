@@ -39,7 +39,7 @@ export default function Doctors({ language, home = false, user }) {
     const matchCity = city === "all" || doctor.cityValue === city;
 
     const matchSpecialty =
-      specialty === "all" || doctor.specialtyValue === specialty;
+      specialty === "all" || (doctor.specialtyValues || [doctor.specialtyValue]).includes(specialty);
 
     return matchSearch && matchCity && matchSpecialty;
   });

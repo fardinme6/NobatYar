@@ -877,7 +877,7 @@ app.get(
   "/api/doctors",
   asyncRoute(async (req, res) => {
     const result = await db.query(
-      'SELECT id,name,email,specialty,specialty_value AS "specialtyValue",hospital,city,city_value AS "cityValue",image,experience,education,about,phone FROM doctors ORDER BY id',
+      'SELECT id,name,email,specialty,specialty_value AS "specialtyValue",specialty_values AS "specialtyValues",hospital,city,city_value AS "cityValue",image,experience,education,about,phone FROM doctors ORDER BY id',
     );
     const search = String(req.query.search || "").toLowerCase();
     const specialty = String(req.query.specialty || "all");
@@ -886,7 +886,7 @@ app.get(
       await localizeDoctorRelations(await localizeProfiles(
         result.rows.filter(
           (d) =>
-            (specialty === "all" || d.specialtyValue === specialty) &&
+            (specialty === "all" || (d.specialtyValues || [d.specialtyValue]).includes(specialty)) &&
             (city === "all" || d.cityValue === city) &&
             (!search ||
               [d.name, d.specialty, d.hospital].some((v) =>
@@ -903,7 +903,7 @@ app.get(
   "/api/doctors/:id",
   asyncRoute(async (req, res) => {
     const result = await db.query(
-      'SELECT id,name,email,specialty,specialty_value AS "specialtyValue",hospital,city,city_value AS "cityValue",image,experience,education,about,phone FROM doctors WHERE id=$1',
+      'SELECT id,name,email,specialty,specialty_value AS "specialtyValue",specialty_values AS "specialtyValues",hospital,city,city_value AS "cityValue",image,experience,education,about,phone FROM doctors WHERE id=$1',
       [req.params.id],
     );
     if (!result.rows[0])
@@ -920,7 +920,7 @@ app.get(
   "/api/hospitals",
   asyncRoute(async (req, res) => {
     const result = await db.query(
-  'SELECT id,name,type,type_value AS "typeValue",city,city_value AS "cityValue",location,image,description,services FROM hospitals ORDER BY id',
+  'SELECT id,name,type,type_value AS "typeValue",city,city_value AS "cityValue",location,image,description,services,specialty_values AS "specialtyValues" FROM hospitals ORDER BY id',
 );
     const search = String(req.query.search || "").toLowerCase();
     const type = String(req.query.type || "all");
@@ -942,11 +942,17 @@ app.get(
     );
   }),
 );
+app.get("/api/hospitals/:id/specialties", asyncRoute(async (req, res) => {
+  const hospital = await db.query("SELECT specialty_values FROM hospitals WHERE id=$1", [req.params.id]);
+  if (!hospital.rowCount) return res.status(404).json({message:"Hospital not found"});
+  const result = await db.query("SELECT id,name,value,department,image FROM medical_specialties WHERE value=ANY($1::text[]) ORDER BY name", [hospital.rows[0].specialty_values || []]);
+  res.json(await localizeProfiles(result.rows, "specialty", String(req.query.lang || "fa")));
+}));
 app.get(
   "/api/hospitals/:id",
   asyncRoute(async (req, res) => {
     const result = await db.query(
-  'SELECT id,name,type,type_value AS "typeValue",city,city_value AS "cityValue",location,image,description,services FROM hospitals WHERE id=$1',
+  'SELECT id,name,type,type_value AS "typeValue",city,city_value AS "cityValue",location,image,description,services,specialty_values AS "specialtyValues" FROM hospitals WHERE id=$1',
   [req.params.id],
 );
     if (!result.rows[0])
@@ -2794,6 +2800,7 @@ app.post(
         location: text(),
         description: z.string().max(3000).default(""),
         services: z.string().max(3000).default(""),
+        specialtyValues: z.array(z.string()).default([]),
         phone: text(40),
         license: text(120),
         image: z.string().min(1).max(1000),
@@ -2818,6 +2825,7 @@ app.post(
           d.services,
         ],
       );
+      await client.query("UPDATE hospitals SET specialty_values=$1 WHERE id=$2", [d.specialtyValues, r.rows[0].id]);
       await client.query("COMMIT");
       res.status(201).json(r.rows[0]);
     } catch (e) {
@@ -2838,6 +2846,7 @@ app.post(
         name: text(),
         email: z.string().email().max(254),
         specialty: text(),
+        specialtyValues: z.array(z.string()).default([]),
         hospitalId: z.coerce.number().int().positive(),
         city: text(),
         phone: text(40),
@@ -2878,6 +2887,7 @@ app.post(
           d.phone,
         ],
       );
+      await client.query("UPDATE doctors SET specialty_values=$1 WHERE id=$2", [d.specialtyValues.length ? d.specialtyValues : [d.specialty], r.rows[0].id]);
       await client.query("COMMIT");
       res.status(201).json(r.rows[0]);
     } catch (e) {
@@ -2898,6 +2908,7 @@ app.patch(
         name: text(),
         email: z.string().email().max(254),
         specialty: text(),
+        specialtyValues: z.array(z.string()).default([]),
         hospitalId: z.coerce.number().int().positive(),
         city: text(),
         phone: text(40),
@@ -2937,6 +2948,7 @@ app.patch(
     );
     if (!r.rowCount)
       return res.status(404).json({ message: "Doctor not found" });
+    await db.query("UPDATE doctors SET specialty_values=$1 WHERE id=$2", [d.specialtyValues.length ? d.specialtyValues : [d.specialty], req.params.id]);
     res.json(r.rows[0]);
   }),
 );
@@ -2977,6 +2989,7 @@ app.patch(
           .default("private"),
         description: z.string().max(3000),
         services: z.string().max(3000).default(""),
+        specialtyValues: z.array(z.string()).default([]),
         phone: text(40),
         license: text(120),
         image: z.string().max(1000).optional(),
@@ -3013,6 +3026,7 @@ app.patch(
         d.name,
         old.rows[0].name,
       ]);
+      await client.query("UPDATE hospitals SET specialty_values=$1 WHERE id=$2", [d.specialtyValues, req.params.id]);
       await client.query("COMMIT");
       res.json(r.rows[0]);
     } catch (e) {

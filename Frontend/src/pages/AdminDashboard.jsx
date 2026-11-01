@@ -393,6 +393,7 @@ export default function AdminDashboard({ language }) {
             email: item.email || "",
             phone: item.phone || "",
             specialty: item.specialty_value,
+            specialtyValues: item.specialty_values?.length ? item.specialty_values : [item.specialty_value],
             hospitalId:
               hospitals.find((h) => h.name === item.hospital)?.id || "",
             city: item.city,
@@ -410,6 +411,7 @@ export default function AdminDashboard({ language }) {
               phone: item.phone || "",
               license: item.license_number || "",
               services: item.services || "",
+              specialtyValues: item.specialty_values || [],
               description: item.description || "",
               image: item.image || "",
             }
@@ -449,7 +451,7 @@ export default function AdminDashboard({ language }) {
     try {
       await api(
         `/admin/${kind === "doctor" ? "doctors" : kind === "hospital" ? "hospitals" : "specialties"}/${id}`,
-        { method: "PATCH", body: JSON.stringify(form) },
+        { method: "PATCH", body: JSON.stringify({ ...form, ...(kind === "doctor" ? { specialty: form.specialtyValues?.[0] || form.specialty } : {}) }) },
       );
       setEditing(null);
       await load();
@@ -571,7 +573,7 @@ export default function AdminDashboard({ language }) {
     try {
       await api("/admin/specialties", {
         method: "POST",
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, ...(kind === "doctor" ? { specialty: form.specialtyValues?.[0] || form.specialty } : {}) }),
       });
       setEditing(null);
       setForm({});
@@ -587,7 +589,7 @@ export default function AdminDashboard({ language }) {
       (kind === "doctor" && (!form.email || !form.phone)) ||
       (kind === "hospital" &&
         (!form.location || !form.phone || !form.license || !form.image)) ||
-      (kind === "doctor" && (!form.specialty || !form.hospitalId))
+      (kind === "doctor" && (!(form.specialtyValues?.length || form.specialty) || !form.hospitalId))
     ) {
       setError(t.adminRequiredFields);
       return;
@@ -595,7 +597,7 @@ export default function AdminDashboard({ language }) {
     try {
       await api(`/admin/${kind === "doctor" ? "doctors" : "hospitals"}`, {
         method: "POST",
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, ...(kind === "doctor" ? { specialty: form.specialtyValues?.[0] || form.specialty } : {}) }),
       });
       setEditing(null);
       setForm({});
@@ -604,6 +606,22 @@ export default function AdminDashboard({ language }) {
       setError(e.message);
     }
   };
+  const specialtyPicker = () => (
+    <div className="sm:col-span-2 border rounded-xl p-4">
+      <p className="font-medium mb-3">{language === "English" ? "Medical specialties (select multiple)" : language === "Pashto" ? "طبي تخصصونه (څو وټاکئ)" : "تخصص‌های طبی (چند مورد انتخاب کنید)"}</p>
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        {specialtiesList.map((item) => (
+          <label key={item.value} className="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" checked={(form.specialtyValues || []).includes(item.value)}
+              onChange={(e) => setForm({ ...form, specialtyValues: e.target.checked
+                ? [...(form.specialtyValues || []), item.value]
+                : (form.specialtyValues || []).filter(v => v !== item.value) })} />
+            <span>{item.name}</span>
+          </label>
+        ))}
+      </div>
+    </div>
+  );
   const field = (name, label, type = "text", options = []) => (
     <label key={name} className="block text-sm font-medium">
       {label}
@@ -948,6 +966,7 @@ export default function AdminDashboard({ language }) {
                               name: "",
                               email: "",
                               specialty: "",
+                              specialtyValues: [],
                               hospitalId: "",
                               city: "",
                               about: "",
@@ -961,6 +980,7 @@ export default function AdminDashboard({ language }) {
                               phone: "",
                               license: "",
                               services: "",
+                              specialtyValues: [],
                               description: "",
                               image: "",
                             },
@@ -977,15 +997,7 @@ export default function AdminDashboard({ language }) {
                     {editing === "new-doctors" ? (
                       <>
                         {field("email", `${t.profileEmail} *`)}
-                        {field(
-                          "specialty",
-                          `${t.providerSpecialty} *`,
-                          "select",
-                          specialtiesList.map((x) => ({
-                            value: x.value,
-                            label: doctorTitle(x.value, t),
-                          })),
-                        )}
+                        {specialtyPicker()}
                         {field(
                           "hospitalId",
                           `${t.hospital} *`,
@@ -1011,7 +1023,7 @@ export default function AdminDashboard({ language }) {
                         {field("location", `${t.fullAddress} *`)}
                         {field("phone", `${t.adminContactPhone} *`)}
                         {field("license", `${t.licenseNumber} *`)}
-                        {field("services", t.adminMedicalServices)}
+                        {specialtyPicker()}
                         {field("description", t.adminAboutHospital)}
                       </>
                     )}
@@ -1160,15 +1172,7 @@ export default function AdminDashboard({ language }) {
                             <>
                               {field("email", `${t.profileEmail} *`)}
                          {field("phone", `${t.adminContactPhone} *`)}
-                              {field(
-                                "specialty",
-                                t.providerSpecialty,
-                                "select",
-                                specialtiesList.map((x) => ({
-                                  value: x.value,
-                                  label: doctorTitle(x.value, t),
-                                })),
-                              )}
+                              {specialtyPicker()}
                               {field(
                                 "hospitalId",
                                 t.hospital,
@@ -1207,7 +1211,7 @@ export default function AdminDashboard({ language }) {
                               {field("location", `${t.fullAddress} *`)}
                               {field("phone", `${t.adminContactPhone} *`)}
                               {field("license", `${t.licenseNumber} *`)}
-                              {field("services", t.adminMedicalServices)}
+                              {specialtyPicker()}
                               {field(
                                 "description",
                                 t.adminAboutHospital,

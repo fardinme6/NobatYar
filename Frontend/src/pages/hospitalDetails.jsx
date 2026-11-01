@@ -19,8 +19,13 @@ export default function HospitalDetails({ language }) {
   const { id } = useParams();
 
   const [onlineHospital, setOnlineHospital] = useState(null);
+  const [departments, setDepartments] = useState([]);
   const [hospitalLoading, setHospitalLoading] = useState(true);
   useEffect(() => { setHospitalLoading(true); api(`/hospitals/${id}?lang=${language === "Persian" ? "fa" : language === "Pashto" ? "ps" : "en"}`).then(setOnlineHospital).catch(()=>setOnlineHospital(null)).finally(()=>setHospitalLoading(false)); }, [id, language]);
+  useEffect(() => {
+    api(`/hospitals/${id}/specialties?lang=${language === "Persian" ? "fa" : language === "Pashto" ? "ps" : "en"}`)
+      .then(setDepartments).catch(() => setDepartments([]));
+  }, [id, language]);
   const hospital = onlineHospital;
   const label = value => t[value] || value || "";
 
@@ -131,19 +136,23 @@ export default function HospitalDetails({ language }) {
               </p>
             </div>
 
-            {hospital.services && (
-              <div className="mt-8 border-t border-gray-100 dark:border-slate-700 pt-8">
-                <div className="flex items-center gap-3 mb-4">
-                  <Info size={23} className="text-teal-600 dark:text-teal-400" />
-                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                    {t.hospitalServices}
-                  </h2>
-                </div>
-                <p className="text-gray-600 dark:text-gray-300 leading-8 whitespace-pre-line text-justify">
-                  {label(hospital.services)}
-                </p>
+            <div className="mt-8 border-t border-gray-100 dark:border-slate-700 pt-8">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-5">{t.hospitalServices}</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                {departments.map((item) => (
+                  <div key={item.id} className="rounded-xl overflow-hidden border border-gray-200 dark:border-slate-700">
+                    <img src={item.image} alt={item.name} className="w-full h-40 object-cover" />
+                    <div className="p-4">
+                      <h3 className="font-bold text-gray-900 dark:text-white mb-3">{item.name}</h3>
+                      <Link to={`/hospitals/${id}/doctors?specialty=${encodeURIComponent(item.value)}`}
+                        className="inline-block bg-teal-600 text-white px-4 py-2 rounded-lg">
+                        {t.viewDoctors}
+                      </Link>
+                    </div>
+                  </div>
+                ))}
               </div>
-            )}
+            </div>
 
             <Link
               to={`/hospitals/${hospital.id}/doctors`}

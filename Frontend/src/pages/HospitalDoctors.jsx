@@ -13,6 +13,7 @@ import { api } from "../api";
 import { useEffect, useState } from "react";
 import { translations } from "../data/translations.js";
 import { doctorTitle } from "../data/doctorTitle.js";
+import Loading from "../components/Loading.jsx";
 
 export default function HospitalDoctors({ language }) {
   const t = translations[language];
@@ -20,7 +21,7 @@ export default function HospitalDoctors({ language }) {
 
   const [onlineHospital, setOnlineHospital] = useState(null);
   const [onlineDoctors, setOnlineDoctors] = useState([]);
-  useEffect(() => { api(`/doctors?lang=${language === "Persian" ? "fa" : language === "Pashto" ? "ps" : "en"}`).then(setOnlineDoctors).catch(() => {}); }, []);
+  useEffect(() => { api(`/doctors?lang=${language === "Persian" ? "fa" : language === "Pashto" ? "ps" : "en"}`).then(setOnlineDoctors).catch(() => setOnlineDoctors([])); }, [language]);
   const [hospitalLoading, setHospitalLoading] = useState(true);
   useEffect(() => { setHospitalLoading(true); api(`/hospitals/${id}?lang=${language === "Persian" ? "fa" : language === "Pashto" ? "ps" : "en"}`).then(setOnlineHospital).catch(()=>setOnlineHospital(null)).finally(()=>setHospitalLoading(false)); }, [id, language]);
   const hospital = onlineHospital;
@@ -28,7 +29,7 @@ export default function HospitalDoctors({ language }) {
 
   const BackIcon = language === "English" ? ArrowLeft : ArrowRight;
 
-  if (hospitalLoading) return <p className="text-center p-10 dark:text-white">Loading...</p>;
+  if (hospitalLoading) return <Loading language={language} />;
 
   if (!hospital) {
     return (
@@ -50,7 +51,7 @@ export default function HospitalDoctors({ language }) {
   }
 
   const hospitalDoctors = onlineDoctors.filter(
-    (doctor) => doctor.hospital === (hospital.originalName || hospital.name)
+    (doctor) => doctor.hospital === hospital.name || doctor.hospital === hospital.originalName
   );
 
   return (
@@ -83,7 +84,7 @@ export default function HospitalDoctors({ language }) {
 
               <p className="flex items-center justify-center sm:justify-start gap-2 text-gray-600 dark:text-gray-300 mt-4">
                 <MapPin size={18} className="text-teal-600 shrink-0" />
-                {label(hospital.city)}, {label(hospital.location)}
+                {label(hospital.location)}
               </p>
             </div>
           </div>
@@ -118,7 +119,7 @@ export default function HospitalDoctors({ language }) {
                 <div className="overflow-hidden">
                   <img
                     src={doctor.image}
-                    alt={t[doctor.name]}
+                    alt={label(doctor.name)}
                     className="w-full h-100 object-cover object-top hover:scale-105 transition-transform duration-500"
                   />
                 </div>
@@ -130,12 +131,12 @@ export default function HospitalDoctors({ language }) {
                   </div>
 
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">
-                    {t[doctor.name]}
+                    {label(doctor.name)}
                   </h3>
 
                   <p className="flex items-center gap-2 text-gray-600 dark:text-gray-300 text-sm mb-6">
                     <MapPin size={17} className="text-teal-600 shrink-0" />
-                    {t[doctor.city]}
+                    {label(doctor.city)}
                   </p>
 
                   <div className="grid grid-cols-2 gap-3 mt-auto">

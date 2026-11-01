@@ -7,7 +7,7 @@ import { api } from "../api";
 export default function Specialties({ language }) {
   const t = translations[language];
   const [specialties, setSpecialties] = useState([]);
-  useEffect(() => { api("/specialties").then(setSpecialties).catch(() => {}); }, []);
+  useEffect(() => { api(`/specialties?lang=${language === "English" ? "en" : language === "Pashto" ? "ps" : "fa"}`).then(setSpecialties).catch(() => {}); }, [language]);
 
   return (
     <section className="bg-white dark:bg-slate-800 px-6 py-20 md:px-12 lg:px-20">
@@ -46,14 +46,14 @@ export default function Specialties({ language }) {
               <div className="overflow-hidden">
                 <img
                   src={specialty.image}
-                  alt={t[specialty.name]}
+                  alt={t[specialty.name] || specialty.name}
                   className="w-full h-40 sm:h-45 md:h-50 object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               </div>
 
               <div className="p-4 text-center">
                 <h3 className="font-semibold text-gray-900 dark:text-white">
-                  {t[specialty.name]}
+                  {t[specialty.name] || specialty.name}
                 </h3>
               </div>
             </Link>

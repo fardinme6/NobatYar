@@ -18,7 +18,7 @@ export default function Doctors({ language, home = false, user }) {
   const t = translations[language];
   const [onlineDoctors, setOnlineDoctors] = useState([]);
   const [specialties, setSpecialties] = useState([]);
-  useEffect(() => { api("/specialties").then(setSpecialties).catch(() => {}); }, []);
+  useEffect(() => { api(`/specialties?lang=${language === "English" ? "en" : language === "Pashto" ? "ps" : "fa"}`).then(setSpecialties).catch(() => {}); }, [language]);
   useEffect(() => { api(`/doctors?lang=${language === "Persian" ? "fa" : language === "Pashto" ? "ps" : "en"}`).then(setOnlineDoctors).catch(()=>{}); }, [language]);
   const allDoctors = onlineDoctors;;
   const label = value => t[value] || value || "";

@@ -54,6 +54,22 @@ export default function AdminDashboard({ language }) {
   const [assignEmail, setAssignEmail] = useState("");
   const [emailMessage, setEmailMessage] = useState("");
   const [translationEditor, setTranslationEditor] = useState(null);
+  const [translationOriginal, setTranslationOriginal] = useState({});
+  const [translationChanged, setTranslationChanged] = useState([]);
+  const translationErrors = {
+    "The AI did not return valid JSON. Please try again or enter translations manually.": {
+      Persian: "هوش مصنوعی پاسخ معتبر نداد. دوباره تلاش کنید یا ترجمه‌ها را دستی وارد کنید.",
+      Pashto: "مصنوعي ځیرکتیا سم ځواب ورنه کړ. بیا هڅه وکړئ یا ژباړې په لاس ولیکئ.",
+      English: "The AI did not return valid JSON. Please try again or enter translations manually.",
+    },
+    "Fill translations for all non-empty fields before approving.": {
+      Persian: "لطفاً ترجمه بخش‌های جدید یا ویرایش‌شده را در هر سه زبان تکمیل کنید.",
+      Pashto: "مهرباني وکړئ د نویو یا بدل شوو برخو ژباړې په درې واړو ژبو بشپړې کړئ.",
+      English: "Complete translations of new or edited fields in all three languages.",
+    },
+  };
+  const translateError = (message) => translationErrors[message]?.[language] || message;
+
   const [translationBusy, setTranslationBusy] = useState(false);
   const [sourceLanguage, setSourceLanguage] = useState("fa");
   const openTranslation = async (kind, item) => {
@@ -67,7 +83,10 @@ export default function AdminDashboard({ language }) {
         name: item.name,
         translations: result.translations || {},
         approved: result.approved,
+        sourceSnapshot: result.source_snapshot || {},
       });
+      setTranslationOriginal(result.translations || {});
+      setTranslationChanged([]);
       setSourceLanguage("fa");
       setError("");
     } catch (e) {
@@ -84,7 +103,15 @@ export default function AdminDashboard({ language }) {
           kind: translationEditor.kind,
           id: translationEditor.id,
           sourceLanguage,
-          sourceFields: translationEditor.translations?.[sourceLanguage] || {},
+          fields: (translationEditor.kind === "doctor"
+            ? ["name", "about", "education", "experience"]
+            : translationEditor.kind === "specialty"
+              ? ["name", "department"]
+              : ["name", "description", "services", "location"]
+          ).filter((field) =>
+            translationChanged.includes(field) ||
+            !translationEditor.sourceSnapshot?.[field]
+          ),
         }),
       });
       setTranslationEditor((prev) => ({
@@ -93,19 +120,21 @@ export default function AdminDashboard({ language }) {
           ["fa", "ps", "en"].map((lang) => [
             lang,
             {
-              ...result.translations?.[lang],
+              ...prev.translations?.[lang],
               ...Object.fromEntries(
-                Object.entries(prev.translations?.[lang] || {}).filter(
-                  ([, value]) => String(value || "").trim(),
-                ),
+                (result.generatedFields || []).map((field) => [
+                  field,
+                  result.translations?.[lang]?.[field] || prev.translations?.[lang]?.[field] || "",
+                ]),
               ),
             },
           ]),
         ),
-        approved: false,
+        approved: prev.approved,
       }));
+      setTranslationChanged((prev) => [...new Set([...prev, ...(result.generatedFields || [])])]);
     } catch (e) {
-      setError(e.message);
+      setError(translateError(e.message));
     } finally {
       setTranslationBusy(false);
     }
@@ -120,6 +149,14 @@ export default function AdminDashboard({ language }) {
           body: JSON.stringify({
             translations: translationEditor.translations,
             approved,
+            changedFields: [...new Set([...translationChanged,
+              ...Object.keys(translationEditor.translations?.fa || {}).filter((field) =>
+                ["fa", "ps", "en"].some((lang) =>
+                  (translationEditor.translations?.[lang]?.[field] || "") !==
+                  (translationOriginal?.[lang]?.[field] || "")
+                )
+              ),
+            ])],
           }),
         },
       );
@@ -130,7 +167,7 @@ export default function AdminDashboard({ language }) {
           : modalText.saved,
       );
     } catch (e) {
-      setError(e.message);
+      setError(translateError(e.message));
     } finally {
       setTranslationBusy(false);
     }
@@ -1320,7 +1357,8 @@ export default function AdminDashboard({ language }) {
                             translationEditor.translations?.[lang]?.[field] ||
                             ""
                           }
-                          onChange={(e) =>
+                          onChange={(e) => {
+                            setTranslationChanged((prev) => [...new Set([...prev, field])]);
                             setTranslationEditor((prev) => ({
                               ...prev,
                               translations: {
@@ -1330,8 +1368,8 @@ export default function AdminDashboard({ language }) {
                                   [field]: e.target.value,
                                 },
                               },
-                            }))
-                          }
+                            }));
+                          }}
                           className="block mt-1 w-full border rounded-lg p-2 text-sm text-slate-900"
                         />
                       </label>

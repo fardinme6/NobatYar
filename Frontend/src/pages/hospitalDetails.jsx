@@ -69,6 +69,13 @@ export default function HospitalDetails({ language }) {
       </section>
     );
   }
+  const formatPhone = (phone) => {
+    if (language === "English") return phone;
+
+    const numbers = language === "Pashto" ? "۰۱۲۳۴۵۶۷۸۹" : "۰۱۲۳۴۵۶۷۸۹";
+
+    return phone.replace(/[0-9]/g, (num) => numbers[Number(num)]);
+  };
 
   return (
     <section className="min-h-screen bg-gray-50 dark:bg-slate-900 px-5 md:px-10 lg:px-20 py-12">
@@ -144,18 +151,20 @@ export default function HospitalDetails({ language }) {
                     <Phone size={22} className="text-teal-600" />
                     {contactLabels.phone}
                   </h3>
-                  <div className="flex flex-wrap gap-3">
+                  <div className="flex flex-wrap items-center gap-2" dir="ltr">
                     {hospital.phone.split("/").map((phone, index) => (
-                      <a
-                        key={index}
-                        href={`tel:${phone.trim().replace(/\s/g, "")}`}
-                        dir="ltr"
-                        className="text-teal-700 dark:text-teal-300 hover:underline"
-                      >
-                        {phone.trim()}
-                      </a>
+                      <span key={index} className="flex items-center gap-2">
+                        {index > 0 && <span className="text-gray-400">/</span>}
+
+                        <a
+                          href={`tel:${phone.trim().replace(/\s/g, "")}`}
+                          className="text-teal-700 dark:text-teal-300 hover:underline"
+                        >
+                          {formatPhone(phone.trim())}
+                        </a>
+                      </span>
                     ))}
-                  </div>{" "}
+                  </div>
                 </div>
               )}
               {hospital.email && (

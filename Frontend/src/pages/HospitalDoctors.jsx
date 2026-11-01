@@ -117,16 +117,20 @@ export default function HospitalDoctors({ language }) {
                   <Phone size={17} className="text-teal-600" />
                   <span>{contactLabels.phone}:</span>
 
-                  {hospital.phone.split("/").map((phone, index) => (
-                    <a
-                      key={index}
-                      href={`tel:${phone.trim().replace(/\s/g, "")}`}
-                      dir="ltr"
-                      className="text-teal-600 hover:underline"
-                    >
-                      {phone.trim()}
-                    </a>
-                  ))}
+                  <div className="flex flex-wrap items-center gap-2" dir="ltr">
+                    {hospital.phone.split("/").map((phone, index) => (
+                      <span key={index} className="flex items-center gap-2">
+                        {index > 0 && <span className="text-gray-400">/</span>}
+
+                        <a
+                          href={`tel:${phone.trim().replace(/\s/g, "")}`}
+                          className="text-teal-600 hover:underline"
+                        >
+                          {formatPhone(phone.trim())}
+                        </a>
+                      </span>
+                    ))}
+                  </div>
                 </div>
               )}{" "}
               {hospital.email && (

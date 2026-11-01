@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { api } from "../api";
 import { Link } from "react-router-dom";
@@ -14,15 +13,29 @@ import { translations } from "../data/translations";
 
 export default function SpecialtiesPage({ language, user }) {
   const t = translations[language];
-  const [onlineSpecialties,setOnlineSpecialties] = useState([]);
-  useEffect(()=>{api(`/specialties?lang=${language === "English" ? "en" : language === "Pashto" ? "ps" : "fa"}`).then(setOnlineSpecialties).catch(()=>{});},[language]);
+  const [onlineSpecialties, setOnlineSpecialties] = useState([]);
+  useEffect(() => {
+    api(
+      `/specialties?lang=${language === "English" ? "en" : language === "Pashto" ? "ps" : "fa"}`,
+    )
+      .then(setOnlineSpecialties)
+      .catch(() => {});
+  }, [language]);
   const allSpecialties = onlineSpecialties;
   const [onlineDoctors, setOnlineDoctors] = useState([]);
-  useEffect(() => { api("/doctors").then(setOnlineDoctors).catch(() => {}); }, []);
+  useEffect(() => {
+    api(
+      `/doctors?lang=${language === "English" ? "en" : language === "Pashto" ? "ps" : "fa"}`,
+    )
+      .then(setOnlineDoctors)
+      .catch(() => setOnlineDoctors([]));
+  }, [language]);
   const [search, setSearch] = useState("");
 
   const filteredSpecialties = allSpecialties.filter((specialty) =>
-    (t[specialty.name] || specialty.name || "").toLowerCase().includes(search.toLowerCase().trim())
+    (t[specialty.name] || specialty.name || "")
+      .toLowerCase()
+      .includes(search.toLowerCase().trim()),
   );
 
   return (
@@ -75,8 +88,10 @@ export default function SpecialtiesPage({ language, user }) {
         {filteredSpecialties.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {filteredSpecialties.map((specialty) => {
-              const doctorCount = onlineDoctors.filter(
-                (doctor) => doctor.specialtyValue === specialty.value
+              const doctorCount = onlineDoctors.filter((doctor) =>
+                (doctor.specialtyValues || [doctor.specialtyValue]).includes(
+                  specialty.value,
+                ),
               ).length;
 
               return (
@@ -84,7 +99,15 @@ export default function SpecialtiesPage({ language, user }) {
                   key={specialty.id}
                   className="flex flex-col bg-white dark:bg-slate-800 rounded-2xl overflow-hidden border border-gray-100 dark:border-slate-700 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
                 >
-                  {user?.role === "admin" && onlineSpecialties.some(s=>s.id===specialty.id) && <Link to={`/admin?tab=specialties&edit=${specialty.id}`} className="block bg-teal-600 text-white text-center py-2">✎ Edit / Delete Specialty</Link>}
+                  {user?.role === "admin" &&
+                    onlineSpecialties.some((s) => s.id === specialty.id) && (
+                      <Link
+                        to={`/admin?tab=specialties&edit=${specialty.id}`}
+                        className="block bg-teal-600 text-white text-center py-2"
+                      >
+                        ✎ Edit / Delete Specialty
+                      </Link>
+                    )}
                   <div className="overflow-hidden bg-gray-100 dark:bg-slate-700">
                     <img
                       src={specialty.image}
@@ -99,7 +122,10 @@ export default function SpecialtiesPage({ language, user }) {
                     </h3>
 
                     <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-6">
-                      <Users size={17} className="text-teal-600 dark:text-teal-400" />
+                      <Users
+                        size={17}
+                        className="text-teal-600 dark:text-teal-400"
+                      />
                       <span>
                         {doctorCount} {t.doctorsCount}
                       </span>

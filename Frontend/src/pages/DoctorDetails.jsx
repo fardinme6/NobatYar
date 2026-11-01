@@ -14,7 +14,7 @@ import {
   BriefcaseMedical,
 } from "lucide-react";
 import { translations } from "../data/translations";
-import { doctorTitle } from "../data/doctorTitle";
+import { doctorSpecialties, normalizePhone, displayPhone } from "../data/doctorSpecialties.js";
 import Loading from "../components/Loading.jsx";
 
 export default function DoctorDetails({ language }) {
@@ -128,7 +128,7 @@ export default function DoctorDetails({ language }) {
 
             <div className="flex-1">
               <span className="inline-block bg-teal-50 dark:bg-slate-700 text-teal-700 dark:text-teal-400 px-4 py-2 rounded-full text-sm font-semibold">
-                {doctorTitle(doctor.specialtyValue || doctor.specialty, t)}
+                {doctorSpecialties(doctor, language).join(" · ")}
               </span>
 
               <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mt-5">
@@ -161,18 +161,18 @@ export default function DoctorDetails({ language }) {
                   <div className="flex items-center gap-3">
                     <Phone size={20} className="text-teal-600 shrink-0" />
                     <a
-                      href={`tel:${doctor.phone}`}
+                      href={`tel:${normalizePhone(doctor.phone)}`}
                       dir="ltr"
                       className="hover:text-teal-600"
                     >
-                      {doctor.phone}
+                      {displayPhone(doctor.phone, language)}
                     </a>
                   </div>
                 )}
                 <div className="flex items-center gap-3">
                   <Stethoscope size={20} className="text-teal-600 shrink-0" />
                   <span>
-                    {doctorTitle(doctor.specialtyValue || doctor.specialty, t)}
+                    {doctorSpecialties(doctor, language).join(" · ")}
                   </span>
                 </div>
               </div>

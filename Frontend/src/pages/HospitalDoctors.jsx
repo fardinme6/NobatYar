@@ -13,7 +13,7 @@ import {
 import { api } from "../api";
 import { useEffect, useState } from "react";
 import { translations } from "../data/translations.js";
-import { doctorTitle } from "../data/doctorTitle.js";
+import { doctorSpecialties } from "../data/doctorSpecialties.js";
 import Loading from "../components/Loading.jsx";
 
 export default function HospitalDoctors({ language }) {
@@ -186,7 +186,8 @@ export default function HospitalDoctors({ language }) {
                 key={doctor.id}
                 className="flex flex-col bg-white dark:bg-slate-800 rounded-2xl overflow-hidden border border-gray-100 dark:border-slate-700 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
               >
-                <div className="overflow-hidden">
+                <div className="relative overflow-hidden">
+                  <span className="absolute top-4 start-4 z-10 bg-white/95 dark:bg-slate-800/95 text-teal-700 dark:text-teal-400 px-3 py-1.5 rounded-lg text-xs font-semibold"><MapPin size={14} className="inline me-1" />{label(doctor.city)}</span>
                   <img
                     src={doctor.image}
                     alt={label(doctor.name)}
@@ -197,7 +198,7 @@ export default function HospitalDoctors({ language }) {
                 <div className="flex flex-col flex-1 p-6">
                   <div className="flex items-center gap-2 text-teal-600 dark:text-teal-400 text-sm mb-3">
                     <UserRound size={17} />
-                    {doctorTitle(doctor.specialtyValue || doctor.specialty, t)}
+                    {doctorSpecialties(doctor, language).join(" · ")}
                   </div>
 
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">
@@ -205,8 +206,7 @@ export default function HospitalDoctors({ language }) {
                   </h3>
 
                   <p className="flex items-center gap-2 text-gray-600 dark:text-gray-300 text-sm mb-6">
-                    <MapPin size={17} className="text-teal-600 shrink-0" />
-                    {label(doctor.city)}
+                    {doctorSpecialties(doctor, language).join(" · ")}
                   </p>
 
                   <div className="grid grid-cols-2 gap-3 mt-auto">

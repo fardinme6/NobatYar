@@ -12,7 +12,7 @@ import {
   SearchX,
 } from "lucide-react";
 import { translations } from "../data/translations.js";
-import { doctorTitle } from "../data/doctorTitle.js";
+import { doctorSpecialties } from "../data/doctorSpecialties.js";
 
 export default function Doctors({ language, home = false, user }) {
   const t = translations[language];
@@ -33,7 +33,7 @@ export default function Doctors({ language, home = false, user }) {
 
     const matchSearch =
       label(doctor.name).toLowerCase().includes(keyword) ||
-      doctorTitle(doctor.specialtyValue || doctor.specialty, t).toLowerCase().includes(keyword) ||
+      doctorSpecialties(doctor, language).join(" ").toLowerCase().includes(keyword) ||
       label(doctor.city).toLowerCase().includes(keyword);
 
     const matchCity = city === "all" || doctor.cityValue === city;
@@ -203,7 +203,7 @@ export default function Doctors({ language, home = false, user }) {
                   />
 
                   <span className="absolute top-4 start-4 bg-white/95 dark:bg-slate-800/95 text-teal-700 dark:text-teal-400 px-3 py-1.5 rounded-lg text-xs font-semibold shadow-sm">
-                    {doctorTitle(doctor.specialtyValue || doctor.specialty, t)}
+                    <MapPin size={14} className="inline me-1" />{label(doctor.city)}
                   </span>
                 </div>
 
@@ -218,8 +218,7 @@ export default function Doctors({ language, home = false, user }) {
                   </h3>
 
                   <div className="flex items-start gap-2 text-gray-600 dark:text-gray-300 mb-6">
-                    <MapPin size={18} className="shrink-0 mt-1 text-teal-600" />
-                    <span className="text-sm leading-6">{label(doctor.city)}</span>
+                    <span className="text-sm leading-6">{doctorSpecialties(doctor, language).join(" · ")}</span>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3 mt-auto">

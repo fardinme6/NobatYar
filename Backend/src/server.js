@@ -848,6 +848,25 @@ async function localizeProfiles(rows, kind, lang) {
     return updated;
   });
 }
+// Read specialty names from Neon instead of hardcoding specialty codes in React.
+async function localizeDoctorSpecialties(doctors, lang) {
+  if (!doctors.length) return doctors;
+  const values = [...new Set(doctors.flatMap(d =>
+    (d.specialtyValues?.length ? d.specialtyValues : [d.specialtyValue]).filter(Boolean)
+  ))];
+  if (!values.length) return doctors;
+  const result = await db.query(
+    "SELECT id,name,value,department,image FROM medical_specialties WHERE value=ANY($1::text[])",
+    [values]
+  );
+  const localized = await localizeProfiles(result.rows, "specialty", lang);
+  const names = new Map(localized.map(item => [item.value, item.name]));
+  return doctors.map(d => ({
+    ...d,
+    specialtyNames: (d.specialtyValues?.length ? d.specialtyValues : [d.specialtyValue])
+      .map(value => names.get(value) || value).filter(Boolean)
+  }));
+}
 // Localize the linked hospital name using its approved translation, and city names.
 async function localizeDoctorRelations(doctors, lang) {
   if (!doctors.length || !["fa", "ps", "en"].includes(lang)) return doctors;
@@ -883,7 +902,7 @@ app.get(
     const specialty = String(req.query.specialty || "all");
     const city = String(req.query.city || "all");
     res.json(
-      await localizeDoctorRelations(await localizeProfiles(
+      await localizeDoctorSpecialties(await localizeDoctorRelations(await localizeProfiles(
         result.rows.filter(
           (d) =>
             (specialty === "all" || (d.specialtyValues || [d.specialtyValue]).includes(specialty)) &&
@@ -895,7 +914,7 @@ app.get(
         ),
         "doctor",
         String(req.query.lang || ""),
-      ), String(req.query.lang || "")),
+      ), String(req.query.lang || "")), String(req.query.lang || "")),
     );
   }),
 );
@@ -909,10 +928,10 @@ app.get(
     if (!result.rows[0])
       return res.status(404).json({ message: "Doctor not found" });
     res.json(
-      (await localizeDoctorRelations(
+      (await localizeDoctorSpecialties(await localizeDoctorRelations(
         await localizeProfiles([result.rows[0]], "doctor", String(req.query.lang || "")),
         String(req.query.lang || "")
-      ))[0],
+      ), String(req.query.lang || "")))[0],
     );
   }),
 );

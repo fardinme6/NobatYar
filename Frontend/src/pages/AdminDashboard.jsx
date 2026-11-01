@@ -20,9 +20,9 @@ import {
 export default function AdminDashboard({ language }) {
   const t = translations[language];
   const modalText = {
-    English: { name: "Name", about: "About doctor", education: "Education", experience: "Work experience", description: "About hospital / clinic", services: "Medical services", location: "Full address", source: "Source language", generate: "Generate with AI", generating: "Generating...", draft: "Save draft", approve: "Approve & Publish", note: "AI translations are drafts. Review all information before publishing.", translate: "Translate", department: "Specialty department", success: "Translations approved and published.", saved: "Translation draft saved." },
-    Persian: { name: "نام", about: "درباره داکتر", education: "تحصیلات", experience: "تجربه کاری", description: "درباره شفاخانه / کلینیک", services: "خدمات طبی", location: "آدرس مکمل", source: "زبان اصلی", generate: "ترجمه با هوش مصنوعی", generating: "در حال ترجمه...", draft: "ذخیره پیش‌نویس", approve: "تأیید و نشر", note: "ترجمه‌های هوش مصنوعی پیش‌نویس هستند. پیش از نشر، معلومات را بررسی کنید.", translate: "ترجمه", department: "بخش تخصص", success: "ترجمه‌ها تأیید و نشر شدند.", saved: "پیش‌نویس ترجمه ذخیره شد." },
-    Pashto: { name: "نوم", about: "د ډاکټر په اړه", education: "زده کړې", experience: "کاري تجربه", description: "د روغتون / کلینیک په اړه", services: "روغتیايي خدمتونه", location: "بشپړه پته", source: "اصلي ژبه", generate: "د مصنوعي ځیرکتیا له لارې ژباړه", generating: "ژباړل کېږي...", draft: "مسوده خوندي کړئ", approve: "تایید او خپرول", note: "د مصنوعي ځیرکتیا ژباړې مسودې دي. تر خپرولو مخکې معلومات وګورئ.", translate: "ژباړه", department: "د تخصص څانګه", success: "ژباړې تایید او خپرې شوې.", saved: "د ژباړې مسوده خوندي شوه." },
+    English: { enterSource: "Enter the fields to translate in the selected source language.", name: "Name", about: "About doctor", education: "Education", experience: "Work experience", description: "About hospital / clinic", services: "Medical services", location: "Full address", source: "Source language", generate: "Generate with AI", generating: "Generating...", draft: "Save draft", approve: "Approve & Publish", note: "AI translations are drafts. Review all information before publishing.", translate: "Translate", department: "Specialty department", success: "Translations approved and published.", saved: "Translation draft saved." },
+    Persian: { enterSource: "بخش‌هایی را که می‌خواهید ترجمه شوند در ستون زبان اصلی وارد کنید.", name: "نام", about: "درباره داکتر", education: "تحصیلات", experience: "تجربه کاری", description: "درباره شفاخانه / کلینیک", services: "خدمات طبی", location: "آدرس مکمل", source: "زبان اصلی", generate: "ترجمه با هوش مصنوعی", generating: "در حال ترجمه...", draft: "ذخیره پیش‌نویس", approve: "تأیید و نشر", note: "ترجمه‌های هوش مصنوعی پیش‌نویس هستند. پیش از نشر، معلومات را بررسی کنید.", translate: "ترجمه", department: "بخش تخصص", success: "ترجمه‌ها تأیید و نشر شدند.", saved: "پیش‌نویس ترجمه ذخیره شد." },
+    Pashto: { enterSource: "هغه برخې چې ژباړل غواړئ د اصلي ژبې په ستون کې ولیکئ.", name: "نوم", about: "د ډاکټر په اړه", education: "زده کړې", experience: "کاري تجربه", description: "د روغتون / کلینیک په اړه", services: "روغتیايي خدمتونه", location: "بشپړه پته", source: "اصلي ژبه", generate: "د مصنوعي ځیرکتیا له لارې ژباړه", generating: "ژباړل کېږي...", draft: "مسوده خوندي کړئ", approve: "تایید او خپرول", note: "د مصنوعي ځیرکتیا ژباړې مسودې دي. تر خپرولو مخکې معلومات وګورئ.", translate: "ژباړه", department: "د تخصص څانګه", success: "ژباړې تایید او خپرې شوې.", saved: "د ژباړې مسوده خوندي شوه." },
   }[language] || {};
 
   const [tab, setTab] = useState(
@@ -54,7 +54,6 @@ export default function AdminDashboard({ language }) {
   const [assignEmail, setAssignEmail] = useState("");
   const [emailMessage, setEmailMessage] = useState("");
   const [translationEditor, setTranslationEditor] = useState(null);
-  const [translationOriginal, setTranslationOriginal] = useState({});
   const [translationChanged, setTranslationChanged] = useState([]);
   const translationErrors = {
     "The AI did not return valid JSON. Please try again or enter translations manually.": {
@@ -86,11 +85,10 @@ export default function AdminDashboard({ language }) {
         kind,
         id: item.id,
         name: item.name,
-        translations: result.translations || {},
+        translations: { fa: {}, ps: {}, en: {} },
         approved: result.approved,
         sourceSnapshot: result.source_snapshot || {},
       });
-      setTranslationOriginal(result.translations || {});
       setTranslationChanged([]);
       setSourceLanguage("fa");
       setError("");
@@ -100,6 +98,14 @@ export default function AdminDashboard({ language }) {
   };
   const generateTranslation = async () => {
     setError("");
+    const sourceFields = translationEditor.translations?.[sourceLanguage] || {};
+    const fields = Object.keys(sourceFields).filter((field) =>
+      String(sourceFields[field] || "").trim()
+    );
+    if (!fields.length) {
+      setError(modalText.enterSource);
+      return;
+    }
     setTranslationBusy(true);
     try {
       const result = await api("/admin/profile-translations/suggest", {
@@ -108,36 +114,26 @@ export default function AdminDashboard({ language }) {
           kind: translationEditor.kind,
           id: translationEditor.id,
           sourceLanguage,
-          fields: (translationEditor.kind === "doctor"
-            ? ["name", "about", "education", "experience"]
-            : translationEditor.kind === "specialty"
-              ? ["name", "department"]
-              : ["name", "description", "services", "location"]
-          ).filter((field) =>
-            translationChanged.includes(field) ||
-            !translationEditor.sourceSnapshot?.[field]
-          ),
+          sourceFields,
+          fields,
         }),
       });
       setTranslationEditor((prev) => ({
         ...prev,
-        translations: Object.fromEntries(
-          ["fa", "ps", "en"].map((lang) => [
-            lang,
-            {
-              ...prev.translations?.[lang],
-              ...Object.fromEntries(
-                (result.generatedFields || []).map((field) => [
-                  field,
-                  result.translations?.[lang]?.[field] || prev.translations?.[lang]?.[field] || "",
-                ]),
-              ),
-            },
-          ]),
-        ),
-        approved: prev.approved,
+        translations: Object.fromEntries(["fa", "ps", "en"].map((lang) => [
+          lang,
+          {
+            ...prev.translations?.[lang],
+            ...Object.fromEntries(fields.map((field) => [
+              field,
+              lang === sourceLanguage
+                ? sourceFields[field]
+                : result.translations?.[lang]?.[field] || prev.translations?.[lang]?.[field] || "",
+            ])),
+          },
+        ])),
       }));
-      setTranslationChanged((prev) => [...new Set([...prev, ...(result.generatedFields || [])])]);
+      setTranslationChanged((prev) => [...new Set([...prev, ...fields])]);
     } catch (e) {
       setError(translateError(e.message));
     } finally {
@@ -154,11 +150,11 @@ export default function AdminDashboard({ language }) {
           body: JSON.stringify({
             translations: translationEditor.translations,
             approved,
-            changedFields: [...new Set([...translationChanged,
-              ...Object.keys(translationEditor.translations?.fa || {}).filter((field) =>
-                ["fa", "ps", "en"].some((lang) =>
-                  (translationEditor.translations?.[lang]?.[field] || "") !==
-                  (translationOriginal?.[lang]?.[field] || "")
+            changedFields: [...new Set([
+              ...translationChanged,
+              ...["fa", "ps", "en"].flatMap((lang) =>
+                Object.keys(translationEditor.translations?.[lang] || {}).filter((field) =>
+                  String(translationEditor.translations?.[lang]?.[field] || "").trim()
                 )
               ),
             ])],

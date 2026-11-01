@@ -2601,7 +2601,7 @@ app.post(
       ? req.body.fields.filter((field) => translationFields[kind].includes(field))
       : translationFields[kind];
     const fields = Object.fromEntries(
-      requested.map((key) => [key, String(supplied[key] ?? record.rows[0][key] ?? "").slice(0, 3000)])
+      requested.map((key) => [key, String(supplied[key] ?? "").slice(0, 3000)])
         .filter(([, value]) => value.trim()),
     );
     if (!Object.values(fields).some((value) => value.trim()))

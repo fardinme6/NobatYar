@@ -68,7 +68,12 @@ export default function AdminDashboard({ language }) {
       English: "Complete translations of new or edited fields in all three languages.",
     },
   };
-  const translateError = (message) => translationErrors[message]?.[language] || message;
+  const translateError = (message) => {
+    if (message === "Something went wrong") {
+      return { Persian: "هنگام ارتباط با سرور مشکلی رخ داد. دوباره تلاش کنید.", Pashto: "له سرور سره د اړیکې پر مهال ستونزه رامنځته شوه. بیا هڅه وکړئ.", English: "Something went wrong. Please try again." }[language];
+    }
+    return translationErrors[message]?.[language] || message;
+  };
 
   const [translationBusy, setTranslationBusy] = useState(false);
   const [sourceLanguage, setSourceLanguage] = useState("fa");

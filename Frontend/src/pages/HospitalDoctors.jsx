@@ -1,4 +1,3 @@
-
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import {
   ArrowLeft,
@@ -25,11 +24,25 @@ export default function HospitalDoctors({ language }) {
 
   const [onlineHospital, setOnlineHospital] = useState(null);
   const [onlineDoctors, setOnlineDoctors] = useState([]);
-  useEffect(() => { api(`/doctors?lang=${language === "Persian" ? "fa" : language === "Pashto" ? "ps" : "en"}`).then(setOnlineDoctors).catch(() => setOnlineDoctors([])); }, [language]);
+  useEffect(() => {
+    api(
+      `/doctors?lang=${language === "Persian" ? "fa" : language === "Pashto" ? "ps" : "en"}`,
+    )
+      .then(setOnlineDoctors)
+      .catch(() => setOnlineDoctors([]));
+  }, [language]);
   const [hospitalLoading, setHospitalLoading] = useState(true);
-  useEffect(() => { setHospitalLoading(true); api(`/hospitals/${id}?lang=${language === "Persian" ? "fa" : language === "Pashto" ? "ps" : "en"}`).then(setOnlineHospital).catch(()=>setOnlineHospital(null)).finally(()=>setHospitalLoading(false)); }, [id, language]);
+  useEffect(() => {
+    setHospitalLoading(true);
+    api(
+      `/hospitals/${id}?lang=${language === "Persian" ? "fa" : language === "Pashto" ? "ps" : "en"}`,
+    )
+      .then(setOnlineHospital)
+      .catch(() => setOnlineHospital(null))
+      .finally(() => setHospitalLoading(false));
+  }, [id, language]);
   const hospital = onlineHospital;
-  const label = value => t[value] || value || "";
+  const label = (value) => t[value] || value || "";
   const contactLabels = {
     Persian: { phone: "شماره تماس شفاخانه", email: "ایمیل شفاخانه" },
     Pashto: { phone: "د روغتون د اړیکې شمېره", email: "د روغتون برېښنالیک" },
@@ -60,7 +73,13 @@ export default function HospitalDoctors({ language }) {
   }
 
   const hospitalDoctors = onlineDoctors.filter(
-    (doctor) => (doctor.hospital === hospital.name || doctor.hospital === hospital.originalName) && (!selectedSpecialty || (doctor.specialtyValues || [doctor.specialtyValue]).includes(selectedSpecialty))
+    (doctor) =>
+      (doctor.hospital === hospital.name ||
+        doctor.hospital === hospital.originalName) &&
+      (!selectedSpecialty ||
+        (doctor.specialtyValues || [doctor.specialtyValue]).includes(
+          selectedSpecialty,
+        )),
   );
 
   return (
@@ -86,17 +105,43 @@ export default function HospitalDoctors({ language }) {
               <p className="text-teal-600 dark:text-teal-400 font-medium mb-2">
                 {t.healthcareCenters}
               </p>
-
               <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
                 {label(hospital.name)}
               </h1>
-
               <p className="flex items-center justify-center sm:justify-start gap-2 text-gray-600 dark:text-gray-300 mt-4">
                 <MapPin size={18} className="text-teal-600 shrink-0" />
                 {label(hospital.location)}
               </p>
-              {hospital.phone && <p className="flex items-center gap-2 mt-3 text-sm text-gray-600 dark:text-gray-300"><Phone size={17} className="text-teal-600" />{contactLabels.phone}: <a dir="ltr" href={`tel:${hospital.phone}`} className="text-teal-600 hover:underline">{hospital.phone}</a></p>}
-              {hospital.email && <p className="flex items-center gap-2 mt-2 text-sm text-gray-600 dark:text-gray-300"><Mail size={17} className="text-teal-600" />{contactLabels.email}: <a dir="ltr" href={`mailto:${hospital.email}`} className="text-teal-600 hover:underline break-all">{hospital.email}</a></p>}
+              {hospital.phone && (
+                <div className="flex flex-wrap items-center gap-2 mt-3 text-sm text-gray-600 dark:text-gray-300">
+                  <Phone size={17} className="text-teal-600" />
+                  <span>{contactLabels.phone}:</span>
+
+                  {hospital.phone.split("/").map((phone, index) => (
+                    <a
+                      key={index}
+                      href={`tel:${phone.trim().replace(/\s/g, "")}`}
+                      dir="ltr"
+                      className="text-teal-600 hover:underline"
+                    >
+                      {phone.trim()}
+                    </a>
+                  ))}
+                </div>
+              )}{" "}
+              {hospital.email && (
+                <p className="flex items-center gap-2 mt-2 text-sm text-gray-600 dark:text-gray-300">
+                  <Mail size={17} className="text-teal-600" />
+                  {contactLabels.email}:{" "}
+                  <a
+                    dir="ltr"
+                    href={`mailto:${hospital.email}`}
+                    className="text-teal-600 hover:underline break-all"
+                  >
+                    {hospital.email}
+                  </a>
+                </p>
+              )}
             </div>
           </div>
         </div>

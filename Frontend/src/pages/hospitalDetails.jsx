@@ -23,13 +23,24 @@ export default function HospitalDetails({ language }) {
   const [onlineHospital, setOnlineHospital] = useState(null);
   const [departments, setDepartments] = useState([]);
   const [hospitalLoading, setHospitalLoading] = useState(true);
-  useEffect(() => { setHospitalLoading(true); api(`/hospitals/${id}?lang=${language === "Persian" ? "fa" : language === "Pashto" ? "ps" : "en"}`).then(setOnlineHospital).catch(()=>setOnlineHospital(null)).finally(()=>setHospitalLoading(false)); }, [id, language]);
   useEffect(() => {
-    api(`/hospitals/${id}/specialties?lang=${language === "Persian" ? "fa" : language === "Pashto" ? "ps" : "en"}`)
-      .then(setDepartments).catch(() => setDepartments([]));
+    setHospitalLoading(true);
+    api(
+      `/hospitals/${id}?lang=${language === "Persian" ? "fa" : language === "Pashto" ? "ps" : "en"}`,
+    )
+      .then(setOnlineHospital)
+      .catch(() => setOnlineHospital(null))
+      .finally(() => setHospitalLoading(false));
+  }, [id, language]);
+  useEffect(() => {
+    api(
+      `/hospitals/${id}/specialties?lang=${language === "Persian" ? "fa" : language === "Pashto" ? "ps" : "en"}`,
+    )
+      .then(setDepartments)
+      .catch(() => setDepartments([]));
   }, [id, language]);
   const hospital = onlineHospital;
-  const label = value => t[value] || value || "";
+  const label = (value) => t[value] || value || "";
   const contactLabels = {
     Persian: { phone: "شماره تماس شفاخانه", email: "ایمیل شفاخانه" },
     Pashto: { phone: "د روغتون د اړیکې شمېره", email: "د روغتون برېښنالیک" },
@@ -127,14 +138,41 @@ export default function HospitalDetails({ language }) {
                   {label(hospital.location)}
                 </p>
               </div>
-              {hospital.phone && <div className="bg-gray-50 dark:bg-slate-700 rounded-xl p-5">
-                <h3 className="flex items-center gap-3 font-semibold dark:text-white mb-3"><Phone size={22} className="text-teal-600" />{contactLabels.phone}</h3>
-                <a dir="ltr" className="text-teal-700 dark:text-teal-300 break-all" href={`tel:${hospital.phone}`}>{hospital.phone}</a>
-              </div>}
-              {hospital.email && <div className="bg-gray-50 dark:bg-slate-700 rounded-xl p-5">
-                <h3 className="flex items-center gap-3 font-semibold dark:text-white mb-3"><Mail size={22} className="text-teal-600" />{contactLabels.email}</h3>
-                <a dir="ltr" className="text-teal-700 dark:text-teal-300 break-all" href={`mailto:${hospital.email}`}>{hospital.email}</a>
-              </div>}
+              {hospital.phone && (
+                <div className="bg-gray-50 dark:bg-slate-700 rounded-xl p-5">
+                  <h3 className="flex items-center gap-3 font-semibold dark:text-white mb-3">
+                    <Phone size={22} className="text-teal-600" />
+                    {contactLabels.phone}
+                  </h3>
+                  <div className="flex flex-wrap gap-3">
+                    {hospital.phone.split("/").map((phone, index) => (
+                      <a
+                        key={index}
+                        href={`tel:${phone.trim().replace(/\s/g, "")}`}
+                        dir="ltr"
+                        className="text-teal-700 dark:text-teal-300 hover:underline"
+                      >
+                        {phone.trim()}
+                      </a>
+                    ))}
+                  </div>{" "}
+                </div>
+              )}
+              {hospital.email && (
+                <div className="bg-gray-50 dark:bg-slate-700 rounded-xl p-5">
+                  <h3 className="flex items-center gap-3 font-semibold dark:text-white mb-3">
+                    <Mail size={22} className="text-teal-600" />
+                    {contactLabels.email}
+                  </h3>
+                  <a
+                    dir="ltr"
+                    className="text-teal-700 dark:text-teal-300 break-all"
+                    href={`mailto:${hospital.email}`}
+                  >
+                    {hospital.email}
+                  </a>
+                </div>
+              )}
             </div>
 
             <div className="mt-8 border-t border-gray-100 dark:border-slate-700 pt-8">
@@ -152,18 +190,31 @@ export default function HospitalDetails({ language }) {
             </div>
 
             <div className="mt-8 border-t border-gray-100 dark:border-slate-700 pt-8">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-5">{t.hospitalServices}</h2>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-5">
+                {t.hospitalServices}
+              </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {departments.map((item) => (
-                  <div key={item.id} className="group overflow-hidden rounded-2xl bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                  <div
+                    key={item.id}
+                    className="group overflow-hidden rounded-2xl bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+                  >
                     <div className="relative overflow-hidden">
-                      <img src={item.image} alt={item.name} className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300" />
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
                       <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-black/25 to-transparent" />
                     </div>
                     <div className="p-5">
-                      <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">{label(item.name)}</h3>
-                      <Link to={`/hospitals/${id}/doctors?specialty=${encodeURIComponent(item.value)}`}
-                        className="flex items-center justify-center w-full bg-teal-600 hover:bg-teal-700 text-white px-4 py-3 rounded-xl font-medium transition-colors">
+                      <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
+                        {label(item.name)}
+                      </h3>
+                      <Link
+                        to={`/hospitals/${id}/doctors?specialty=${encodeURIComponent(item.value)}`}
+                        className="flex items-center justify-center w-full bg-teal-600 hover:bg-teal-700 text-white px-4 py-3 rounded-xl font-medium transition-colors"
+                      >
                         {t.viewDoctors}
                       </Link>
                     </div>
@@ -178,7 +229,11 @@ export default function HospitalDetails({ language }) {
                 className="inline-flex min-w-72 items-center justify-center gap-3 bg-teal-600 hover:bg-teal-700 text-white px-9 py-4 rounded-xl font-semibold shadow-sm hover:shadow-md transition"
               >
                 <Users size={20} />
-                {language === "English" ? "View All Hospital Doctors" : language === "Pashto" ? "د روغتون ټول ډاکټران وګورئ" : "مشاهده تمام داکتران شفاخانه"}
+                {language === "English"
+                  ? "View All Hospital Doctors"
+                  : language === "Pashto"
+                    ? "د روغتون ټول ډاکټران وګورئ"
+                    : "مشاهده تمام داکتران شفاخانه"}
               </Link>
             </div>
           </div>

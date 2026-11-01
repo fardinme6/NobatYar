@@ -37,6 +37,16 @@ function SearchMultiSelect({ options, selected, setSelected, language, placehold
   );
 }
 
+// نام تخصص را برای ثبت نام داکتر به شکل عنوان داکتر نمایش می دهد.
+function specialistLabel(name, language) {
+  const value = String(name || "").trim();
+  const prefix = language === "English" ? "Specialist in " : language === "Pashto" ? "د " : "متخصص ";
+  if (!value) return "";
+  if (language === "English") return /^(specialist|surgeon|cardiologist|urologist)\b/i.test(value) ? value : prefix + value;
+  if (language === "Pashto") return value.startsWith("متخصص") || value.startsWith("د ") ? value : `د ${value} متخصص`;
+  return value.startsWith("متخصص") ? value : prefix + value;
+}
+
 export default function ProviderRegistration({ language, user }) {
   const t = translations[language];
 
@@ -377,7 +387,9 @@ export default function ProviderRegistration({ language, user }) {
                         <span className="text-red-500">*</span>
                       </label>
 
-                      <SearchMultiSelect name="specialtyValues" language={language} options={specialtyOptions.map((s) => ({ value: s.value, label: t[s.name] || s.name }))} selected={selectedSpecialties} setSelected={setSelectedSpecialties} placeholder={language === "English" ? "Select specialties" : language === "Pashto" ? "تخصصونه وټاکئ" : "انتخاب تخصص‌ها"} />
+                      <SearchMultiSelect name="specialtyValues" language={language} options={specialtyOptions
+                        .filter((s, index, list) => list.findIndex((x) => String(x.name).trim() === String(s.name).trim()) === index)
+                        .map((s) => ({ value: s.value, label: specialistLabel(t[s.name] || s.name, language) }))} selected={selectedSpecialties} setSelected={setSelectedSpecialties} placeholder={language === "English" ? "Select specialties" : language === "Pashto" ? "تخصصونه وټاکئ" : "انتخاب تخصص‌ها"} />
                       <p className="text-xs text-gray-500 mt-1">{language === "English" ? "Choose one or more specialties" : language === "Pashto" ? "یو یا څو تخصصونه وټاکئ" : "یک یا چند تخصص انتخاب کنید"}</p>
                     </div>
 

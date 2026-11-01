@@ -1,4 +1,3 @@
--- Run only after reviewing a Neon backup. Existing users and provider accounts remain intact.
 ALTER TABLE users ALTER COLUMN email DROP NOT NULL;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS phone_verified BOOLEAN NOT NULL DEFAULT FALSE;
 CREATE UNIQUE INDEX IF NOT EXISTS users_verified_phone_unique ON users(phone) WHERE phone_verified = TRUE AND phone <> '';

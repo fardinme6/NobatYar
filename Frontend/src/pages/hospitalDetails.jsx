@@ -4,6 +4,8 @@ import {
   ArrowRight,
   Building2,
   MapPin,
+  Phone,
+  Mail,
   Users,
   SearchX,
   Info,
@@ -28,6 +30,11 @@ export default function HospitalDetails({ language }) {
   }, [id, language]);
   const hospital = onlineHospital;
   const label = value => t[value] || value || "";
+  const contactLabels = {
+    Persian: { phone: "شماره تماس شفاخانه", email: "ایمیل شفاخانه" },
+    Pashto: { phone: "د روغتون د اړیکې شمېره", email: "د روغتون برېښنالیک" },
+    English: { phone: "Hospital Phone", email: "Hospital Email" },
+  }[language];
 
   const BackIcon = language === "English" ? ArrowLeft : ArrowRight;
 
@@ -120,6 +127,14 @@ export default function HospitalDetails({ language }) {
                   {label(hospital.location)}
                 </p>
               </div>
+              {hospital.phone && <div className="bg-gray-50 dark:bg-slate-700 rounded-xl p-5">
+                <h3 className="flex items-center gap-3 font-semibold dark:text-white mb-3"><Phone size={22} className="text-teal-600" />{contactLabels.phone}</h3>
+                <a dir="ltr" className="text-teal-700 dark:text-teal-300 break-all" href={`tel:${hospital.phone}`}>{hospital.phone}</a>
+              </div>}
+              {hospital.email && <div className="bg-gray-50 dark:bg-slate-700 rounded-xl p-5">
+                <h3 className="flex items-center gap-3 font-semibold dark:text-white mb-3"><Mail size={22} className="text-teal-600" />{contactLabels.email}</h3>
+                <a dir="ltr" className="text-teal-700 dark:text-teal-300 break-all" href={`mailto:${hospital.email}`}>{hospital.email}</a>
+              </div>}
             </div>
 
             <div className="mt-8 border-t border-gray-100 dark:border-slate-700 pt-8">

@@ -409,6 +409,7 @@ export default function AdminDashboard({ language }) {
               location: item.location,
               type: item.type_value || "private",
               phone: item.phone || "",
+              email: item.email || "",
               license: item.license_number || "",
               services: item.services || "",
               specialtyValues: item.specialty_values || [],
@@ -434,6 +435,7 @@ export default function AdminDashboard({ language }) {
         !form.city ||
         !form.location ||
         !form.phone ||
+        !form.email ||
         !form.license)
     ) {
       setError(
@@ -588,7 +590,7 @@ export default function AdminDashboard({ language }) {
       !form.city ||
       (kind === "doctor" && (!form.email || !form.phone)) ||
       (kind === "hospital" &&
-        (!form.location || !form.phone || !form.license || !form.image)) ||
+        (!form.location || !form.phone || !form.email || !form.license || !form.image)) ||
       (kind === "doctor" && (!(form.specialtyValues?.length || form.specialty) || !form.hospitalId))
     ) {
       setError(t.adminRequiredFields);
@@ -733,7 +735,7 @@ export default function AdminDashboard({ language }) {
           {tabs.map((item) => (
             <button
               key={item.id}
-              onClick={() => setTab(item.id)}
+              onClick={() => { setTab(item.id); setEditing(null); setForm({}); setCatalogFileName(""); }}
               className={`rounded-2xl p-4 text-start shadow-sm border transition hover:-translate-y-1 cursor-pointer ${tab === item.id ? "bg-teal-600 text-white border-teal-600" : "bg-white dark:bg-slate-800 dark:text-white border-gray-100 dark:border-slate-700"}`}
             >
               <item.icon size={24} />
@@ -965,6 +967,7 @@ export default function AdminDashboard({ language }) {
                           ? {
                               name: "",
                               email: "",
+                              phone: "",
                               specialty: "",
                               specialtyValues: [],
                               hospitalId: "",
@@ -978,6 +981,7 @@ export default function AdminDashboard({ language }) {
                               city: "",
                               location: "",
                               phone: "",
+                              email: "",
                               license: "",
                               services: "",
                               specialtyValues: [],
@@ -997,6 +1001,7 @@ export default function AdminDashboard({ language }) {
                     {editing === "new-doctors" ? (
                       <>
                         {field("email", `${t.profileEmail} *`)}
+                        {field("phone", `${t.adminContactPhone} *`)}
                         {specialtyPicker()}
                         {field(
                           "hospitalId",
@@ -1022,6 +1027,7 @@ export default function AdminDashboard({ language }) {
                         {field("city", `${t.cityLabel} *`)}
                         {field("location", `${t.fullAddress} *`)}
                         {field("phone", `${t.adminContactPhone} *`)}
+                        {field("email", `${t.profileEmail} *`)}
                         {field("license", `${t.licenseNumber} *`)}
                         {specialtyPicker()}
                         {field("description", t.adminAboutHospital)}
@@ -1210,6 +1216,7 @@ export default function AdminDashboard({ language }) {
                               {field("city", t.cityLabel)}
                               {field("location", `${t.fullAddress} *`)}
                               {field("phone", `${t.adminContactPhone} *`)}
+                              {field("email", `${t.profileEmail} *`)}
                               {field("license", `${t.licenseNumber} *`)}
                               {specialtyPicker()}
                               {field(

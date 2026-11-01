@@ -920,7 +920,7 @@ app.get(
   "/api/hospitals",
   asyncRoute(async (req, res) => {
     const result = await db.query(
-  'SELECT id,name,type,type_value AS "typeValue",city,city_value AS "cityValue",location,image,description,services,specialty_values AS "specialtyValues" FROM hospitals ORDER BY id',
+  'SELECT id,name,type,type_value AS "typeValue",city,city_value AS "cityValue",location,image,description,services,phone,email,specialty_values AS "specialtyValues" FROM hospitals ORDER BY id',
 );
     const search = String(req.query.search || "").toLowerCase();
     const type = String(req.query.type || "all");
@@ -952,7 +952,7 @@ app.get(
   "/api/hospitals/:id",
   asyncRoute(async (req, res) => {
     const result = await db.query(
-  'SELECT id,name,type,type_value AS "typeValue",city,city_value AS "cityValue",location,image,description,services,specialty_values AS "specialtyValues" FROM hospitals WHERE id=$1',
+  'SELECT id,name,type,type_value AS "typeValue",city,city_value AS "cityValue",location,image,description,services,phone,email,specialty_values AS "specialtyValues" FROM hospitals WHERE id=$1',
   [req.params.id],
 );
     if (!result.rows[0])
@@ -2802,6 +2802,7 @@ app.post(
         services: z.string().max(3000).default(""),
         specialtyValues: z.array(z.string()).default([]),
         phone: text(40),
+        email: z.string().email().max(254),
         license: text(120),
         image: z.string().min(1).max(1000),
       }),
@@ -2812,7 +2813,7 @@ app.post(
       await client.query("BEGIN");
       await client.query("SELECT pg_advisory_xact_lock(20261023)");
       const r = await client.query(
-        "INSERT INTO hospitals(id,name,type,type_value,city,city_value,location,image,description,phone,license_number,services) VALUES((SELECT COALESCE(MAX(id),0)+1 FROM hospitals),$1,$2,$2,$3,$3,$4,$5,$6,$7,$8,$9) RETURNING *",
+        "INSERT INTO hospitals(id,name,type,type_value,city,city_value,location,image,description,phone,license_number,services,email) VALUES((SELECT COALESCE(MAX(id),0)+1 FROM hospitals),$1,$2,$2,$3,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *",
         [
           d.name,
           d.type,
@@ -2823,6 +2824,7 @@ app.post(
           d.phone,
           d.license,
           d.services,
+          d.email,
         ],
       );
       await client.query("UPDATE hospitals SET specialty_values=$1 WHERE id=$2", [d.specialtyValues, r.rows[0].id]);
@@ -2991,6 +2993,7 @@ app.patch(
         services: z.string().max(3000).default(""),
         specialtyValues: z.array(z.string()).default([]),
         phone: text(40),
+        email: z.string().email().max(254),
         license: text(120),
         image: z.string().max(1000).optional(),
       }),
@@ -3008,7 +3011,7 @@ app.patch(
         return res.status(404).json({ message: "Hospital not found" });
       }
       const r = await client.query(
-        "UPDATE hospitals SET name=$1,location=$2,city=$3,city_value=$3,description=$4,image=COALESCE($6,image),type=$7,type_value=$7,phone=$8,license_number=$9,services=$10 WHERE id=$5 RETURNING *",
+        "UPDATE hospitals SET name=$1,location=$2,city=$3,city_value=$3,description=$4,image=COALESCE($6,image),type=$7,type_value=$7,phone=$8,license_number=$9,services=$10,email=$11 WHERE id=$5 RETURNING *",
         [
           d.name,
           d.location,
@@ -3020,6 +3023,7 @@ app.patch(
           d.phone,
           d.license,
           d.services,
+          d.email,
         ],
       );
       await client.query("UPDATE doctors SET hospital=$1 WHERE hospital=$2", [

@@ -1,5 +1,3 @@
--- Run this once in Neon before deploying the updated Backend.
--- Explicit dates only; existing weekly schedules remain untouched but are not used for booking.
 CREATE TABLE IF NOT EXISTS public.doctor_available_dates (
  doctor_id INTEGER NOT NULL REFERENCES public.doctors(id) ON DELETE CASCADE,
  date VARCHAR(10) NOT NULL,

@@ -4,6 +4,8 @@ import {
   ArrowLeft,
   ArrowRight,
   MapPin,
+  Phone,
+  Mail,
   Stethoscope,
   CalendarDays,
   UserRound,
@@ -28,6 +30,11 @@ export default function HospitalDoctors({ language }) {
   useEffect(() => { setHospitalLoading(true); api(`/hospitals/${id}?lang=${language === "Persian" ? "fa" : language === "Pashto" ? "ps" : "en"}`).then(setOnlineHospital).catch(()=>setOnlineHospital(null)).finally(()=>setHospitalLoading(false)); }, [id, language]);
   const hospital = onlineHospital;
   const label = value => t[value] || value || "";
+  const contactLabels = {
+    Persian: { phone: "شماره تماس شفاخانه", email: "ایمیل شفاخانه" },
+    Pashto: { phone: "د روغتون د اړیکې شمېره", email: "د روغتون برېښنالیک" },
+    English: { phone: "Hospital Phone", email: "Hospital Email" },
+  }[language];
 
   const BackIcon = language === "English" ? ArrowLeft : ArrowRight;
 
@@ -88,6 +95,8 @@ export default function HospitalDoctors({ language }) {
                 <MapPin size={18} className="text-teal-600 shrink-0" />
                 {label(hospital.location)}
               </p>
+              {hospital.phone && <p className="flex items-center gap-2 mt-3 text-sm text-gray-600 dark:text-gray-300"><Phone size={17} className="text-teal-600" />{contactLabels.phone}: <a dir="ltr" href={`tel:${hospital.phone}`} className="text-teal-600 hover:underline">{hospital.phone}</a></p>}
+              {hospital.email && <p className="flex items-center gap-2 mt-2 text-sm text-gray-600 dark:text-gray-300"><Mail size={17} className="text-teal-600" />{contactLabels.email}: <a dir="ltr" href={`mailto:${hospital.email}`} className="text-teal-600 hover:underline break-all">{hospital.email}</a></p>}
             </div>
           </div>
         </div>

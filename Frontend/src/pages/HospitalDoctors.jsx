@@ -74,8 +74,8 @@ export default function HospitalDoctors({ language }) {
 
   const hospitalDoctors = onlineDoctors.filter(
     (doctor) =>
-      (doctor.hospital === hospital.name ||
-        doctor.hospital === hospital.originalName) &&
+      ((doctor.hospitalIds?.length > 0 && doctor.hospitalIds.includes(Number(hospital.id))) ||
+        (!doctor.hospitalIds?.length && (doctor.hospital === hospital.name || doctor.hospital === hospital.originalName))) &&
       (!selectedSpecialty ||
         (doctor.specialtyValues || [doctor.specialtyValue]).includes(
           selectedSpecialty,

@@ -18,13 +18,10 @@ export default function ProviderRegistration({ language, user }) {
   const [hospitalOptions, setHospitalOptions] = useState([]);
   const [specialtyOptions, setSpecialtyOptions] = useState([]);
   useEffect(() => {
-    api("/hospitals")
-      .then(setHospitalOptions)
-      .catch(() => {});
-    api("/specialties")
-      .then(setSpecialtyOptions)
-      .catch(() => {});
-  }, []);
+    const lang = language === "Persian" ? "fa" : language === "Pashto" ? "ps" : "en";
+    api(`/hospitals?lang=${lang}`).then(setHospitalOptions).catch(() => {});
+    api(`/specialties?lang=${lang}`).then(setSpecialtyOptions).catch(() => {});
+  }, [language]);
   useEffect(() => {
     if (user)
       api("/provider-requests/mine")
@@ -41,6 +38,13 @@ export default function ProviderRegistration({ language, user }) {
     setSaving(true);
     const form = new FormData(e.currentTarget);
     const data = Object.fromEntries(form.entries());
+    const specialtyValues = form.getAll("specialtyValues");
+    const hospitalIds = form.getAll("hospitalIds").map(Number);
+    if (providerType === "doctor" && (!specialtyValues.length || !hospitalIds.length)) {
+      setError(language === "English" ? "Select at least one specialty and one hospital." : language === "Pashto" ? "لږ تر لږه یوه تخصص او یو روغتون وټاکئ." : "حداقل یک تخصص و یک شفاخانه انتخاب کنید.");
+      setSaving(false);
+      return;
+    }
     if (!doctorPhoto) {
       setError("Photo is required / عکس ضروری است");
       setSaving(false);
@@ -66,8 +70,10 @@ export default function ProviderRegistration({ language, user }) {
       photoUrl,
       type: providerType,
       city: data.city,
-      specialty: data.specialty || "",
-      hospitalId: data.hospitalId || null,
+      specialty: specialtyValues[0] || "",
+      specialtyValues,
+      hospitalId: hospitalIds[0] || null,
+      hospitalIds,
       hospitalType: providerType === "doctor" ? "" : providerType,
       license: data.license || "",
       address: data.address || "",
@@ -336,49 +342,32 @@ export default function ProviderRegistration({ language, user }) {
                         <span className="text-red-500">*</span>
                       </label>
 
-                      <select
-                        name="specialty"
-                        defaultValue=""
-                        required
-                        className={inputStyle}
-                      >
-                        <option value="" disabled>
-                          {t.selectSpecialty}
-                        </option>
-
+                      <div className="border border-gray-200 dark:border-slate-600 rounded-xl p-4 space-y-3 max-h-48 overflow-y-auto">
                         {specialtyOptions.map((specialty) => (
-                          <option key={specialty.id} value={specialty.value}>
+                          <label key={specialty.id} className="flex items-center gap-3 cursor-pointer text-gray-800 dark:text-white">
+                            <input type="checkbox" name="specialtyValues" value={specialty.value} className="w-4 h-4 accent-teal-600" />
                             {t[specialty.name] || specialty.name}
-                          </option>
+                          </label>
                         ))}
-                      </select>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">{language === "English" ? "Choose one or more specialties" : language === "Pashto" ? "یو یا څو تخصصونه وټاکئ" : "یک یا چند تخصص انتخاب کنید"}</p>
                     </div>
 
                     <div>
                       <label className="block mb-2 font-medium text-gray-700 dark:text-gray-200">
-                        {t.hospital || "Hospital"}{" "}
-                        <span className="text-red-500">*</span>
+                        {t.hospital || "Hospital"} <span className="text-red-500">*</span>
                       </label>
-                      <select
-                        name="hospitalId"
-                        required
-                        defaultValue=""
-                        className={inputStyle}
-                      >
-                        <option value="" disabled>
-                          {t.selectHospital}{" "}
-                        </option>
+                      <div className="border border-gray-200 dark:border-slate-600 rounded-xl p-4 space-y-3 max-h-48 overflow-y-auto">
                         {hospitalOptions.map((h) => (
-                          <option key={h.id} value={h.id}>
+                          <label key={h.id} className="flex items-center gap-3 cursor-pointer text-gray-800 dark:text-white">
+                            <input type="checkbox" name="hospitalIds" value={h.id} className="w-4 h-4 accent-teal-600" />
                             {h.name} — {h.city}
-                          </option>
+                          </label>
                         ))}
-                      </select>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">{language === "English" ? "Choose one or more hospitals" : language === "Pashto" ? "یو یا څو روغتونونه وټاکئ" : "یک یا چند شفاخانه انتخاب کنید"}</p>
                       {!hospitalOptions.length && (
-                        <p className="text-sm text-amber-600 mt-2">
-                          No hospitals available. An admin must add a hospital
-                          first.
-                        </p>
+                        <p className="text-sm text-amber-600 mt-2">{language === "English" ? "No hospitals available." : language === "Pashto" ? "هیڅ روغتون نشته." : "هیچ شفاخانه‌ای موجود نیست."}</p>
                       )}
                     </div>
                     <div className="md:col-span-2">

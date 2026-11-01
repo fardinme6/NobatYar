@@ -877,7 +877,7 @@ app.get(
   "/api/doctors",
   asyncRoute(async (req, res) => {
     const result = await db.query(
-      'SELECT id,name,email,specialty,specialty_value AS "specialtyValue",specialty_values AS "specialtyValues",hospital,city,city_value AS "cityValue",image,experience,education,about,phone FROM doctors ORDER BY id',
+      'SELECT id,name,email,specialty,specialty_value AS "specialtyValue",specialty_values AS "specialtyValues",(SELECT COALESCE(array_agg(dh.hospital_id), ARRAY[]::integer[]) FROM doctor_hospitals dh WHERE dh.doctor_id=doctors.id) AS "hospitalIds",hospital,city,city_value AS "cityValue",image,experience,education,about,phone FROM doctors ORDER BY id',
     );
     const search = String(req.query.search || "").toLowerCase();
     const specialty = String(req.query.specialty || "all");
@@ -903,7 +903,7 @@ app.get(
   "/api/doctors/:id",
   asyncRoute(async (req, res) => {
     const result = await db.query(
-      'SELECT id,name,email,specialty,specialty_value AS "specialtyValue",specialty_values AS "specialtyValues",hospital,city,city_value AS "cityValue",image,experience,education,about,phone FROM doctors WHERE id=$1',
+      'SELECT id,name,email,specialty,specialty_value AS "specialtyValue",specialty_values AS "specialtyValues",(SELECT COALESCE(array_agg(dh.hospital_id), ARRAY[]::integer[]) FROM doctor_hospitals dh WHERE dh.doctor_id=doctors.id) AS "hospitalIds",hospital,city,city_value AS "cityValue",image,experience,education,about,phone FROM doctors WHERE id=$1',
       [req.params.id],
     );
     if (!result.rows[0])
@@ -1278,6 +1278,10 @@ async function addProviderCard(client, request, details, providerId = null) {
         request.phone,
       ],
     );
+    await client.query("UPDATE doctors SET specialty_values=$1 WHERE id=$2", [details.specialtyValues || [details.specialty], doctorId]);
+    for (const hospitalId of details.hospitalIds || [details.hospitalId]) {
+      await client.query("INSERT INTO doctor_hospitals(doctor_id,hospital_id) VALUES($1,$2) ON CONFLICT DO NOTHING", [doctorId, hospitalId]);
+    }
     if (providerId)
       await client.query(
         "INSERT INTO provider_doctors(provider_id,doctor_id) VALUES($1,$2)",
@@ -1331,29 +1335,23 @@ app.post(
       });
     if (!details.city || !details.address)
       return res.status(400).json({ message: "City and address are required" });
-    if (data.providerType === "doctor" && !details.specialty)
-      return res.status(400).json({ message: "Medical specialty is required" });
-    if (
-      data.providerType === "doctor" &&
-      !Number.isInteger(Number(details.hospitalId))
-    )
-      return res.status(400).json({ message: "Select an existing hospital" });
     if (data.providerType === "doctor") {
-      const hospital = await db.query("SELECT id FROM hospitals WHERE id=$1", [
-        details.hospitalId,
-      ]);
-      if (!hospital.rowCount)
-        return res
-          .status(400)
-          .json({ message: "Selected hospital does not exist" });
-      const specialty = await db.query(
-        "SELECT id FROM medical_specialties WHERE value=$1",
-        [details.specialty],
-      );
-      if (!specialty.rowCount)
-        return res
-          .status(400)
-          .json({ message: "Selected specialty does not exist" });
+      const specialties = [...new Set(details.specialtyValues || [details.specialty])];
+      const hospitals = [...new Set(details.hospitalIds || [details.hospitalId])];
+      if (!specialties.length || specialties.some(v => typeof v !== "string" || !v))
+        return res.status(400).json({ message: "Medical specialty is required" });
+      if (!hospitals.length || hospitals.some(v => !Number.isInteger(Number(v)) || Number(v) <= 0))
+        return res.status(400).json({ message: "Select an existing hospital" });
+      const foundHospitals = await db.query("SELECT id FROM hospitals WHERE id=ANY($1::int[])", [hospitals]);
+      if (foundHospitals.rowCount !== hospitals.length)
+        return res.status(400).json({ message: "Selected hospital does not exist" });
+      const foundSpecialties = await db.query("SELECT value FROM medical_specialties WHERE value=ANY($1::text[])", [specialties]);
+      if (foundSpecialties.rowCount !== specialties.length)
+        return res.status(400).json({ message: "Selected specialty does not exist" });
+      details.specialty = specialties[0];
+      details.specialtyValues = specialties;
+      details.hospitalId = Number(hospitals[0]);
+      details.hospitalIds = hospitals.map(Number);
     }
     const existing = await db.query(
       "SELECT id FROM provider_requests WHERE LOWER(email)=LOWER($1) AND status='pending' LIMIT 1",

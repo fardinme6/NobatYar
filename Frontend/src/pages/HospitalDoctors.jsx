@@ -48,6 +48,13 @@ export default function HospitalDoctors({ language }) {
     Pashto: { phone: "د روغتون د اړیکې شمېره", email: "د روغتون برېښنالیک" },
     English: { phone: "Hospital Phone", email: "Hospital Email" },
   }[language];
+  const formatPhone = (phone) => {
+    if (language === "English") return phone;
+
+    const numbers = language === "Pashto" ? "۰۱۲۳۴۵۶۷۸۹" : "۰۱۲۳۴۵۶۷۸۹";
+
+    return phone.replace(/[0-9]/g, (num) => numbers[Number(num)]);
+  };
 
   const BackIcon = language === "English" ? ArrowLeft : ArrowRight;
 
@@ -74,8 +81,11 @@ export default function HospitalDoctors({ language }) {
 
   const hospitalDoctors = onlineDoctors.filter(
     (doctor) =>
-      ((doctor.hospitalIds?.length > 0 && doctor.hospitalIds.includes(Number(hospital.id))) ||
-        (!doctor.hospitalIds?.length && (doctor.hospital === hospital.name || doctor.hospital === hospital.originalName))) &&
+      ((doctor.hospitalIds?.length > 0 &&
+        doctor.hospitalIds.includes(Number(hospital.id))) ||
+        (!doctor.hospitalIds?.length &&
+          (doctor.hospital === hospital.name ||
+            doctor.hospital === hospital.originalName))) &&
       (!selectedSpecialty ||
         (doctor.specialtyValues || [doctor.specialtyValue]).includes(
           selectedSpecialty,

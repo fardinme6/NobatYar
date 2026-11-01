@@ -19,11 +19,71 @@ import {
 
 export default function AdminDashboard({ language }) {
   const t = translations[language];
-  const modalText = {
-    English: { enterSource: "Enter the fields to translate in the selected source language.", name: "Name", about: "About doctor", education: "Education", experience: "Work experience", description: "About hospital / clinic", services: "Medical services", location: "Full address", source: "Source language", generate: "Generate with AI", generating: "Generating...", draft: "Save draft", approve: "Approve & Publish", note: "AI translations are drafts. Review all information before publishing.", translate: "Translate", department: "Specialty department", success: "Translations approved and published.", saved: "Translation draft saved." },
-    Persian: { enterSource: "بخش‌هایی را که می‌خواهید ترجمه شوند در ستون زبان اصلی وارد کنید.", name: "نام", about: "درباره داکتر", education: "تحصیلات", experience: "تجربه کاری", description: "درباره شفاخانه / کلینیک", services: "خدمات طبی", location: "آدرس مکمل", source: "زبان اصلی", generate: "ترجمه با هوش مصنوعی", generating: "در حال ترجمه...", draft: "ذخیره پیش‌نویس", approve: "تأیید و نشر", note: "ترجمه‌های هوش مصنوعی پیش‌نویس هستند. پیش از نشر، معلومات را بررسی کنید.", translate: "ترجمه", department: "بخش تخصص", success: "ترجمه‌ها تأیید و نشر شدند.", saved: "پیش‌نویس ترجمه ذخیره شد." },
-    Pashto: { enterSource: "هغه برخې چې ژباړل غواړئ د اصلي ژبې په ستون کې ولیکئ.", name: "نوم", about: "د ډاکټر په اړه", education: "زده کړې", experience: "کاري تجربه", description: "د روغتون / کلینیک په اړه", services: "روغتیايي خدمتونه", location: "بشپړه پته", source: "اصلي ژبه", generate: "د مصنوعي ځیرکتیا له لارې ژباړه", generating: "ژباړل کېږي...", draft: "مسوده خوندي کړئ", approve: "تایید او خپرول", note: "د مصنوعي ځیرکتیا ژباړې مسودې دي. تر خپرولو مخکې معلومات وګورئ.", translate: "ژباړه", department: "د تخصص څانګه", success: "ژباړې تایید او خپرې شوې.", saved: "د ژباړې مسوده خوندي شوه." },
-  }[language] || {};
+  const modalText =
+    {
+      English: {
+        enterSource:
+          "Enter the fields to translate in the selected source language.",
+        name: "Name",
+        about: "About doctor",
+        education: "Education",
+        experience: "Work experience",
+        description: "About hospital / clinic",
+        services: "Medical services",
+        location: "Full address",
+        source: "Source language",
+        generate: "Generate with AI",
+        generating: "Generating...",
+        draft: "Save draft",
+        approve: "Approve & Publish",
+        note: "AI translations are drafts. Review all information before publishing.",
+        translate: "Translate",
+        department: "Specialty department",
+        success: "Translations approved and published.",
+        saved: "Translation draft saved.",
+      },
+      Persian: {
+        enterSource:
+          "بخش‌هایی را که می‌خواهید ترجمه شوند در ستون زبان اصلی وارد کنید.",
+        name: "نام",
+        about: "درباره داکتر",
+        education: "تحصیلات",
+        experience: "تجربه کاری",
+        description: "درباره شفاخانه / کلینیک",
+        services: "خدمات طبی",
+        location: "آدرس مکمل",
+        source: "زبان اصلی",
+        generate: "ترجمه با هوش مصنوعی",
+        generating: "در حال ترجمه...",
+        draft: "ذخیره پیش‌نویس",
+        approve: "تأیید و نشر",
+        note: "ترجمه‌های هوش مصنوعی پیش‌نویس هستند. پیش از نشر، معلومات را بررسی کنید.",
+        translate: "ترجمه",
+        department: "بخش تخصص",
+        success: "ترجمه‌ها تأیید و نشر شدند.",
+        saved: "پیش‌نویس ترجمه ذخیره شد.",
+      },
+      Pashto: {
+        enterSource: "هغه برخې چې ژباړل غواړئ د اصلي ژبې په ستون کې ولیکئ.",
+        name: "نوم",
+        about: "د ډاکټر په اړه",
+        education: "زده کړې",
+        experience: "کاري تجربه",
+        description: "د روغتون / کلینیک په اړه",
+        services: "روغتیايي خدمتونه",
+        location: "بشپړه پته",
+        source: "اصلي ژبه",
+        generate: "د مصنوعي ځیرکتیا له لارې ژباړه",
+        generating: "ژباړل کېږي...",
+        draft: "مسوده خوندي کړئ",
+        approve: "تایید او خپرول",
+        note: "د مصنوعي ځیرکتیا ژباړې مسودې دي. تر خپرولو مخکې معلومات وګورئ.",
+        translate: "ژباړه",
+        department: "د تخصص څانګه",
+        success: "ژباړې تایید او خپرې شوې.",
+        saved: "د ژباړې مسوده خوندي شوه.",
+      },
+    }[language] || {};
 
   const [tab, setTab] = useState(
     new URLSearchParams(window.location.search).get("tab") || "requests",
@@ -56,20 +116,31 @@ export default function AdminDashboard({ language }) {
   const [translationEditor, setTranslationEditor] = useState(null);
   const [translationChanged, setTranslationChanged] = useState([]);
   const translationErrors = {
-    "The AI did not return valid JSON. Please try again or enter translations manually.": {
-      Persian: "هوش مصنوعی پاسخ معتبر نداد. دوباره تلاش کنید یا ترجمه‌ها را دستی وارد کنید.",
-      Pashto: "مصنوعي ځیرکتیا سم ځواب ورنه کړ. بیا هڅه وکړئ یا ژباړې په لاس ولیکئ.",
-      English: "The AI did not return valid JSON. Please try again or enter translations manually.",
-    },
+    "The AI did not return valid JSON. Please try again or enter translations manually.":
+      {
+        Persian:
+          "هوش مصنوعی پاسخ معتبر نداد. دوباره تلاش کنید یا ترجمه‌ها را دستی وارد کنید.",
+        Pashto:
+          "مصنوعي ځیرکتیا سم ځواب ورنه کړ. بیا هڅه وکړئ یا ژباړې په لاس ولیکئ.",
+        English:
+          "The AI did not return valid JSON. Please try again or enter translations manually.",
+      },
     "Fill translations for all non-empty fields before approving.": {
-      Persian: "لطفاً ترجمه بخش‌های جدید یا ویرایش‌شده را در هر سه زبان تکمیل کنید.",
-      Pashto: "مهرباني وکړئ د نویو یا بدل شوو برخو ژباړې په درې واړو ژبو بشپړې کړئ.",
-      English: "Complete translations of new or edited fields in all three languages.",
+      Persian:
+        "لطفاً ترجمه بخش‌های جدید یا ویرایش‌شده را در هر سه زبان تکمیل کنید.",
+      Pashto:
+        "مهرباني وکړئ د نویو یا بدل شوو برخو ژباړې په درې واړو ژبو بشپړې کړئ.",
+      English:
+        "Complete translations of new or edited fields in all three languages.",
     },
   };
   const translateError = (message) => {
     if (message === "Something went wrong") {
-      return { Persian: "هنگام ارتباط با سرور مشکلی رخ داد. دوباره تلاش کنید.", Pashto: "له سرور سره د اړیکې پر مهال ستونزه رامنځته شوه. بیا هڅه وکړئ.", English: "Something went wrong. Please try again." }[language];
+      return {
+        Persian: "هنگام ارتباط با سرور مشکلی رخ داد. دوباره تلاش کنید.",
+        Pashto: "له سرور سره د اړیکې پر مهال ستونزه رامنځته شوه. بیا هڅه وکړئ.",
+        English: "Something went wrong. Please try again.",
+      }[language];
     }
     return translationErrors[message]?.[language] || message;
   };
@@ -100,7 +171,7 @@ export default function AdminDashboard({ language }) {
     setError("");
     const sourceFields = translationEditor.translations?.[sourceLanguage] || {};
     const fields = Object.keys(sourceFields).filter((field) =>
-      String(sourceFields[field] || "").trim()
+      String(sourceFields[field] || "").trim(),
     );
     if (!fields.length) {
       setError(modalText.enterSource);
@@ -120,18 +191,24 @@ export default function AdminDashboard({ language }) {
       });
       setTranslationEditor((prev) => ({
         ...prev,
-        translations: Object.fromEntries(["fa", "ps", "en"].map((lang) => [
-          lang,
-          {
-            ...prev.translations?.[lang],
-            ...Object.fromEntries(fields.map((field) => [
-              field,
-              lang === sourceLanguage
-                ? sourceFields[field]
-                : result.translations?.[lang]?.[field] || prev.translations?.[lang]?.[field] || "",
-            ])),
-          },
-        ])),
+        translations: Object.fromEntries(
+          ["fa", "ps", "en"].map((lang) => [
+            lang,
+            {
+              ...prev.translations?.[lang],
+              ...Object.fromEntries(
+                fields.map((field) => [
+                  field,
+                  lang === sourceLanguage
+                    ? sourceFields[field]
+                    : result.translations?.[lang]?.[field] ||
+                      prev.translations?.[lang]?.[field] ||
+                      "",
+                ]),
+              ),
+            },
+          ]),
+        ),
       }));
       setTranslationChanged((prev) => [...new Set([...prev, ...fields])]);
     } catch (e) {
@@ -150,23 +227,25 @@ export default function AdminDashboard({ language }) {
           body: JSON.stringify({
             translations: translationEditor.translations,
             approved,
-            changedFields: [...new Set([
-              ...translationChanged,
-              ...["fa", "ps", "en"].flatMap((lang) =>
-                Object.keys(translationEditor.translations?.[lang] || {}).filter((field) =>
-                  String(translationEditor.translations?.[lang]?.[field] || "").trim()
-                )
-              ),
-            ])],
+            changedFields: [
+              ...new Set([
+                ...translationChanged,
+                ...["fa", "ps", "en"].flatMap((lang) =>
+                  Object.keys(
+                    translationEditor.translations?.[lang] || {},
+                  ).filter((field) =>
+                    String(
+                      translationEditor.translations?.[lang]?.[field] || "",
+                    ).trim(),
+                  ),
+                ),
+              ]),
+            ],
           }),
         },
       );
       setTranslationEditor(null);
-      setEmailMessage(
-        approved
-          ? modalText.success
-          : modalText.saved,
-      );
+      setEmailMessage(approved ? modalText.success : modalText.saved);
     } catch (e) {
       setError(translateError(e.message));
     } finally {
@@ -184,7 +263,9 @@ export default function AdminDashboard({ language }) {
         api("/admin/providers"),
         api("/admin/doctors"),
         api("/admin/hospitals"),
-        api(`/specialties?lang=${language === "English" ? "en" : language === "Pashto" ? "ps" : "fa"}`),
+        api(
+          `/specialties?lang=${language === "English" ? "en" : language === "Pashto" ? "ps" : "fa"}`,
+        ),
       ]);
       setRequests(r);
       setAppointments(a);
@@ -393,7 +474,9 @@ export default function AdminDashboard({ language }) {
             email: item.email || "",
             phone: item.phone || "",
             specialty: item.specialty_value,
-            specialtyValues: item.specialty_values?.length ? item.specialty_values : [item.specialty_value],
+            specialtyValues: item.specialty_values?.length
+              ? item.specialty_values
+              : [item.specialty_value],
             hospitalId:
               hospitals.find((h) => h.name === item.hospital)?.id || "",
             city: item.city,
@@ -438,9 +521,7 @@ export default function AdminDashboard({ language }) {
         !form.email ||
         !form.license)
     ) {
-      setError(
-        t.adminHospitalRequired,
-      );
+      setError(t.adminHospitalRequired);
       return;
     }
     if (
@@ -453,7 +534,15 @@ export default function AdminDashboard({ language }) {
     try {
       await api(
         `/admin/${kind === "doctor" ? "doctors" : kind === "hospital" ? "hospitals" : "specialties"}/${id}`,
-        { method: "PATCH", body: JSON.stringify({ ...form, ...(kind === "doctor" ? { specialty: form.specialtyValues?.[0] || form.specialty } : {}) }) },
+        {
+          method: "PATCH",
+          body: JSON.stringify({
+            ...form,
+            ...(kind === "doctor"
+              ? { specialty: form.specialtyValues?.[0] || form.specialty }
+              : {}),
+          }),
+        },
       );
       setEditing(null);
       await load();
@@ -462,8 +551,7 @@ export default function AdminDashboard({ language }) {
     }
   };
   const deleteItem = async (kind, id) => {
-    if (!window.confirm(t.adminCatalogDeleteConfirm))
-      return;
+    if (!window.confirm(t.adminCatalogDeleteConfirm)) return;
     try {
       await api(
         `/admin/${kind === "doctor" ? "doctors" : kind === "hospital" ? "hospitals" : "specialties"}/${id}`,
@@ -567,31 +655,41 @@ export default function AdminDashboard({ language }) {
       )}
     </div>
   );
+
   const addSpecialty = async () => {
     if (!form.image || !form.department || !form.name || !form.value) {
       setError(t.adminSpecialtyRequired);
       return;
     }
+
     try {
       await api("/admin/specialties", {
         method: "POST",
-        body: JSON.stringify({ ...form, ...(kind === "doctor" ? { specialty: form.specialtyValues?.[0] || form.specialty } : {}) }),
+        body: JSON.stringify(form),
       });
+
       setEditing(null);
       setForm({});
+      setError("");
       await load();
     } catch (e) {
       setError(e.message);
     }
   };
+
   const addCatalog = async (kind) => {
     if (
       !form.name ||
       !form.city ||
       (kind === "doctor" && (!form.email || !form.phone)) ||
       (kind === "hospital" &&
-        (!form.location || !form.phone || !form.email || !form.license || !form.image)) ||
-      (kind === "doctor" && (!(form.specialtyValues?.length || form.specialty) || !form.hospitalId))
+        (!form.location ||
+          !form.phone ||
+          !form.email ||
+          !form.license ||
+          !form.image)) ||
+      (kind === "doctor" &&
+        (!(form.specialtyValues?.length || form.specialty) || !form.hospitalId))
     ) {
       setError(t.adminRequiredFields);
       return;
@@ -599,7 +697,12 @@ export default function AdminDashboard({ language }) {
     try {
       await api(`/admin/${kind === "doctor" ? "doctors" : "hospitals"}`, {
         method: "POST",
-        body: JSON.stringify({ ...form, ...(kind === "doctor" ? { specialty: form.specialtyValues?.[0] || form.specialty } : {}) }),
+        body: JSON.stringify({
+          ...form,
+          ...(kind === "doctor"
+            ? { specialty: form.specialtyValues?.[0] || form.specialty }
+            : {}),
+        }),
       });
       setEditing(null);
       setForm({});
@@ -610,14 +713,33 @@ export default function AdminDashboard({ language }) {
   };
   const specialtyPicker = () => (
     <div className="sm:col-span-2 border rounded-xl p-4">
-      <p className="font-medium mb-3">{language === "English" ? "Medical specialties (choose one or more)" : language === "Pashto" ? "طبي تخصصونه (یو یا څو وټاکئ)" : "تخصص‌های طبی (یک یا چند مورد انتخاب کنید)"}</p>
+      <p className="font-medium mb-3">
+        {language === "English"
+          ? "Medical specialties (choose one or more)"
+          : language === "Pashto"
+            ? "طبي تخصصونه (یو یا څو وټاکئ)"
+            : "تخصص‌های طبی (یک یا چند مورد انتخاب کنید)"}
+      </p>
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {specialtiesList.map((item) => (
-          <label key={item.value} className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" checked={(form.specialtyValues || []).includes(item.value)}
-              onChange={(e) => setForm({ ...form, specialtyValues: e.target.checked
-                ? [...(form.specialtyValues || []), item.value]
-                : (form.specialtyValues || []).filter(v => v !== item.value) })} />
+          <label
+            key={item.value}
+            className="flex items-center gap-2 cursor-pointer"
+          >
+            <input
+              type="checkbox"
+              checked={(form.specialtyValues || []).includes(item.value)}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  specialtyValues: e.target.checked
+                    ? [...(form.specialtyValues || []), item.value]
+                    : (form.specialtyValues || []).filter(
+                        (v) => v !== item.value,
+                      ),
+                })
+              }
+            />
             <span>{item.name}</span>
           </label>
         ))}
@@ -640,7 +762,14 @@ export default function AdminDashboard({ language }) {
             </option>
           ))}
         </select>
-      ) : ["about", "education", "experience", "description", "services", "location"].includes(name) ? (
+      ) : [
+          "about",
+          "education",
+          "experience",
+          "description",
+          "services",
+          "location",
+        ].includes(name) ? (
         <textarea
           rows={name === "location" ? 3 : 7}
           value={form[name] ?? ""}
@@ -735,7 +864,12 @@ export default function AdminDashboard({ language }) {
           {tabs.map((item) => (
             <button
               key={item.id}
-              onClick={() => { setTab(item.id); setEditing(null); setForm({}); setCatalogFileName(""); }}
+              onClick={() => {
+                setTab(item.id);
+                setEditing(null);
+                setForm({});
+                setCatalogFileName("");
+              }}
               className={`rounded-2xl p-4 text-start shadow-sm border transition hover:-translate-y-1 cursor-pointer ${tab === item.id ? "bg-teal-600 text-white border-teal-600" : "bg-white dark:bg-slate-800 dark:text-white border-gray-100 dark:border-slate-700"}`}
             >
               <item.icon size={24} />
@@ -992,12 +1126,18 @@ export default function AdminDashboard({ language }) {
                     }}
                     className="bg-teal-600 hover:bg-teal-700 active:bg-teal-800 cursor-pointer transition-colors text-white rounded-xl px-4 py-2"
                   >
-                    + {tab === "doctors" ? t.adminAddDoctor : t.adminAddHospital}
+                    +{" "}
+                    {tab === "doctors" ? t.adminAddDoctor : t.adminAddHospital}
                   </button>
                 )}
                 {(editing === "new-doctors" || editing === "new-hospitals") && (
                   <div className="bg-white rounded-xl p-5 grid sm:grid-cols-2 gap-3">
-                    {field("name", editing === "new-doctors" ? `${t.adminDoctorName} *` : `${t.adminName} *`)}
+                    {field(
+                      "name",
+                      editing === "new-doctors"
+                        ? `${t.adminDoctorName} *`
+                        : `${t.adminName} *`,
+                    )}
                     {editing === "new-doctors" ? (
                       <>
                         {field("email", `${t.profileEmail} *`)}
@@ -1148,7 +1288,9 @@ export default function AdminDashboard({ language }) {
                               </button>
                             );
                           })()}
-                        {(kind === "doctor" || kind === "hospital" || kind === "specialty") && (
+                        {(kind === "doctor" ||
+                          kind === "hospital" ||
+                          kind === "specialty") && (
                           <button
                             onClick={() => openTranslation(kind, item)}
                             className="rounded-lg border border-teal-500 text-teal-700 px-3 py-2"
@@ -1162,7 +1304,8 @@ export default function AdminDashboard({ language }) {
                           }
                           className="flex gap-1 items-center border rounded-lg px-3 py-2"
                         >
-                          <Pencil size={16} /> {active ? t.adminCancel : t.adminEdit}
+                          <Pencil size={16} />{" "}
+                          {active ? t.adminCancel : t.adminEdit}
                         </button>
                         <button
                           onClick={() => deleteItem(kind, item.id)}
@@ -1173,11 +1316,14 @@ export default function AdminDashboard({ language }) {
                       </div>
                       {active && (
                         <div className="grid sm:grid-cols-2 gap-3 mt-5">
-                          {field("name", kind === "doctor" ? t.adminDoctorName : t.adminName)}
+                          {field(
+                            "name",
+                            kind === "doctor" ? t.adminDoctorName : t.adminName,
+                          )}
                           {kind === "doctor" && (
                             <>
                               {field("email", `${t.profileEmail} *`)}
-                         {field("phone", `${t.adminContactPhone} *`)}
+                              {field("phone", `${t.adminContactPhone} *`)}
                               {specialtyPicker()}
                               {field(
                                 "hospitalId",
@@ -1197,32 +1343,24 @@ export default function AdminDashboard({ language }) {
                           )}
                           {kind === "hospital" && (
                             <>
-                              {field(
-                                "type",
-                                t.adminHospitalType,
-                                "select",
-                                [
-                                  {
-                                    value: "private",
-                                    label: t.privateHospital,
-                                  },
-                                  {
-                                    value: "government",
-                                    label: t.governmentHospital,
-                                  },
-                                  { value: "clinic", label: t.clinic },
-                                ],
-                              )}
+                              {field("type", t.adminHospitalType, "select", [
+                                {
+                                  value: "private",
+                                  label: t.privateHospital,
+                                },
+                                {
+                                  value: "government",
+                                  label: t.governmentHospital,
+                                },
+                                { value: "clinic", label: t.clinic },
+                              ])}
                               {field("city", t.cityLabel)}
                               {field("location", `${t.fullAddress} *`)}
                               {field("phone", `${t.adminContactPhone} *`)}
                               {field("email", `${t.profileEmail} *`)}
                               {field("license", `${t.licenseNumber} *`)}
                               {specialtyPicker()}
-                              {field(
-                                "description",
-                                t.adminAboutHospital,
-                              )}
+                              {field("description", t.adminAboutHospital)}
                               {catalogImageField()}
                             </>
                           )}
@@ -1319,9 +1457,7 @@ export default function AdminDashboard({ language }) {
                   ✕
                 </button>
               </div>
-              <p className="text-sm text-slate-500 mb-4">
-                {modalText.note}
-              </p>
+              <p className="text-sm text-slate-500 mb-4">{modalText.note}</p>
               <label className="block text-sm mb-2">
                 {modalText.source}:{" "}
                 <select
@@ -1370,7 +1506,9 @@ export default function AdminDashboard({ language }) {
                             ""
                           }
                           onChange={(e) => {
-                            setTranslationChanged((prev) => [...new Set([...prev, field])]);
+                            setTranslationChanged((prev) => [
+                              ...new Set([...prev, field]),
+                            ]);
                             setTranslationEditor((prev) => ({
                               ...prev,
                               translations: {
@@ -1415,7 +1553,9 @@ export default function AdminDashboard({ language }) {
               <p className="text-sm mb-4">
                 {assigning.name} — {t.adminExistingProfile} #{assigning.id}
               </p>
-              <label className="block mb-2">{t.adminProviderEmailRequired}</label>
+              <label className="block mb-2">
+                {t.adminProviderEmailRequired}
+              </label>
               <input
                 type="email"
                 required

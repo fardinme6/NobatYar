@@ -184,7 +184,7 @@ export default function AdminDashboard({ language }) {
         api("/admin/providers"),
         api("/admin/doctors"),
         api("/admin/hospitals"),
-        api("/specialties"),
+        api(`/specialties?lang=${language === "English" ? "en" : language === "Pashto" ? "ps" : "fa"}`),
       ]);
       setRequests(r);
       setAppointments(a);
@@ -203,7 +203,7 @@ export default function AdminDashboard({ language }) {
   };
   useEffect(() => {
     load();
-  }, []);
+  }, [language]);
   const decide = async (r, status) => {
     const note = notes[r.id] || "";
     if (status === "rejected" && !note.trim()) {
@@ -608,7 +608,7 @@ export default function AdminDashboard({ language }) {
   };
   const specialtyPicker = () => (
     <div className="sm:col-span-2 border rounded-xl p-4">
-      <p className="font-medium mb-3">{language === "English" ? "Medical specialties (select multiple)" : language === "Pashto" ? "طبي تخصصونه (څو وټاکئ)" : "تخصص‌های طبی (چند مورد انتخاب کنید)"}</p>
+      <p className="font-medium mb-3">{language === "English" ? "Medical specialties (choose one or more)" : language === "Pashto" ? "طبي تخصصونه (یو یا څو وټاکئ)" : "تخصص‌های طبی (یک یا چند مورد انتخاب کنید)"}</p>
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {specialtiesList.map((item) => (
           <label key={item.value} className="flex items-center gap-2 cursor-pointer">

@@ -138,14 +138,17 @@ export default function HospitalDetails({ language }) {
 
             <div className="mt-8 border-t border-gray-100 dark:border-slate-700 pt-8">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-5">{t.hospitalServices}</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {departments.map((item) => (
-                  <div key={item.id} className="rounded-xl overflow-hidden border border-gray-200 dark:border-slate-700">
-                    <img src={item.image} alt={item.name} className="w-full h-40 object-cover" />
-                    <div className="p-4">
-                      <h3 className="font-bold text-gray-900 dark:text-white mb-3">{item.name}</h3>
+                  <div key={item.id} className="group overflow-hidden rounded-2xl bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                    <div className="relative overflow-hidden">
+                      <img src={item.image} alt={item.name} className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300" />
+                      <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-black/25 to-transparent" />
+                    </div>
+                    <div className="p-5">
+                      <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">{label(item.name)}</h3>
                       <Link to={`/hospitals/${id}/doctors?specialty=${encodeURIComponent(item.value)}`}
-                        className="inline-block bg-teal-600 text-white px-4 py-2 rounded-lg">
+                        className="flex items-center justify-center w-full bg-teal-600 hover:bg-teal-700 text-white px-4 py-3 rounded-xl font-medium transition-colors">
                         {t.viewDoctors}
                       </Link>
                     </div>
@@ -154,13 +157,15 @@ export default function HospitalDetails({ language }) {
               </div>
             </div>
 
-            <Link
-              to={`/hospitals/${hospital.id}/doctors`}
-              className="inline-flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-7 py-3.5 rounded-xl font-medium mt-8 transition"
-            >
-              <Users size={19} />
-              {t.viewDoctors}
-            </Link>
+            <div className="flex justify-center mt-10">
+              <Link
+                to={`/hospitals/${hospital.id}/doctors`}
+                className="inline-flex min-w-72 items-center justify-center gap-3 bg-teal-600 hover:bg-teal-700 text-white px-9 py-4 rounded-xl font-semibold shadow-sm hover:shadow-md transition"
+              >
+                <Users size={20} />
+                {language === "English" ? "View All Hospital Doctors" : language === "Pashto" ? "د روغتون ټول ډاکټران وګورئ" : "مشاهده تمام داکتران شفاخانه"}
+              </Link>
+            </div>
           </div>
         </div>
       </div>

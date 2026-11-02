@@ -137,6 +137,18 @@ export default function AdminDashboard({ language }) {
         "Complete translations of new or edited fields in all three languages.",
     },
   };
+  // Translate known messages returned by the backend without changing the API.
+  const adminServerMessages = {
+    "Account assigned. Activation email sent.": t.adminAccountAssignedMessage,
+    "Activation email sent": t.adminActivationSentMessage,
+    "Activation email sent successfully.": t.adminActivationSentMessage,
+    "Verification link sent to the new email. The old email stays active until confirmation.": t.adminEmailChangeSentMessage,
+    "Account linked, but email failed. Go to Manage Providers and resend activation.": t.adminAccountLinkedEmailFailed,
+    "Verification email could not be sent. The original email remains active.": t.adminEmailDeliveryFailed,
+    "Provider not found": t.adminProviderNotFound,
+    "This email is already in use": t.adminEmailInUse,
+    "This is already the current email": t.adminCurrentEmail,
+  };
   const translateError = (message) => {
     if (message === "Something went wrong") {
       return {
@@ -145,7 +157,7 @@ export default function AdminDashboard({ language }) {
         English: "Something went wrong. Please try again.",
       }[language];
     }
-    return translationErrors[message]?.[language] || message;
+    return adminServerMessages[message] || translationErrors[message]?.[language] || message;
   };
 
   const [translationBusy, setTranslationBusy] = useState(false);
@@ -167,7 +179,7 @@ export default function AdminDashboard({ language }) {
       setSourceLanguage("fa");
       setError("");
     } catch (e) {
-      setError(e.message);
+      setError(translateError(e.message));
     }
   };
   const generateTranslation = async () => {
@@ -280,7 +292,7 @@ export default function AdminDashboard({ language }) {
       const accounts = await api("/admin/catalog-accounts");
       setCatalogAccounts(accounts);
     } catch (e) {
-      setError(e.message);
+      setError(translateError(e.message));
     } finally {
       setLoading(false);
     }
@@ -301,11 +313,11 @@ export default function AdminDashboard({ language }) {
       });
       await load();
     } catch (e) {
-      setError(e.message);
+      setError(translateError(e.message));
     }
   };
   const changeProviderEmail = async (p) => {
-    const newEmail = window.prompt(`New email for ${p.name}:`, p.email || "");
+    const newEmail = window.prompt(`${t.adminChangeEmailPrompt} ${p.name}:`, p.email || "");
     if (
       !newEmail ||
       newEmail.trim().toLowerCase() === (p.email || "").toLowerCase()
@@ -313,7 +325,7 @@ export default function AdminDashboard({ language }) {
       return;
     if (
       !window.confirm(
-        `Send a verification link to ${newEmail.trim()}? The existing email remains active until verified.`,
+        `${t.adminChangeEmailConfirmStart} ${newEmail.trim()}${t.adminChangeEmailConfirmEnd}`,
       )
     )
       return;
@@ -322,10 +334,10 @@ export default function AdminDashboard({ language }) {
         method: "POST",
         body: JSON.stringify({ email: newEmail.trim() }),
       });
-      setEmailMessage(result.message);
+      setEmailMessage(translateError(result.message));
       setError("");
     } catch (e) {
-      setError(e.message);
+      setError(translateError(e.message));
     }
   };
   const assignAccount = async () => {
@@ -345,9 +357,9 @@ export default function AdminDashboard({ language }) {
       setAssigning(null);
       setAssignEmail("");
       await load();
-      setEmailMessage(result.message);
+      setEmailMessage(translateError(result.message));
     } catch (e) {
-      setError(e.message);
+      setError(translateError(e.message));
       await load();
     } finally {
       setSendingId(null);
@@ -359,9 +371,9 @@ export default function AdminDashboard({ language }) {
     setSendingId(id);
     try {
       await api(`/admin/providers/${id}/resend-activation`, { method: "POST" });
-      setEmailMessage("Activation email sent successfully.");
+      setEmailMessage(t.adminActivationSentMessage);
     } catch (e) {
-      setError(e.message);
+      setError(translateError(e.message));
     } finally {
       setSendingId(null);
     }
@@ -411,7 +423,7 @@ export default function AdminDashboard({ language }) {
         await api(`/admin/patients/${patient.id}/status`, { method: "PATCH", body: JSON.stringify({ disabled: action === "disable" }) });
       }
       await load();
-    } catch (e) { setError(e.message); }
+    } catch (e) { setError(translateError(e.message)); }
     finally { setPatientBusy(null); }
   };
   const deleteContact = async (c) => {
@@ -427,7 +439,7 @@ export default function AdminDashboard({ language }) {
       await api(`/admin/contacts/${c.id}`, { method: "DELETE" });
       setContacts((previous) => previous.filter((item) => item.id !== c.id));
     } catch (e) {
-      setError(e.message);
+      setError(translateError(e.message));
     } finally {
       setContactBusyId(null);
     }
@@ -451,7 +463,7 @@ export default function AdminDashboard({ language }) {
       setReplies((previous) => ({ ...previous, [c.id]: "" }));
       await load();
     } catch (e) {
-      setError(e.message);
+      setError(translateError(e.message));
     } finally {
       setContactBusyId(null);
     }
@@ -464,7 +476,7 @@ export default function AdminDashboard({ language }) {
       });
       await load();
     } catch (e) {
-      setError(e.message);
+      setError(translateError(e.message));
     }
   };
   const deleteProvider = async (p) => {
@@ -482,7 +494,7 @@ export default function AdminDashboard({ language }) {
       await api(`/admin/providers/${p.id}`, { method: "DELETE" });
       await load();
     } catch (e) {
-      setError(e.message);
+      setError(translateError(e.message));
     }
   };
   const startEdit = (kind, item) => {
@@ -569,7 +581,7 @@ export default function AdminDashboard({ language }) {
       setEditing(null);
       await load();
     } catch (e) {
-      setError(e.message);
+      setError(translateError(e.message));
     }
   };
   const deleteItem = async (kind, id) => {
@@ -581,7 +593,7 @@ export default function AdminDashboard({ language }) {
       );
       await load();
     } catch (e) {
-      setError(e.message);
+      setError(translateError(e.message));
     }
   };
   const uploadSpecialtyPhoto = async (file) => {
@@ -600,7 +612,7 @@ export default function AdminDashboard({ language }) {
       if (!response.ok) throw new Error(result.message || t.adminUploadFailed);
       setForm((previous) => ({ ...previous, image: result.image }));
     } catch (e) {
-      setError(e.message);
+      setError(translateError(e.message));
     } finally {
       setUploadingImage(false);
     }
@@ -622,7 +634,7 @@ export default function AdminDashboard({ language }) {
       if (!response.ok) throw new Error(result.message || t.adminUploadFailed);
       setForm((previous) => ({ ...previous, image: result.image }));
     } catch (e) {
-      setError(e.message);
+      setError(translateError(e.message));
     } finally {
       setUploadingImage(false);
     }
@@ -695,7 +707,7 @@ export default function AdminDashboard({ language }) {
       setError("");
       await load();
     } catch (e) {
-      setError(e.message);
+      setError(translateError(e.message));
     }
   };
 
@@ -730,7 +742,7 @@ export default function AdminDashboard({ language }) {
       setForm({});
       await load();
     } catch (e) {
-      setError(e.message);
+      setError(translateError(e.message));
     }
   };
   const specialtyPicker = () => (

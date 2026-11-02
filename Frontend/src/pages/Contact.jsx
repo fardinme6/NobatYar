@@ -91,11 +91,11 @@ export default function Contact({ language }) {
                 </h3>
 
                 <a
-                  href="mailto:fardinmehry7@gmail.com"
+                  href="mailto:nobatyaraf@gmail.com"
                   dir="ltr"
                   className="block text-gray-500 dark:text-gray-400 text-sm hover:text-teal-600 dark:hover:text-teal-400 transition break-all"
                 >
-                  fardinmehry7@gmail.com
+                  nobatyaraf@gmail.com
                 </a>
               </div>
             </div>

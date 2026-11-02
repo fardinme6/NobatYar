@@ -160,6 +160,15 @@ export default function AdminDashboard({ language }) {
     return adminServerMessages[message] || translationErrors[message]?.[language] || message;
   };
 
+  // Keep message codes instead of translated text, so switching language updates alerts.
+  const displayMessage = (message) => {
+    if (!message) return "";
+    if (t[message]) return t[message];
+    if (message === "translationPublished") return modalText.success;
+    if (message === "translationDraftSaved") return modalText.saved;
+    return translateError(message);
+  };
+
   const [translationBusy, setTranslationBusy] = useState(false);
   const [sourceLanguage, setSourceLanguage] = useState("fa");
   const openTranslation = async (kind, item) => {
@@ -179,7 +188,7 @@ export default function AdminDashboard({ language }) {
       setSourceLanguage("fa");
       setError("");
     } catch (e) {
-      setError(translateError(e.message));
+      setError(e.message);
     }
   };
   const generateTranslation = async () => {
@@ -227,7 +236,7 @@ export default function AdminDashboard({ language }) {
       }));
       setTranslationChanged((prev) => [...new Set([...prev, ...fields])]);
     } catch (e) {
-      setError(translateError(e.message));
+      setError(e.message);
     } finally {
       setTranslationBusy(false);
     }
@@ -260,9 +269,9 @@ export default function AdminDashboard({ language }) {
         },
       );
       setTranslationEditor(null);
-      setEmailMessage(approved ? modalText.success : modalText.saved);
+      setEmailMessage(approved ? "translationPublished" : "translationDraftSaved");
     } catch (e) {
-      setError(translateError(e.message));
+      setError(e.message);
     } finally {
       setTranslationBusy(false);
     }
@@ -292,7 +301,7 @@ export default function AdminDashboard({ language }) {
       const accounts = await api("/admin/catalog-accounts");
       setCatalogAccounts(accounts);
     } catch (e) {
-      setError(translateError(e.message));
+      setError(e.message);
     } finally {
       setLoading(false);
     }
@@ -313,7 +322,7 @@ export default function AdminDashboard({ language }) {
       });
       await load();
     } catch (e) {
-      setError(translateError(e.message));
+      setError(e.message);
     }
   };
   const changeProviderEmail = async (p) => {
@@ -334,10 +343,10 @@ export default function AdminDashboard({ language }) {
         method: "POST",
         body: JSON.stringify({ email: newEmail.trim() }),
       });
-      setEmailMessage(translateError(result.message));
+      setEmailMessage(result.message);
       setError("");
     } catch (e) {
-      setError(translateError(e.message));
+      setError(e.message);
     }
   };
   const assignAccount = async () => {
@@ -357,9 +366,9 @@ export default function AdminDashboard({ language }) {
       setAssigning(null);
       setAssignEmail("");
       await load();
-      setEmailMessage(translateError(result.message));
+      setEmailMessage(result.message);
     } catch (e) {
-      setError(translateError(e.message));
+      setError(e.message);
       await load();
     } finally {
       setSendingId(null);
@@ -371,9 +380,9 @@ export default function AdminDashboard({ language }) {
     setSendingId(id);
     try {
       await api(`/admin/providers/${id}/resend-activation`, { method: "POST" });
-      setEmailMessage(t.adminActivationSentMessage);
+      setEmailMessage("adminActivationSentMessage");
     } catch (e) {
-      setError(translateError(e.message));
+      setError(e.message);
     } finally {
       setSendingId(null);
     }
@@ -423,7 +432,7 @@ export default function AdminDashboard({ language }) {
         await api(`/admin/patients/${patient.id}/status`, { method: "PATCH", body: JSON.stringify({ disabled: action === "disable" }) });
       }
       await load();
-    } catch (e) { setError(translateError(e.message)); }
+    } catch (e) { setError(e.message); }
     finally { setPatientBusy(null); }
   };
   const deleteContact = async (c) => {
@@ -439,7 +448,7 @@ export default function AdminDashboard({ language }) {
       await api(`/admin/contacts/${c.id}`, { method: "DELETE" });
       setContacts((previous) => previous.filter((item) => item.id !== c.id));
     } catch (e) {
-      setError(translateError(e.message));
+      setError(e.message);
     } finally {
       setContactBusyId(null);
     }
@@ -458,12 +467,12 @@ export default function AdminDashboard({ language }) {
         method: "POST",
         body: JSON.stringify({ reply }),
       });
-      setEmailMessage(t.adminReplySent || "Reply email sent successfully.");
+      setEmailMessage("adminReplySent");
       setOpenReplyId(null);
       setReplies((previous) => ({ ...previous, [c.id]: "" }));
       await load();
     } catch (e) {
-      setError(translateError(e.message));
+      setError(e.message);
     } finally {
       setContactBusyId(null);
     }
@@ -476,7 +485,7 @@ export default function AdminDashboard({ language }) {
       });
       await load();
     } catch (e) {
-      setError(translateError(e.message));
+      setError(e.message);
     }
   };
   const deleteProvider = async (p) => {
@@ -494,7 +503,7 @@ export default function AdminDashboard({ language }) {
       await api(`/admin/providers/${p.id}`, { method: "DELETE" });
       await load();
     } catch (e) {
-      setError(translateError(e.message));
+      setError(e.message);
     }
   };
   const startEdit = (kind, item) => {
@@ -581,7 +590,7 @@ export default function AdminDashboard({ language }) {
       setEditing(null);
       await load();
     } catch (e) {
-      setError(translateError(e.message));
+      setError(e.message);
     }
   };
   const deleteItem = async (kind, id) => {
@@ -593,7 +602,7 @@ export default function AdminDashboard({ language }) {
       );
       await load();
     } catch (e) {
-      setError(translateError(e.message));
+      setError(e.message);
     }
   };
   const uploadSpecialtyPhoto = async (file) => {
@@ -612,7 +621,7 @@ export default function AdminDashboard({ language }) {
       if (!response.ok) throw new Error(result.message || t.adminUploadFailed);
       setForm((previous) => ({ ...previous, image: result.image }));
     } catch (e) {
-      setError(translateError(e.message));
+      setError(e.message);
     } finally {
       setUploadingImage(false);
     }
@@ -634,7 +643,7 @@ export default function AdminDashboard({ language }) {
       if (!response.ok) throw new Error(result.message || t.adminUploadFailed);
       setForm((previous) => ({ ...previous, image: result.image }));
     } catch (e) {
-      setError(translateError(e.message));
+      setError(e.message);
     } finally {
       setUploadingImage(false);
     }
@@ -707,7 +716,7 @@ export default function AdminDashboard({ language }) {
       setError("");
       await load();
     } catch (e) {
-      setError(translateError(e.message));
+      setError(e.message);
     }
   };
 
@@ -742,7 +751,7 @@ export default function AdminDashboard({ language }) {
       setForm({});
       await load();
     } catch (e) {
-      setError(translateError(e.message));
+      setError(e.message);
     }
   };
   const specialtyPicker = () => (
@@ -917,7 +926,7 @@ export default function AdminDashboard({ language }) {
             role="status"
             className="bg-green-50 text-green-700 rounded-xl p-4 mt-5"
           >
-            {emailMessage}
+            {displayMessage(emailMessage)}
           </p>
         )}
         {error && (
@@ -925,7 +934,7 @@ export default function AdminDashboard({ language }) {
             role="alert"
             className="bg-red-50 text-red-700 rounded-xl p-4 mt-5"
           >
-            {error}
+            {displayMessage(error)}
           </p>
         )}
         {loading ? (
@@ -1527,7 +1536,7 @@ export default function AdminDashboard({ language }) {
               </label>
               {error && (
                 <p role="alert" className="text-red-600 mb-3">
-                  {error}
+                  {displayMessage(error)}
                 </p>
               )}
               <button

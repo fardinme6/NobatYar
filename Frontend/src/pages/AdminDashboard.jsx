@@ -6,7 +6,7 @@ import Loading from "../components/Loading.jsx";
 import {
   ShieldCheck,
   Mail,
-  CalendarDays,
+  Users,
   ClipboardCheck,
   RefreshCw,
   Building2,
@@ -90,7 +90,9 @@ export default function AdminDashboard({ language }) {
     new URLSearchParams(window.location.search).get("tab") || "requests",
   );
   const [requests, setRequests] = useState([]);
-  const [appointments, setAppointments] = useState([]);
+  const [patients, setPatients] = useState([]);
+  const [patientSearch, setPatientSearch] = useState("");
+  const [patientBusy, setPatientBusy] = useState(null);
   const [contacts, setContacts] = useState([]);
   const [providers, setProviders] = useState([]);
   const [doctors, setDoctors] = useState([]);
@@ -257,9 +259,9 @@ export default function AdminDashboard({ language }) {
     setError("");
     setLoading(true);
     try {
-      const [r, a, c, p, d, h, sp] = await Promise.all([
+      const [r, patientsData, c, p, d, h, sp] = await Promise.all([
         api("/admin/provider-requests"),
-        api("/admin/appointments"),
+        api("/admin/patients"),
         api("/admin/contacts"),
         api("/admin/providers"),
         api("/admin/doctors"),
@@ -269,7 +271,7 @@ export default function AdminDashboard({ language }) {
         ),
       ]);
       setRequests(r);
-      setAppointments(a);
+      setPatients(patientsData);
       setContacts(c);
       setProviders(p);
       setDoctors(d);
@@ -386,16 +388,31 @@ export default function AdminDashboard({ language }) {
     ).find((x) => x.id === editId);
     if (item && kind) startEdit(kind, item);
   }, [loading, tab, doctors, hospitals, specialtiesList]);
-  const changeAppointment = async (id, status) => {
-    try {
-      await api(`/admin/appointments/${id}/status`, {
-        method: "PATCH",
-        body: JSON.stringify({ status }),
-      });
-      await load();
-    } catch (e) {
-      setError(e.message);
+  const patientLabels = {
+    Persian: { title:"مدیریت مریضان", search:"جستجو با نام، ایمیل یا شماره تماس", verify:"تأیید حساب", verified:"تأیید شده", pending:"تأیید نشده", delete:"حذف دائمی", disable:"غیرفعال‌سازی", enable:"فعال‌سازی", active:"فعال", inactive:"غیرفعال", status:"وضعیت حساب", details:"مشخصات مریض", name:"نام مکمل", email:"ایمیل", phone:"شماره تماس", city:"شهر", address:"آدرس", bio:"درباره", birth:"تاریخ تولد", registered:"تاریخ ثبت‌نام", history:"تعداد نوبت‌ها", noHistory:"این حساب سابقه نوبت ندارد. آیا برای همیشه حذف شود؟", hasHistory:"این مریض {count} نوبت ثبت‌شده دارد. با حذف حساب، تمام سوابق نوبت‌ها نیز برای همیشه حذف می‌شوند. ادامه می‌دهید؟", empty:"مریضی یافت نشد", unknown:"ثبت نشده" },
+    Pashto: { title:"د ناروغانو مدیریت", search:"په نوم، برېښنالیک یا شمېره لټون", verify:"حساب تایید کړئ", verified:"تایید شوی", pending:"نه دی تایید شوی", delete:"د تل لپاره ړنګول", disable:"غیرفعالول", enable:"فعالول", active:"فعال", inactive:"غیرفعال", status:"د حساب حالت", details:"د ناروغ معلومات", name:"بشپړ نوم", email:"برېښنالیک", phone:"د اړیکې شمېره", city:"ښار", address:"پته", bio:"په اړه", birth:"د زېږېدو نېټه", registered:"د نوملیکنې نېټه", history:"د نوبتونو شمېر", noHistory:"دا حساب د نوبت سابقه نه لري. د تل لپاره یې ړنګوئ؟", hasHistory:"دا ناروغ {count} نوبتونه لري. د حساب په ړنګولو سره ټول نوبتونه هم د تل لپاره ړنګېږي. دوام ورکوئ؟", empty:"ناروغ ونه موندل شو", unknown:"نه دی ثبت شوی" },
+    English: { title:"Manage Patients", search:"Search name, email or phone", verify:"Verify Account", verified:"Verified", pending:"Unverified", delete:"Delete Permanently", disable:"Deactivate", enable:"Activate", active:"Active", inactive:"Inactive", status:"Account Status", details:"Patient Details", name:"Full Name", email:"Email", phone:"Phone", city:"City", address:"Address", bio:"About", birth:"Date of Birth", registered:"Registration Date", history:"Appointments", noHistory:"This account has no appointments. Permanently delete it?", hasHistory:"This patient has {count} appointments. Deleting the account will permanently delete all appointment history too. Continue?", empty:"No patients found", unknown:"Not provided" },
+  }[language];
+  const updatePatient = async (patient, action) => {
+    if (action === "delete") {
+      const warning = patient.appointmentCount > 0
+        ? patientLabels.hasHistory.replace("{count}", patient.appointmentCount)
+        : patientLabels.noHistory;
+      if (!window.confirm(warning)) return;
     }
+    setPatientBusy(patient.id);
+    setError("");
+    try {
+      if (action === "delete") {
+        await api(`/admin/patients/${patient.id}?confirmHistory=true`, { method: "DELETE" });
+      } else if (action === "verify") {
+        await api(`/admin/patients/${patient.id}/verify`, { method: "PATCH" });
+      } else {
+        await api(`/admin/patients/${patient.id}/status`, { method: "PATCH", body: JSON.stringify({ disabled: action === "disable" }) });
+      }
+      await load();
+    } catch (e) { setError(e.message); }
+    finally { setPatientBusy(null); }
   };
   const deleteContact = async (c) => {
     if (
@@ -836,10 +853,10 @@ export default function AdminDashboard({ language }) {
       count: contacts.filter((c) => c.status === "unread").length,
     },
     {
-      id: "appointments",
-      name: t.adminAppointments,
-      icon: CalendarDays,
-      count: appointments.length,
+      id: "patients",
+      name: patientLabels.title,
+      icon: Users,
+      count: patients.length,
     },
     {
       id: "providers",
@@ -1068,38 +1085,51 @@ export default function AdminDashboard({ language }) {
               ) : (
                 <p className="dark:text-white">{t.adminEmpty}</p>
               ))}
-            {tab === "appointments" &&
-              (appointments.length ? (
-                appointments.map((a) => (
-                  <article
-                    key={a.id}
-                    className="bg-white dark:bg-slate-800 dark:text-white rounded-2xl p-5 shadow-sm flex flex-wrap justify-between gap-4 items-center"
-                  >
-                    <div>
-                      <h3 className="font-bold">{a.patient_name}</h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-300">
-                        #{a.doctor_id} · {a.date} · {a.time} · {a.status}
-                      </p>
+            {tab === "patients" && (
+              <div className="space-y-4">
+                <input type="search" value={patientSearch} onChange={(e) => setPatientSearch(e.target.value)}
+                  placeholder={patientLabels.search}
+                  className="w-full p-3 rounded-xl border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white" />
+                {patients.filter((patient) =>
+                  [patient.name, patient.email, patient.phone].some((value) =>
+                    String(value || "").toLowerCase().includes(patientSearch.toLowerCase().trim())
+                  )
+                ).map((patient) => (
+                  <article key={patient.id} className="bg-white dark:bg-slate-800 dark:text-white rounded-2xl p-5 shadow-sm grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-3">
+                        {patient.avatar && <img src={patient.avatar} alt="" className="w-14 h-14 rounded-full object-cover" />}
+                        <div>
+                          <h3 className="font-bold">{patient.name}</h3>
+                          <p className="text-sm text-gray-500 dark:text-gray-300">{patientLabels.status}: <strong>{patient.account_disabled ? patientLabels.inactive : patientLabels.active}</strong></p>
+                          <p className="text-sm text-gray-500 dark:text-gray-300">{patient.email_verified || patient.phone_verified ? patientLabels.verified : patientLabels.pending}</p>
+                        </div>
+                      </div>
+                      <p className="text-sm">{patientLabels.history}: {patient.appointmentCount}</p>
+                      <div className="flex flex-wrap gap-2">
+                        {!patient.email_verified && <button disabled={patientBusy === patient.id} onClick={() => updatePatient(patient, "verify")}
+                          className="bg-teal-600 text-white rounded-lg px-4 py-2 disabled:opacity-50">{patientLabels.verify}</button>}
+                        <button disabled={patientBusy === patient.id} onClick={() => updatePatient(patient, patient.account_disabled ? "enable" : "disable")}
+                          className="bg-amber-100 text-amber-800 rounded-lg px-4 py-2 disabled:opacity-50">{patient.account_disabled ? patientLabels.enable : patientLabels.disable}</button>
+                        <button disabled={patientBusy === patient.id} onClick={() => updatePatient(patient, "delete")}
+                          className="bg-red-100 text-red-700 rounded-lg px-4 py-2 disabled:opacity-50">{patientLabels.delete}</button>
+                      </div>
                     </div>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => changeAppointment(a.id, "confirmed")}
-                        className="bg-teal-600 text-white px-4 py-2 rounded-lg cursor-pointer"
-                      >
-                        {t.adminConfirm}
-                      </button>
-                      <button
-                        onClick={() => changeAppointment(a.id, "cancelled")}
-                        className="bg-red-100 text-red-700 px-4 py-2 rounded-lg cursor-pointer"
-                      >
-                        {t.adminCancel}
-                      </button>
+                    <div className="rounded-xl bg-gray-50 dark:bg-slate-700 p-4 space-y-2 text-sm min-w-0">
+                      <h4 className="font-bold mb-3">{patientLabels.details}</h4>
+                      {[
+                        [patientLabels.name, patient.name], [patientLabels.email, patient.email],
+                        [patientLabels.phone, patient.phone], [patientLabels.city, patient.city],
+                        [patientLabels.address, patient.address], [patientLabels.bio, patient.bio],
+                        [patientLabels.birth, patient.birthDate],
+                        [patientLabels.registered, patient.created_at ? new Date(patient.created_at).toLocaleDateString(language === "English" ? "en-US" : language === "Pashto" ? "ps-AF" : "fa-AF") : ""]
+                      ].map(([key, value]) => <p key={key} className="break-words"><strong>{key}:</strong> {value || patientLabels.unknown}</p>)}
                     </div>
                   </article>
-                ))
-              ) : (
-                <p className="dark:text-white">{t.adminEmpty}</p>
-              ))}
+                ))}
+                {!patients.some((patient) => [patient.name, patient.email, patient.phone].some((value) => String(value || "").toLowerCase().includes(patientSearch.toLowerCase().trim()))) && <p className="dark:text-white">{patientLabels.empty}</p>}
+              </div>
+            )}
 
             {["doctors", "hospitals", "specialties"].includes(tab) && (
               <>

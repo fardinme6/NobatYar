@@ -2497,7 +2497,7 @@ app.delete(
 app.get("/api/admin/patients", requireAuth, requireAdmin, asyncRoute(async (req, res) => {
   const result = await db.query(`
     SELECT u.id,u.name,u.email,u.phone,u.city,u.address,u.bio,u.birth_date AS "birthDate",
-           u.avatar,u.created_at,u.email_verified,u.phone_verified,u.account_disabled,
+           u.avatar,u.created_at,u.email_verified,u.account_disabled,
            (SELECT COUNT(*)::int FROM appointments a WHERE a.user_id=u.id) AS "appointmentCount"
     FROM users u WHERE u.role='patient' ORDER BY u.created_at DESC
   `);

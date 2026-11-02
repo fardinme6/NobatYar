@@ -2478,7 +2478,7 @@ app.delete(
       // Revoke existing sessions, prevent password reset/login, and free the email
       // for a fresh Assign Account invitation. Keep the user row for history.
       await client.query(
-        `UPDATE users SET role='patient', account_disabled=true,
+        `UPDATE users SET account_disabled=true,
          email='removed-provider-' || id || '-' || md5(random()::text) || '@disabled.nobatyar.invalid',
          password_hash=$2, email_verified=false WHERE id=$1`,
         [userId, await bcrypt.hash(randomToken(), 12)],
@@ -2499,18 +2499,18 @@ app.get("/api/admin/patients", requireAuth, requireAdmin, asyncRoute(async (req,
     SELECT u.id,u.name,u.email,u.phone,u.city,u.address,u.bio,u.birth_date AS "birthDate",
            u.avatar,u.created_at,u.email_verified,u.account_disabled,
            (SELECT COUNT(*)::int FROM appointments a WHERE a.user_id=u.id) AS "appointmentCount"
-    FROM users u WHERE u.role='patient' ORDER BY u.created_at DESC
+    FROM users u WHERE u.role='patient' AND u.email NOT LIKE 'removed-provider-%@disabled.nobatyar.invalid' ORDER BY u.created_at DESC
   `);
   res.json(result.rows);
 }));
 app.patch("/api/admin/patients/:id/verify", requireAuth, requireAdmin, asyncRoute(async (req, res) => {
-  const result = await db.query(`UPDATE users SET email_verified=true WHERE id=$1 AND role='patient' RETURNING id`, [req.params.id]);
+  const result = await db.query(`UPDATE users SET email_verified=true WHERE id=$1 AND role='patient' AND email NOT LIKE 'removed-provider-%@disabled.nobatyar.invalid' RETURNING id`, [req.params.id]);
   if (!result.rowCount) return res.status(404).json({ message: "Patient not found" });
   res.json({ message: "Patient verified" });
 }));
 app.patch("/api/admin/patients/:id/status", requireAuth, requireAdmin, asyncRoute(async (req, res) => {
   const { disabled } = valid(z.object({ disabled: z.boolean() }), req.body);
-  const result = await db.query(`UPDATE users SET account_disabled=$2 WHERE id=$1 AND role='patient' RETURNING id,account_disabled`, [req.params.id,disabled]);
+  const result = await db.query(`UPDATE users SET account_disabled=$2 WHERE id=$1 AND role='patient' AND email NOT LIKE 'removed-provider-%@disabled.nobatyar.invalid' RETURNING id,account_disabled`, [req.params.id,disabled]);
   if (!result.rowCount) return res.status(404).json({ message: "Patient not found" });
   res.json(result.rows[0]);
 }));
@@ -2518,7 +2518,7 @@ app.delete("/api/admin/patients/:id", requireAuth, requireAdmin, asyncRoute(asyn
   const client = await db.connect();
   try {
     await client.query("BEGIN");
-    const patient = await client.query("SELECT id FROM users WHERE id=$1 AND role='patient' FOR UPDATE", [req.params.id]);
+    const patient = await client.query("SELECT id FROM users WHERE id=$1 AND role='patient' AND email NOT LIKE 'removed-provider-%@disabled.nobatyar.invalid' FOR UPDATE", [req.params.id]);
     if (!patient.rowCount) { await client.query("ROLLBACK"); return res.status(404).json({ message: "Patient not found" }); }
     const count = await client.query("SELECT COUNT(*)::int AS count FROM appointments WHERE user_id=$1", [req.params.id]);
     const appointmentCount = count.rows[0].count;
@@ -2527,7 +2527,7 @@ app.delete("/api/admin/patients/:id", requireAuth, requireAdmin, asyncRoute(asyn
       return res.status(409).json({ message: "Patient has appointment history. Confirm permanent deletion.", appointmentCount });
     }
     // Appointments are ON DELETE CASCADE in the project schema.
-    await client.query("DELETE FROM users WHERE id=$1 AND role='patient'", [req.params.id]);
+    await client.query("DELETE FROM users WHERE id=$1 AND role='patient' AND email NOT LIKE 'removed-provider-%@disabled.nobatyar.invalid'", [req.params.id]);
     await client.query("COMMIT");
     res.json({ message: "Patient and related appointment history permanently deleted", appointmentCount });
   } catch (error) { await client.query("ROLLBACK"); throw error; }

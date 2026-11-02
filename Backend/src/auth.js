@@ -16,7 +16,7 @@ export async function requireAuth(req, res, next) {
   const token = req.cookies.nobatyar_session;
   if (!token) return res.status(401).json({ message: 'Please log in' });
   const payload = jwt.verify(token, process.env.JWT_SECRET);
-  const result = await db.query('SELECT id, name, email, phone, city, address, bio, birth_date AS "birthDate", avatar, role FROM users WHERE id=$1', [payload.id]);
+  const result = await db.query('SELECT id, name, email, phone, city, address, bio, birth_date AS "birthDate", avatar, role FROM users WHERE id=$1 AND account_disabled=false', [payload.id]);
   if (!result.rows[0]) return res.status(401).json({ message: 'Invalid session' });
   req.user = result.rows[0];
   next();

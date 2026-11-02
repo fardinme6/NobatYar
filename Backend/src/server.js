@@ -545,7 +545,7 @@ app.post(
       [phone, data.email],
     );
     const user = result.rows[0];
-    if (!user || !(await bcrypt.compare(data.password, user.password_hash)))
+    if (!user || user.account_disabled || !(await bcrypt.compare(data.password, user.password_hash)))
       return res.status(401).json({ message: "Invalid email or password" });
     if (
       !user.email_verified &&
@@ -2450,7 +2450,7 @@ app.patch(
     res.json(r.rows[0]);
   }),
 );
-// Admin-only: remove a provider profile without deleting the owner's user account.
+// Admin-only: detach provider login without deleting public catalog records.
 app.delete(
   "/api/admin/providers/:id",
   requireAuth,
@@ -2459,55 +2459,32 @@ app.delete(
     const client = await db.connect();
     try {
       await client.query("BEGIN");
-      const p = await client.query(
-        "SELECT id,user_id,provider_type FROM provider_profiles WHERE id=$1 FOR UPDATE",
+      const result = await client.query(
+        "SELECT id,user_id FROM provider_profiles WHERE id=$1 FOR UPDATE",
         [req.params.id],
       );
-      if (!p.rowCount) {
+      if (!result.rowCount) {
         await client.query("ROLLBACK");
         return res.status(404).json({ message: "Provider not found" });
       }
-      if (p.rows[0].user_id === req.user.id) {
+      const userId = result.rows[0].user_id;
+      if (String(userId) === String(req.user.id)) {
         await client.query("ROLLBACK");
-        return res
-          .status(403)
-          .json({ message: "You cannot delete your own provider profile" });
+        return res.status(403).json({ message: "Cannot remove your own account" });
       }
-      const links = await client.query(
-        "SELECT doctor_id FROM provider_doctors WHERE provider_id=$1",
-        [req.params.id],
-      );
-      const doctorIds = links.rows.map((row) => row.doctor_id);
-      if (doctorIds.length) {
-        const booked = await client.query(
-          "SELECT 1 FROM appointments WHERE doctor_id=ANY($1::integer[]) LIMIT 1",
-          [doctorIds],
-        );
-        if (booked.rowCount) {
-          await client.query("ROLLBACK");
-          return res.status(409).json({
-            message:
-              "This provider has doctors with appointment history. Deletion is blocked to protect patient records.",
-          });
-        }
-      }
-      await client.query("DELETE FROM provider_profiles WHERE id=$1", [
-        req.params.id,
-      ]);
-      for (const doctorId of doctorIds) {
-        const other = await client.query(
-          "SELECT 1 FROM provider_doctors WHERE doctor_id=$1 LIMIT 1",
-          [doctorId],
-        );
-        if (!other.rowCount)
-          await client.query("DELETE FROM doctors WHERE id=$1", [doctorId]);
-      }
+      // Foreign keys on provider_doctors/provider_hospitals remove only links.
+      // Doctors, hospitals, appointments and their public data remain untouched.
+      await client.query("DELETE FROM provider_profiles WHERE id=$1", [req.params.id]);
+      // Revoke existing sessions, prevent password reset/login, and free the email
+      // for a fresh Assign Account invitation. Keep the user row for history.
       await client.query(
-        "UPDATE users SET role='patient' WHERE id=$1 AND role='provider' AND NOT EXISTS (SELECT 1 FROM provider_profiles WHERE user_id=$1)",
-        [p.rows[0].user_id],
+        `UPDATE users SET role='patient', account_disabled=true,
+         email='removed-provider-' || id || '-' || md5(random()::text) || '@disabled.nobatyar.invalid',
+         password_hash=$2, email_verified=false WHERE id=$1`,
+        [userId, await bcrypt.hash(randomToken(), 12)],
       );
       await client.query("COMMIT");
-      res.json({ message: "Provider deleted. The user account was kept." });
+      res.json({ message: "Provider account removed; public profiles preserved." });
     } catch (error) {
       await client.query("ROLLBACK");
       throw error;

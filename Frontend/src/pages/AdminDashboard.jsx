@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { api, API_URL } from "../api";
 import { translations } from "../data/translations";
 import { doctorTitle } from "../data/doctorTitle";
+import Loading from "../components/Loading.jsx";
 import {
   ShieldCheck,
   Mail,
@@ -452,7 +453,11 @@ export default function AdminDashboard({ language }) {
   const deleteProvider = async (p) => {
     if (
       !window.confirm(
-        `Delete provider "${p.name}"? This action cannot be undone. The user login will remain.`,
+        language === "English"
+          ? `Remove the provider account for "${p.name}"? Doctor/hospital cards will remain.`
+          : language === "Pashto"
+            ? `د «${p.name}» حساب حذف شي؟ د ډاکټر/روغتون کارت به پاتې شي.`
+            : `حساب «${p.name}» حذف شود؟ کارت و مشخصات داکتر/شفاخانه باقی می‌ماند.`,
       )
     )
       return;
@@ -895,7 +900,7 @@ export default function AdminDashboard({ language }) {
           </p>
         )}
         {loading ? (
-          <p className="p-6 dark:text-white">{t.loadingText}</p>
+          <Loading language={language} />
         ) : (
           <div className="mt-7 space-y-4">
             {tab === "requests" &&
@@ -998,7 +1003,15 @@ export default function AdminDashboard({ language }) {
                         {c.status || "unread"}
                       </span>
                     </div>
-                    <p className="whitespace-pre-wrap mt-4">{c.message}</p>
+                    <div className="mt-4 space-y-3">
+                      <p className="font-semibold">
+                        {language === "English" ? "Subject:" : language === "Pashto" ? "موضوع:" : "موضوع:"}{" "}
+                        {(c.subject || c.message?.split(/\n\s*\n/)[0] || "").trim()}
+                      </p>
+                      <p className="whitespace-pre-wrap text-gray-600 dark:text-gray-300">
+                        {c.subject ? c.message : (c.message || "").split(/\n\s*\n/).slice(1).join("\n\n") || c.message}
+                      </p>
+                    </div>
                     {c.admin_reply && (
                       <div className="mt-4 rounded-xl bg-teal-50 dark:bg-slate-700 p-3">
                         <strong>{t.adminPreviousReply || "Sent reply"}:</strong>
@@ -1284,7 +1297,7 @@ export default function AdminDashboard({ language }) {
                                 }}
                                 className="bg-teal-600 text-white px-3 py-2 rounded-lg"
                               >
-                                Assign Account
+                                {t.adminAssignAccount}
                               </button>
                             );
                           })()}

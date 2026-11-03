@@ -2472,17 +2472,24 @@ app.delete(
         await client.query("ROLLBACK");
         return res.status(403).json({ message: "Cannot remove your own account" });
       }
-      // Foreign keys on provider_doctors/provider_hospitals remove only links.
-      // Doctors, hospitals, appointments and their public data remain untouched.
+      // Remove the login permanently. Foreign-key cascades detach provider
+      // profiles and their links, but do not delete public doctors/hospitals.
+      // A single user may have other provider profiles: delete only when this
+      // is their last linked provider profile.
       await client.query("DELETE FROM provider_profiles WHERE id=$1", [req.params.id]);
-      // Revoke existing sessions, prevent password reset/login, and free the email
-      // for a fresh Assign Account invitation. Keep the user row for history.
-      await client.query(
-        `UPDATE users SET account_disabled=true,
-         email='removed-provider-' || id || '-' || md5(random()::text) || '@disabled.nobatyar.invalid',
-         password_hash=$2, email_verified=false WHERE id=$1`,
-        [userId, await bcrypt.hash(randomToken(), 12)],
+      const remaining = await client.query(
+        "SELECT 1 FROM provider_profiles WHERE user_id=$1 LIMIT 1",
+        [userId],
       );
+      if (!remaining.rowCount) {
+        const deleted = await client.query(
+          "DELETE FROM users WHERE id=$1 AND role='provider' RETURNING id",
+          [userId],
+        );
+        if (!deleted.rowCount) {
+          throw new Error("Provider login could not be deleted safely");
+        }
+      }
       await client.query("COMMIT");
       res.json({ message: "Provider account removed; public profiles preserved." });
     } catch (error) {

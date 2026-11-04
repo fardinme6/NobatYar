@@ -4,7 +4,7 @@ import { Stethoscope, Hospital } from "lucide-react";
 import { translations } from "../data/translations";
 
 export default function Hero({ language }) {
-  const images = ["/doctor-optimized.webp", "/doctor1.jpg", "/doctor2.jpg"];
+  const images = ["/doctor.jpg", "/doctor1.jpg", "/doctor2.jpg"];
 
   const [current, setCurrent] = useState(0);
   const [fade, setFade] = useState(true);

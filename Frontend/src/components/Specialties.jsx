@@ -47,9 +47,7 @@ export default function Specialties({ language }) {
                 <img
                   src={specialty.image}
                   alt={t[specialty.name] || specialty.name}
-                  loading="lazy"
-                  decoding="async"
-                  className="w-full aspect-[3/2] object-cover group-hover:scale-105 transition-transform duration-500"
+                  className="w-full h-40 sm:h-45 md:h-50 object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               </div>
 

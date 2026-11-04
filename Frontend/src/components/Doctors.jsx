@@ -196,13 +196,10 @@ export default function Doctors({ language, home = false, user }) {
                   }} className="flex-1 bg-red-600 text-white rounded-lg py-2">Delete</button>
                 </div>}
                 <div className="relative overflow-hidden bg-gray-100 dark:bg-slate-700">
-                  <img src={doctor.image} alt="" aria-hidden="true" loading="lazy" className="absolute inset-0 w-full h-full object-cover blur-xl opacity-30" />
                   <img
                     src={doctor.image}
                     alt={label(doctor.name)}
-                    loading="lazy"
-                    decoding="async"
-                    className="w-full h-85 object-contain transition-transform duration-500"
+                    className="w-full h-85 object-cover object-top hover:scale-105 transition-transform duration-500"
                   />
 
                   <span className="absolute top-4 start-4 bg-white/95 dark:bg-slate-800/95 text-teal-700 dark:text-teal-400 px-3 py-1.5 rounded-lg text-xs font-semibold shadow-sm">

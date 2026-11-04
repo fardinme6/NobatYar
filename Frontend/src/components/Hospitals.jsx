@@ -191,8 +191,6 @@ export default function Hospitals({ language, home = false, user }) {
                   <img
                     src={hospital.image}
                     alt={t[hospital.name] || hospital.name}
-                    loading="lazy"
-                    decoding="async"
                     className="w-full h-56 object-cover hover:scale-105 transition-transform duration-500"
                   />
 

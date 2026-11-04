@@ -102,6 +102,7 @@ export default function AdminDashboard({ language }) {
   const [form, setForm] = useState({});
   const [uploadingImage, setUploadingImage] = useState(false);
   const [catalogFileName, setCatalogFileName] = useState("");
+  const [logoFileName, setLogoFileName] = useState("");
   const [notes, setNotes] = useState({});
   const [replies, setReplies] = useState({});
   const [openReplyId, setOpenReplyId] = useState(null);
@@ -508,7 +509,7 @@ export default function AdminDashboard({ language }) {
   };
   const startEdit = (kind, item) => {
     setCatalogFileName("");
-    setCatalogFileName("");
+    setLogoFileName("");
     setEditing(`${kind}-${item.id}`);
     setForm(
       kind === "doctor"
@@ -651,34 +652,39 @@ export default function AdminDashboard({ language }) {
   };
   const hospitalLogoField = () => (
     <div className="sm:col-span-2">
-      <label className="block font-medium dark:text-white mb-2">
-        {language === "English" ? "Hospital / Clinic Logo *" : language === "Pashto" ? "د روغتون / کلینیک لوګو *" : "لوگوی شفاخانه / کلینیک *"}
+      <label className="block font-medium dark:text-white mb-2 cursor-pointer">
+        {language === "English" ? "Hospital / Clinic Logo" : language === "Pashto" ? "د روغتون / کلینیک لوګو" : "لوگوی شفاخانه / کلینیک"}
+        <span className="text-red-500 ms-1">*</span>
+        <input type="file" accept="image/jpeg,image/png,image/webp"
+          className="sr-only"
+          onChange={async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            setLogoFileName(file.name);
+            setUploadingImage(true);
+            try {
+              const body = new FormData();
+              body.append("photo", file);
+              const response = await fetch(`${API_URL}/api/admin/catalog/photo`, {
+                method: "POST", credentials: "include", body,
+              });
+              const result = await response.json();
+              if (!response.ok) throw new Error(result.message || t.adminUploadFailed);
+              setForm((old) => ({ ...old, logo: result.image }));
+            } catch (error) { setError(error.message); }
+            finally { setUploadingImage(false); }
+          }} />
+        <span className="block w-full mt-2 border rounded-xl p-3 text-sm text-gray-700 dark:text-gray-200 dark:border-gray-500 hover:border-teal-500 transition-colors">
+          {logoFileName || t.noFileChosen}
+        </span>
       </label>
-      <input type="file" accept="image/jpeg,image/png,image/webp"
-        className="block w-full p-3 border rounded-xl dark:text-white"
-        onChange={async (e) => {
-          const file = e.target.files[0];
-          if (!file) return;
-          setUploadingImage(true);
-          try {
-            const body = new FormData();
-            body.append("photo", file);
-            const response = await fetch(`${API_URL}/api/admin/catalog/photo`, {
-              method: "POST", credentials: "include", body,
-            });
-            const result = await response.json();
-            if (!response.ok) throw new Error(result.message || t.adminUploadFailed);
-            setForm((old) => ({ ...old, logo: result.image }));
-          } catch (error) { setError(error.message); }
-          finally { setUploadingImage(false); }
-        }} />
-      {form.logo && <img src={form.logo} alt="Logo" className="w-24 h-24 rounded-full object-contain bg-white border mt-3" />}
+      {form.logo && <img src={form.logo} alt="Logo" className="w-28 h-28 rounded-full object-contain bg-white border mt-3" />}
     </div>
   );
   const catalogImageField = () => (
     <div className="block sm:col-span-2">
       <label className="block cursor-pointer">
-        {t.adminCatalogPhoto}
+        {t.adminCatalogPhoto}{editing === "new-hospitals" && <span className="text-red-500 ms-1">*</span>}
         <input
           type="file"
           accept="image/jpeg,image/png,image/webp"
@@ -701,7 +707,7 @@ export default function AdminDashboard({ language }) {
   const specialtyImageField = () => (
     <div className="sm:col-span-2 space-y-2">
       <label className="block cursor-pointer text-sm font-medium">
-        {t.adminSpecialtyImage}
+        {t.adminSpecialtyImage.includes("*") ? t.adminSpecialtyImage.replace("*", "") : t.adminSpecialtyImage}<span className="text-red-500 ms-1">*</span>
         <input
           type="file"
           accept="image/jpeg,image/png,image/webp"
@@ -790,6 +796,7 @@ export default function AdminDashboard({ language }) {
           : language === "Pashto"
             ? "طبي تخصصونه (یو یا څو وټاکئ)"
             : "تخصص‌های طبی (یک یا چند مورد انتخاب کنید)"}
+        <span className="text-red-500 ms-1">*</span>
       </p>
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {specialtiesList.map((item) => (
@@ -819,7 +826,8 @@ export default function AdminDashboard({ language }) {
   );
   const field = (name, label, type = "text", options = []) => (
     <label key={name} className="block text-sm font-medium">
-      {label}
+      {String(label).replace(/\s*\*/g, "")}
+      {String(label).includes("*") && <span className="text-red-500 ms-1">*</span>}
       {type === "select" ? (
         <select
           value={form[name] ?? ""}
@@ -916,6 +924,10 @@ export default function AdminDashboard({ language }) {
   ];
   return (
     <main className="min-h-screen bg-teal-50/60 dark:bg-slate-900 px-4 py-12">
+      <style>{`main button:not(:disabled) { cursor: pointer; transition: filter 0.2s, transform 0.2s, background-color 0.2s; }
+        main button:not(:disabled):hover { filter: brightness(0.93); }
+        main button:not(:disabled):active { transform: scale(0.98); }
+        main button:disabled { cursor: not-allowed; }`}</style>
       <div className="max-w-6xl mx-auto">
         <div className="rounded-3xl bg-gradient-to-r from-teal-700 to-cyan-600 text-white p-8 shadow-lg flex flex-wrap justify-between gap-4 items-center">
           <div>
@@ -1187,7 +1199,7 @@ export default function AdminDashboard({ language }) {
                     onClick={() => {
                       setEditing(`new-${tab}`);
                       setCatalogFileName("");
-                      setCatalogFileName("");
+                      setLogoFileName("");
                       setForm(
                         tab === "doctors"
                           ? {
@@ -1306,9 +1318,9 @@ export default function AdminDashboard({ language }) {
                 )}
                 {editing === "new-specialty" && (
                   <div className="bg-white rounded-xl p-5 grid gap-3">
-                    {field("name", t.adminSpecialtyName)}
-                    {field("value", t.adminSpecialtyCodeExample)}
-                    {field("department", t.adminSpecialtyDepartment)}
+                    {field("name", `${t.adminSpecialtyName} *`)}
+                    {field("value", `${t.adminSpecialtyCodeExample} *`)}
+                    {field("department", `${t.adminSpecialtyDepartment} *`)}
                     {specialtyImageField()}
                     <button
                       disabled={uploadingImage}
@@ -1412,7 +1424,7 @@ export default function AdminDashboard({ language }) {
                         <div className="grid sm:grid-cols-2 gap-3 mt-5">
                           {field(
                             "name",
-                            kind === "doctor" ? t.adminDoctorName : t.adminName,
+                            kind === "doctor" ? `${t.adminDoctorName} *` : `${t.adminName} *`,
                           )}
                           {kind === "doctor" && (
                             <>
@@ -1428,7 +1440,7 @@ export default function AdminDashboard({ language }) {
                                   label: x.name,
                                 })),
                               )}
-                              {field("city", t.cityLabel)}
+                              {field("city", `${t.cityLabel} *`)}
                               {field("experience", t.experience)}
                               {field("education", t.education)}
                               {field("about", t.aboutDoctor)}
@@ -1437,7 +1449,7 @@ export default function AdminDashboard({ language }) {
                           )}
                           {kind === "hospital" && (
                             <>
-                              {field("type", t.adminHospitalType, "select", [
+                              {field("type", `${t.adminHospitalType} *`, "select", [
                                 {
                                   value: "private",
                                   label: t.privateHospital,
@@ -1448,7 +1460,7 @@ export default function AdminDashboard({ language }) {
                                 },
                                 { value: "clinic", label: t.clinic },
                               ])}
-                              {field("city", t.cityLabel)}
+                              {field("city", `${t.cityLabel} *`)}
                               {field("location", `${t.fullAddress} *`)}
                               {field("phone", `${t.adminContactPhone} *`)}
                               {field("email", `${t.profileEmail} *`)}
@@ -1461,8 +1473,8 @@ export default function AdminDashboard({ language }) {
                           )}
                           {kind === "specialty" && (
                             <>
-                              {field("value", t.adminSpecialtyCode)}
-                              {field("department", t.adminSpecialtyDepartment)}
+                              {field("value", `${t.adminSpecialtyCode} *`)}
+                              {field("department", `${t.adminSpecialtyDepartment} *`)}
                               {specialtyImageField()}
                             </>
                           )}

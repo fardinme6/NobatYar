@@ -390,13 +390,16 @@ export default function ProviderRegistration({ language, user }) {
                 </div>
                 {providerType !== "doctor" && (
                   <div className="md:col-span-2">
-                    <label className="block mb-2 font-medium dark:text-white">
-                      {language === "English" ? "Hospital / Clinic Logo *" : language === "Pashto" ? "د روغتون / کلینیک لوګو *" : "لوگوی شفاخانه / کلینیک *"}
+                    <label className="block mb-2 font-medium dark:text-white cursor-pointer">
+                      {language === "English" ? "Hospital / Clinic Logo" : language === "Pashto" ? "د روغتون / کلینیک لوګو" : "لوگوی شفاخانه / کلینیک"}
+                      <span className="text-red-500 ms-1">*</span>
+                      <input type="file" accept="image/jpeg,image/png,image/webp" required
+                        onChange={(e) => setHospitalLogo(e.target.files[0] || null)}
+                        className="sr-only" />
+                      <span className={`${inputStyle} block cursor-pointer hover:border-teal-500 transition-colors`}>
+                        {hospitalLogo ? hospitalLogo.name : t.noFileChosen}
+                      </span>
                     </label>
-                    <input type="file" accept="image/jpeg,image/png,image/webp" required
-                      onChange={(e) => setHospitalLogo(e.target.files[0] || null)}
-                      className={inputStyle} />
-                    {hospitalLogo && <p className="mt-2 text-sm text-teal-600">{hospitalLogo.name}</p>}
                   </div>
                 )}
                 {providerType === "doctor" && (

@@ -118,11 +118,12 @@ export default function DoctorDetails({ language }) {
 
         <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 overflow-hidden">
           <div className="flex flex-col md:flex-row gap-8 p-6 md:p-9">
-            <div className="w-full md:w-72 shrink-0 bg-gray-100 dark:bg-slate-700 rounded-2xl overflow-hidden">
+            <div className="relative w-full md:w-72 h-90 shrink-0 bg-gray-100 dark:bg-slate-700 rounded-2xl overflow-hidden">
+              <img src={doctor.image} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover blur-xl opacity-30" />
               <img
                 src={doctor.image}
                 alt={label(doctor.name)}
-                className="w-full h-90 object-cover object-top"
+                className="relative w-full h-full object-contain"
               />
             </div>
 

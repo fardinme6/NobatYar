@@ -89,11 +89,12 @@ export default function HospitalDetails({ language }) {
         </Link>
 
         <div className="bg-white dark:bg-slate-800 rounded-2xl overflow-hidden border border-gray-100 dark:border-slate-700 shadow-sm">
-          <div className="relative">
+          <div className="relative overflow-hidden bg-gray-100 dark:bg-slate-700 h-64 md:h-96">
+            <img src={hospital.image} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover blur-xl opacity-40" />
             <img
               src={hospital.image}
               alt={label(hospital.name)}
-              className="w-full h-64 md:h-96 object-cover"
+              className="relative w-full h-full object-contain"
             />
 
             <span className="absolute top-5 start-5 bg-white/95 dark:bg-slate-800/95 text-teal-700 dark:text-teal-400 px-4 py-2 rounded-xl text-sm font-semibold shadow-sm">

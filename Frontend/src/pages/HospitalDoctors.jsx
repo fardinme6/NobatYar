@@ -107,6 +107,7 @@ export default function HospitalDoctors({ language }) {
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
             <img
               src={hospital.image}
+              width="320" height="240" loading="lazy" decoding="async"
               alt={label(hospital.name)}
               className="w-full sm:w-48 h-44 object-cover rounded-xl"
             />
@@ -190,6 +191,7 @@ export default function HospitalDoctors({ language }) {
                   <span className="absolute top-4 start-4 z-10 bg-white/95 dark:bg-slate-800/95 text-teal-700 dark:text-teal-400 px-3 py-1.5 rounded-lg text-xs font-semibold"><MapPin size={14} className="inline me-1" />{label(doctor.city)}</span>
                   <img
                     src={doctor.image}
+                    width="480" height="560" loading="lazy" decoding="async"
                     alt={label(doctor.name)}
                     className="w-full h-100 object-cover object-top hover:scale-105 transition-transform duration-500"
                   />

@@ -5,7 +5,7 @@ export default function Loading({ language = "Persian" }) {
   return (
     <div className="ny-loading" role="status" aria-live="polite" aria-label={label}>
       <div className="ny-loading-ring">
-        <img src="/nobatyar-loading-logo.png" alt="NobatYar" />
+        <img src="/nobatyar-loading-logo.png" width="100" height="100" alt="NobatYar" />
       </div>
       <strong>{language === "English" ? "NobatYar" : language === "Pashto" ? "نوبت یار" : "نوبت یار"}</strong>
       <p>{label}</p>

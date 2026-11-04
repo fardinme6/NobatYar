@@ -20,7 +20,7 @@ export default function Doctors({ language, home = false, user }) {
   const [specialties, setSpecialties] = useState([]);
   useEffect(() => { api(`/specialties?lang=${language === "English" ? "en" : language === "Pashto" ? "ps" : "fa"}`).then(setSpecialties).catch(() => {}); }, [language]);
   useEffect(() => { api(`/doctors?lang=${language === "Persian" ? "fa" : language === "Pashto" ? "ps" : "en"}`).then(setOnlineDoctors).catch(()=>{}); }, [language]);
-  const allDoctors = onlineDoctors;;
+  const allDoctors = onlineDoctors;
   const label = value => t[value] || value || "";
 
   const [search, setSearch] = useState("");
@@ -196,7 +196,7 @@ export default function Doctors({ language, home = false, user }) {
                   }} className="flex-1 bg-red-600 text-white rounded-lg py-2">Delete</button>
                 </div>}
                 <div className="relative overflow-hidden bg-gray-100 dark:bg-slate-700">
-                  <img loading="lazy" decoding="async"
+                  <img loading="lazy" decoding="async" width="480" height="560"
                     src={doctor.image}
                     alt={label(doctor.name)}
                     className="w-full h-85 object-cover object-top hover:scale-105 transition-transform duration-500"

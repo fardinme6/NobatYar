@@ -59,7 +59,7 @@ export default function Header({
           <img
             src={imageURL}
             alt={title}
-            className="w-20 h-14 object-contain"
+            width="80" height="56" decoding="async" className="w-20 h-14 object-contain"
           />
 
           <div className="font-['Trebuchet_MS']">
@@ -136,7 +136,7 @@ export default function Header({
           ) : (
             <div className="relative group">
               <NavLink to="/profile" className="flex items-center justify-center w-10 h-10 bg-teal-50 dark:bg-slate-700 text-teal-600 dark:text-teal-400 rounded-full overflow-hidden">
-                {user?.avatar ? <img src={(user.avatar.startsWith("https://") ? user.avatar : `${API_URL}${user.avatar}`)} alt="Profile" className="w-full h-full object-cover" /> : <UserRound size={21} />}
+                {user?.avatar ? <img src={(user.avatar.startsWith("https://") ? user.avatar : `${API_URL}${user.avatar}`)} alt="Profile" width="40" height="40" loading="lazy" decoding="async" className="w-full h-full object-cover" /> : <UserRound size={21} />}
               </NavLink>
               <div className="absolute end-0 top-full pt-2 hidden group-hover:block group-focus-within:block z-50">
                 <div className="w-52 bg-white dark:bg-slate-800 border dark:border-slate-700 shadow-xl rounded-xl p-2">
@@ -158,6 +158,9 @@ export default function Header({
           >
             <button
               onClick={() => setLanguageMenu(!languageMenu)}
+              aria-label={t.selectLanguage}
+              aria-expanded={languageMenu}
+              aria-haspopup="true"
               className="flex items-center gap-2 border border-gray-200 dark:border-slate-600 text-gray-700 dark:text-white px-3 py-2.5 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 cursor-pointer transition"
             >
               <Globe size={18} className="text-teal-600 dark:text-teal-400" />
@@ -168,38 +171,21 @@ export default function Header({
             {languageMenu && (
               <div className="absolute top-full end-0 pt-2 w-40">
                 <div className="bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 shadow-xl rounded-xl overflow-hidden p-1">
-                  <button
-                    onClick={() => changeLanguage("English")}
-                    className={`w-full text-start px-4 py-3 rounded-lg text-sm cursor-pointer transition ${
-                      language === "English"
-                        ? "bg-teal-50 dark:bg-slate-700 text-teal-600 dark:text-teal-400 font-semibold"
-                        : "text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-700"
-                    }`}
-                  >
-                    English
-                  </button>
-
-                  <button
-                    onClick={() => changeLanguage("Persian")}
-                    className={`w-full text-start px-4 py-3 rounded-lg text-sm cursor-pointer transition ${
-                      language === "Persian"
-                        ? "bg-teal-50 dark:bg-slate-700 text-teal-600 dark:text-teal-400 font-semibold"
-                        : "text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-700"
-                    }`}
-                  >
-                    دری
-                  </button>
-
-                  <button
-                    onClick={() => changeLanguage("Pashto")}
-                    className={`w-full text-start px-4 py-3 rounded-lg text-sm cursor-pointer transition ${
-                      language === "Pashto"
-                        ? "bg-teal-50 dark:bg-slate-700 text-teal-600 dark:text-teal-400 font-semibold"
-                        : "text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-700"
-                    }`}
-                  >
-                    پښتو
-                  </button>
+                  {[["English", "English"], ["Persian", "دری"], ["Pashto", "پښتو"]].map(([value, label]) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => changeLanguage(value)}
+                      aria-pressed={language === value}
+                      className={`w-full text-start px-4 py-3 rounded-lg text-sm cursor-pointer transition ${
+                        language === value
+                          ? "bg-teal-50 dark:bg-slate-700 text-teal-600 dark:text-teal-400 font-semibold"
+                          : "text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-700"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
                 </div>
               </div>
             )}
@@ -207,6 +193,8 @@ export default function Header({
 
           <button
             onClick={() => setDark(!dark)}
+            aria-label={t.darkMode}
+            aria-pressed={dark}
             className={`p-2.5 rounded-xl cursor-pointer transition-colors duration-300 ${
               dark
                 ? "bg-slate-700 text-yellow-400 hover:bg-slate-600"
@@ -220,13 +208,16 @@ export default function Header({
         <button
           className="xl:hidden text-teal-700 dark:text-teal-400 cursor-pointer"
           onClick={() => setMenu(!menu)}
+          aria-label={menu ? (language === "English" ? "Close menu" : language === "Pashto" ? "مینو بند کړئ" : "بستن منو") : (language === "English" ? "Open menu" : language === "Pashto" ? "مینو پرانیزئ" : "باز کردن منو")}
+          aria-expanded={menu}
+          aria-controls="mobile-navigation"
         >
           {menu ? <X size={28} /> : <Menu size={28} />}
         </button>
       </div>
 
       {menu && (
-        <nav className="xl:hidden flex flex-col items-start gap-4 p-5 border-t border-gray-100 dark:border-slate-700 font-['Tahoma'] bg-white dark:bg-slate-800 max-h-[calc(100dvh-90px)] overflow-y-auto overscroll-contain">
+        <nav id="mobile-navigation" className="xl:hidden flex flex-col items-start gap-4 p-5 border-t border-gray-100 dark:border-slate-700 font-['Tahoma'] bg-white dark:bg-slate-800 max-h-[calc(100dvh-90px)] overflow-y-auto overscroll-contain">
           <NavLink
             to="/home"
             end
@@ -328,53 +319,21 @@ export default function Header({
             </p>
 
             <div className="grid grid-cols-3 gap-2">
-              <button
-                onClick={() => {
-                  (changeLanguage("English"), setMenu(false));
-                }}
-                className={`p-3 rounded-lg text-sm cursor-pointer ${
-                  language === "English"
-                    ? "bg-teal-600 text-white"
-                    : "bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-white"
-                }`}
-              >
-                <span className="flex justify-center gap-2">
-                  <Globe size={20} />
-                  English
-                </span>
-              </button>
-
-              <button
-                onClick={() => {
-                  (changeLanguage("Persian"), setMenu(false));
-                }}
-                className={`p-3 rounded-lg text-sm cursor-pointer ${
-                  language === "Persian"
-                    ? "bg-teal-600 text-white"
-                    : "bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-white"
-                }`}
-              >
-                <span className="flex justify-center gap-2">
-                  <Globe size={20} />
-                  Persian
-                </span>
-              </button>
-
-              <button
-                onClick={() => {
-                  (changeLanguage("Pashto"), setMenu(false));
-                }}
-                className={`p-3 rounded-lg text-sm cursor-pointer ${
-                  language === "Pashto"
-                    ? "bg-teal-600 text-white"
-                    : "bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-white"
-                }`}
-              >
-                <span className="flex justify-center gap-2">
-                  <Globe size={20} />
-                  Pashto
-                </span>
-              </button>
+              {[["English", "English"], ["Persian", "Persian"], ["Pashto", "Pashto"]].map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => { changeLanguage(value); setMenu(false); }}
+                  aria-pressed={language === value}
+                  className={`p-3 rounded-lg text-sm cursor-pointer ${
+                    language === value
+                      ? "bg-teal-600 text-white"
+                      : "bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-white"
+                  }`}
+                >
+                  <span className="flex justify-center gap-2"><Globe size={20} />{label}</span>
+                </button>
+              ))}
             </div>
           </div>
 
@@ -386,6 +345,9 @@ export default function Header({
 
             <button
               onClick={() => setDark(!dark)}
+              aria-label={t.darkMode}
+              role="switch"
+              aria-checked={dark}
               className={`w-14 h-7 rounded-full p-1 cursor-pointer transition-colors duration-300 ${
                 dark ? "bg-teal-600" : "bg-gray-400"
               }`}

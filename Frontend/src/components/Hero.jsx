@@ -12,16 +12,15 @@ export default function Hero({ language }) {
   const t = translations[language];
 
   useEffect(() => {
+    let fadeTimer;
     const timer = setInterval(() => {
       setFade(false);
-
-      setTimeout(() => {
-        setCurrent((current) => (current === 2 ? 0 : current + 1));
+      fadeTimer = setTimeout(() => {
+        setCurrent((value) => (value + 1) % images.length);
         setFade(true);
       }, 400);
     }, 4000);
-
-    return () => clearInterval(timer);
+    return () => { clearInterval(timer); clearTimeout(fadeTimer); };
   }, []);
 
   return (

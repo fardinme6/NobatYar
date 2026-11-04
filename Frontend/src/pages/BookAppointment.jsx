@@ -294,6 +294,7 @@ export default function BookAppointment({ language }) {
               <div className="flex items-center gap-4 mb-6">
                 <img
                   src={doctor.image}
+                  width="80" height="80" loading="lazy" decoding="async"
                   alt={t[doctor.name] || doctor.name}
                   className="w-20 h-20 rounded-xl object-cover object-top bg-gray-100"
                 />

@@ -92,6 +92,7 @@ export default function SignUp({ language, onLogin }) {
           <Link to="/home" className="flex justify-center mb-3">
             <img
               src="/logo.png"
+              width="80" height="80" decoding="async"
               alt="NobatYar Logo"
               className="w-20 h-20 object-contain hover:scale-105 transition"
             />

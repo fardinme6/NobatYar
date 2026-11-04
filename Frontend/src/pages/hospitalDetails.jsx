@@ -14,6 +14,7 @@ import { api } from "../api";
 import { useEffect, useState } from "react";
 import { translations } from "../data/translations.js";
 import { hospitalTypeLabel } from "../data/hospitalType.js";
+import { doctorSpecialties } from "../data/doctorSpecialties.js";
 import Loading from "../components/Loading.jsx";
 
 export default function HospitalDetails({ language }) {
@@ -22,6 +23,12 @@ export default function HospitalDetails({ language }) {
 
   const [onlineHospital, setOnlineHospital] = useState(null);
   const [departments, setDepartments] = useState([]);
+  const [doctors, setDoctors] = useState([]);
+  useEffect(() => {
+    api(`/doctors?lang=${language === "Persian" ? "fa" : language === "Pashto" ? "ps" : "en"}`)
+      .then(setDoctors)
+      .catch(() => setDoctors([]));
+  }, [language]);
   const [hospitalLoading, setHospitalLoading] = useState(true);
   useEffect(() => {
     setHospitalLoading(true);
@@ -40,6 +47,11 @@ export default function HospitalDetails({ language }) {
       .catch(() => setDepartments([]));
   }, [id, language]);
   const hospital = onlineHospital;
+  const hospitalDoctors = doctors.filter((doctor) =>
+    (doctor.hospitalIds?.length > 0 && doctor.hospitalIds.includes(Number(id))) ||
+    (!doctor.hospitalIds?.length &&
+      (doctor.hospital === hospital?.name || doctor.hospital === hospital?.originalName))
+  ).slice(0, 3);
   const label = (value) => t[value] || value || "";
   const contactLabels = {
     Persian: { phone: "شماره تماس شفاخانه", email: "ایمیل شفاخانه" },
@@ -103,12 +115,8 @@ export default function HospitalDetails({ language }) {
 
           {hospital.logo && (
             <div className="flex justify-end px-6 md:px-9 -mt-14 md:-mt-16 relative z-10 h-14 md:h-16">
-              {" "}
-              <img
-                src={hospital.logo}
-                alt={`${label(hospital.name)} logo`}
-                className="w-28 h-28 md:w-36 md:h-36 rounded-full object-contain bg-white border-4 border-white shadow-md"
-              />
+              <img src={hospital.logo} alt={`${label(hospital.name)} logo`}
+                className="w-28 h-28 md:w-36 md:h-36 rounded-full object-contain bg-white border-4 border-white shadow-md" />
             </div>
           )}
           <div className="p-6 md:p-9">
@@ -240,6 +248,46 @@ export default function HospitalDetails({ language }) {
                   </div>
                 ))}
               </div>
+            </div>
+
+            <div className="mt-8 border-t border-gray-100 dark:border-slate-700 pt-8">
+              <div className="flex items-center gap-3 mb-6">
+                <Users size={23} className="text-teal-600 dark:text-teal-400" />
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                  {t.hospitalDoctors}
+                </h2>
+              </div>
+
+              {hospitalDoctors.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {hospitalDoctors.map((doctor) => (
+                    <div key={doctor.id} className="flex flex-col overflow-hidden rounded-2xl bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 shadow-sm hover:shadow-lg transition-shadow">
+                      <img src={doctor.image} alt={label(doctor.name)} loading="lazy"
+                        className="w-full h-64 object-cover object-top bg-gray-100 dark:bg-slate-700" />
+                      <div className="flex flex-col flex-1 p-5">
+                        <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-2">
+                          {label(doctor.name)}
+                        </h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-300 mb-5">
+                          {doctorSpecialties(doctor, language).join(" · ")}
+                        </p>
+                        <div className="grid grid-cols-2 gap-3 mt-auto">
+                          <Link to={`/doctors/${doctor.id}`}
+                            className="flex items-center justify-center text-center border border-teal-600 text-teal-600 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-slate-700 px-2 py-3 rounded-xl font-medium transition-colors">
+                            {t.viewProfile}
+                          </Link>
+                          <Link to={`/book-appointment/${doctor.id}`}
+                            className="flex items-center justify-center text-center bg-teal-600 hover:bg-teal-700 text-white px-2 py-3 rounded-xl font-medium transition-colors">
+                            {t.bookAppointment}
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500 dark:text-gray-400">{t.noHospitalDoctors}</p>
+              )}
             </div>
 
             <div className="flex justify-center mt-10">

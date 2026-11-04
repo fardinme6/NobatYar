@@ -196,7 +196,7 @@ export default function Doctors({ language, home = false, user }) {
                   }} className="flex-1 bg-red-600 text-white rounded-lg py-2">Delete</button>
                 </div>}
                 <div className="relative overflow-hidden bg-gray-100 dark:bg-slate-700">
-                  <img
+                  <img loading="lazy" decoding="async"
                     src={doctor.image}
                     alt={label(doctor.name)}
                     className="w-full h-85 object-cover object-top hover:scale-105 transition-transform duration-500"

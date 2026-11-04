@@ -1,32 +1,32 @@
 import Loading from "./components/Loading.jsx";
-import AccountRecovery from "./pages/AccountRecovery.jsx";
+const AccountRecovery = lazy(() => import("./pages/AccountRecovery.jsx"));
 import { api } from "./api";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
-import { useState, useEffect } from "react";
-import SignUp from "./pages/SignUp.jsx";
-import VerifyPhone from "./pages/VerifyPhone.jsx";
-import CheckEmail from "./pages/CheckEmail.jsx";
+import { useState, useEffect, lazy, Suspense } from "react";
+const SignUp = lazy(() => import("./pages/SignUp.jsx"));
+const VerifyPhone = lazy(() => import("./pages/VerifyPhone.jsx"));
+const CheckEmail = lazy(() => import("./pages/CheckEmail.jsx"));
 import Header from "./components/Header.jsx";
 import Hero from "./components/Hero.jsx";
 import Specialties from "./components/Specialties.jsx";
 import Hospitals from "./components/Hospitals.jsx";
 import Doctors from "./components/Doctors.jsx";
-import DoctorDetails from "./pages/DoctorDetails.jsx";
+const DoctorDetails = lazy(() => import("./pages/DoctorDetails.jsx"));
 import HowItWorks from "./components/HowItWorks.jsx";
 import Footer from "./components/Footer.jsx";
-import ProviderRegistration from "./pages/ProviderRegistration.jsx";
-import BookAppointment from "./pages/BookAppointment.jsx";
-import MyAppointments from "./pages/MyAppointments.jsx";
-import HospitalDetails from "./pages/hospitalDetails.jsx";
-import HospitalDoctors from "./pages/HospitalDoctors.jsx";
-import Login from "./pages/Login.jsx";
-import About from "./pages/About.jsx";
-import Contact from "./pages/Contact.jsx";
-import SpecialtiesPage from "./pages/SpecialtiesPage.jsx";
-import UserProfile from "./pages/UserProfile.jsx";
-import AdminDashboard from "./pages/AdminDashboard.jsx";
-import ProviderDashboard from "./pages/ProviderDashboard.jsx";
-import HospitalDashboard from "./pages/HospitalDashboard.jsx";
+const ProviderRegistration = lazy(() => import("./pages/ProviderRegistration.jsx"));
+const BookAppointment = lazy(() => import("./pages/BookAppointment.jsx"));
+const MyAppointments = lazy(() => import("./pages/MyAppointments.jsx"));
+const HospitalDetails = lazy(() => import("./pages/hospitalDetails.jsx"));
+const HospitalDoctors = lazy(() => import("./pages/HospitalDoctors.jsx"));
+const Login = lazy(() => import("./pages/Login.jsx"));
+const About = lazy(() => import("./pages/About.jsx"));
+const Contact = lazy(() => import("./pages/Contact.jsx"));
+const SpecialtiesPage = lazy(() => import("./pages/SpecialtiesPage.jsx"));
+const UserProfile = lazy(() => import("./pages/UserProfile.jsx"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard.jsx"));
+const ProviderDashboard = lazy(() => import("./pages/ProviderDashboard.jsx"));
+const HospitalDashboard = lazy(() => import("./pages/HospitalDashboard.jsx"));
 
 export default function App() {
   const location = useLocation();
@@ -48,6 +48,35 @@ export default function App() {
     document.documentElement.lang =
       language === "English" ? "en" : language === "Persian" ? "fa-AF" : "ps";
   }, [language]);
+
+
+  // Update the page title and description when the route or language changes.
+  useEffect(() => {
+    const pages = {
+      "/home": ["خانه", "کور", "Home"],
+      "/hospitals": ["شفاخانه‌ها و کلینیک‌ها", "روغتونونه او کلینیکونه", "Hospitals and Clinics"],
+      "/doctors": ["داکتران", "ډاکټران", "Doctors"],
+      "/specialties": ["تخصص‌های طبی", "طبي تخصصونه", "Medical Specialties"],
+      "/about": ["درباره ما", "زموږ په اړه", "About Us"],
+      "/contact": ["تماس با ما", "اړیکه ونیسئ", "Contact Us"],
+    };
+    const langIndex = language === "English" ? 2 : language === "Pashto" ? 1 : 0;
+    const path = location.pathname;
+    let names = pages[path] || pages["/home"];
+    if (path.startsWith("/hospitals/") && path.endsWith("/doctors")) names = ["داکتران شفاخانه", "د روغتون ډاکټران", "Hospital Doctors"];
+    else if (path.startsWith("/hospitals/")) names = ["جزئیات شفاخانه", "د روغتون معلومات", "Hospital Details"];
+    else if (path.startsWith("/doctors/")) names = ["پروفایل داکتر", "د ډاکټر پېژندنه", "Doctor Profile"];
+    const descriptions = {
+      Persian: "نوبت‌یار؛ یک انتخاب هوشمند برای سلامتی شما! داکتران، شفاخانه‌ها و کلینیک‌های افغانستان را پیدا کنید و نوبت خود را آنلاین رزرو کنید.",
+      Pashto: "نوبت‌یار؛ په افغانستان کې ډاکټران، روغتونونه او کلینیکونه ومومئ او خپله نوبت آنلاین واخلئ.",
+      English: "NobatYar helps you find doctors, hospitals and clinics in Afghanistan and book medical appointments online.",
+    };
+    document.title = `${names[langIndex]} | NobatYar - نوبت‌یار`;
+    document.querySelector('meta[name="description"]')?.setAttribute("content", descriptions[language]);
+    document.querySelector('meta[property="og:title"]')?.setAttribute("content", document.title);
+    document.querySelector('meta[property="og:description"]')?.setAttribute("content", descriptions[language]);
+    document.querySelector('link[rel="canonical"]')?.setAttribute("href", `https://nobat-yar.vercel.app${path === "/" ? "/home" : path}`);
+  }, [language, location.pathname]);
 
   const [user, setUser] = useState(null);
   const [checking, setChecking] = useState(true);
@@ -99,6 +128,7 @@ export default function App() {
         onLogout={logout}
       />
 
+      <Suspense fallback={<Loading language={language} />}>
       <Routes>
         <Route
           path="/forgot-password"
@@ -250,6 +280,7 @@ export default function App() {
           }
         />
       </Routes>
+      </Suspense>
 
       <Footer language={language} />
     </>

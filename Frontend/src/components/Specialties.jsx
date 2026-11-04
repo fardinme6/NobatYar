@@ -44,7 +44,7 @@ export default function Specialties({ language }) {
               className="group bg-teal-50 dark:bg-slate-700 rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
             >
               <div className="overflow-hidden">
-                <img
+                <img loading="lazy" decoding="async"
                   src={specialty.image}
                   alt={t[specialty.name] || specialty.name}
                   className="w-full h-40 sm:h-45 md:h-50 object-cover group-hover:scale-105 transition-transform duration-500"

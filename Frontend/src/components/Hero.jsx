@@ -70,6 +70,7 @@ export default function Hero({ language }) {
             width="800"
             height="1200"
             fetchPriority={current === 0 ? "high" : "auto"}
+            loading="eager"
             decoding="async"
             className={`w-full max-w-lg h-[390px] sm:h-[480px] lg:h-[610px] object-cover rounded-3xl transition-opacity duration-500 ${
               fade ? "opacity-100" : "opacity-0"

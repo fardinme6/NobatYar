@@ -4,7 +4,7 @@ import { Stethoscope, Hospital } from "lucide-react";
 import { translations } from "../data/translations";
 
 export default function Hero({ language }) {
-  const images = ["/doctor.jpg", "/doctor1.jpg", "/doctor2.jpg"];
+  const images = ["/doctor-hero.webp", "/doctor1.jpg", "/doctor2.jpg"];
 
   const [current, setCurrent] = useState(0);
   const [fade, setFade] = useState(true);
@@ -67,8 +67,12 @@ export default function Hero({ language }) {
         <div className="w-full lg:w-1/2 flex flex-col items-center">
           <img
             src={images[current]}
-            alt="Doctor"
-            className={`w-full max-w-lg h-[610px] object-cover rounded-3xl transition-opacity duration-500 ${
+            alt={language === "English" ? "Doctor at NobatYar" : language === "Pashto" ? "د نوبت‌یار ډاکټره" : "داکتر در نوبت‌یار"}
+            width="800"
+            height="1200"
+            fetchPriority={current === 0 ? "high" : "auto"}
+            decoding="async"
+            className={`w-full max-w-lg h-[390px] sm:h-[480px] lg:h-[610px] object-cover rounded-3xl transition-opacity duration-500 ${
               fade ? "opacity-100" : "opacity-0"
             }`}
           />
@@ -78,6 +82,9 @@ export default function Hero({ language }) {
               <button
                 key={index}
                 onClick={() => setCurrent(index)}
+                type="button"
+                aria-label={`${language === "English" ? "Show slide" : language === "Pashto" ? "انځور" : "نمایش تصویر"} ${index + 1}`}
+                aria-current={current === index ? "true" : undefined}
                 className={`w-3 h-3 rounded-full cursor-pointer ${
                   current === index
                     ? "bg-teal-600"

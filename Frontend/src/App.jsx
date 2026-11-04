@@ -30,12 +30,6 @@ const HospitalDashboard = lazy(() => import("./pages/HospitalDashboard.jsx"));
 
 export default function App() {
   const location = useLocation();
-  const [pageLoading, setPageLoading] = useState(false);
-  useEffect(() => {
-    setPageLoading(true);
-    const timer = setTimeout(() => setPageLoading(false), 350);
-    return () => clearTimeout(timer);
-  }, [location.pathname]);
   const [language, setLanguage] = useState(() => {
     return localStorage.getItem("language") || "Persian";
   });
@@ -59,6 +53,21 @@ export default function App() {
       "/specialties": ["تخصص‌های طبی", "طبي تخصصونه", "Medical Specialties"],
       "/about": ["درباره ما", "زموږ په اړه", "About Us"],
       "/contact": ["تماس با ما", "اړیکه ونیسئ", "Contact Us"],
+      "/login": ["ورود", "ننوتل", "Log In"],
+      "/signup": ["ثبت‌نام", "نوم‌لیکنه", "Sign Up"],
+      "/verify-phone": ["تأیید شماره تلفن", "د ټیلیفون تایید", "Verify Phone"],
+      "/check-email": ["بررسی ایمیل", "برېښنالیک وګورئ", "Check Email"],
+      "/verify-email": ["تأیید ایمیل", "د برېښنالیک تایید", "Verify Email"],
+      "/forgot-password": ["فراموشی رمز عبور", "پټ نوم هېر شوی", "Forgot Password"],
+      "/reset-password": ["تغییر رمز عبور", "د پټ نوم بدلول", "Reset Password"],
+      "/register-provider": ["پیوستن به نوبت‌یار", "نوبت‌یار سره یوځای شئ", "Join NobatYar"],
+      "/activate-provider": ["فعال‌سازی حساب", "حساب فعالول", "Activate Account"],
+      "/my-appointments": ["نوبت‌های من", "زما نوبتونه", "My Appointments"],
+      "/how-it-works": ["طرز کار نوبت‌یار", "نوبت‌یار څنګه کار کوي", "How It Works"],
+      "/profile": ["پروفایل من", "زما پروفایل", "My Profile"],
+      "/admin": ["پنل مدیریتی ادمین", "د اډمین مدیریت", "Admin Dashboard"],
+      "/provider-dashboard": ["پنل داکتر", "د ډاکټر پنل", "Doctor Dashboard"],
+      "/hospital-dashboard": ["پنل شفاخانه", "د روغتون پنل", "Hospital Dashboard"],
     };
     const langIndex = language === "English" ? 2 : language === "Pashto" ? 1 : 0;
     const path = location.pathname;
@@ -66,15 +75,19 @@ export default function App() {
     if (path.startsWith("/hospitals/") && path.endsWith("/doctors")) names = ["داکتران شفاخانه", "د روغتون ډاکټران", "Hospital Doctors"];
     else if (path.startsWith("/hospitals/")) names = ["جزئیات شفاخانه", "د روغتون معلومات", "Hospital Details"];
     else if (path.startsWith("/doctors/")) names = ["پروفایل داکتر", "د ډاکټر پېژندنه", "Doctor Profile"];
+    else if (path.startsWith("/book-appointment/")) names = ["گرفتن نوبت", "نوبت اخیستل", "Book Appointment"];
     const descriptions = {
       Persian: "نوبت‌یار؛ یک انتخاب هوشمند برای سلامتی شما! داکتران، شفاخانه‌ها و کلینیک‌های افغانستان را پیدا کنید و نوبت خود را آنلاین رزرو کنید.",
       Pashto: "نوبت‌یار؛ په افغانستان کې ډاکټران، روغتونونه او کلینیکونه ومومئ او خپله نوبت آنلاین واخلئ.",
       English: "NobatYar helps you find doctors, hospitals and clinics in Afghanistan and book medical appointments online.",
     };
-    document.title = `${names[langIndex]} | NobatYar - نوبت‌یار`;
+    document.title = `${names[langIndex]} | ${language === "English" ? "NobatYar" : "نوبت‌یار"}`;
     document.querySelector('meta[name="description"]')?.setAttribute("content", descriptions[language]);
     document.querySelector('meta[property="og:title"]')?.setAttribute("content", document.title);
     document.querySelector('meta[property="og:description"]')?.setAttribute("content", descriptions[language]);
+    // Private account pages should not appear in Google search results.
+    const privatePage = ["/login", "/signup", "/profile", "/admin", "/my-appointments", "/provider-dashboard", "/hospital-dashboard", "/verify-phone", "/check-email", "/verify-email", "/forgot-password", "/reset-password", "/activate-provider"].includes(path) || path.startsWith("/book-appointment/");
+    document.querySelector('meta[name="robots"]')?.setAttribute("content", privatePage ? "noindex, nofollow" : "index, follow");
     document.querySelector('link[rel="canonical"]')?.setAttribute("href", `https://nobat-yar.vercel.app${path === "/" ? "/home" : path}`);
   }, [language, location.pathname]);
 
@@ -117,7 +130,7 @@ export default function App() {
 
   return (
     <>
-      {(busy || pageLoading) && <Loading language={language} />}
+      {busy && <Loading language={language} />}
       <Header
         imageURL="/logo.png"
         title="NobatYar Logo"

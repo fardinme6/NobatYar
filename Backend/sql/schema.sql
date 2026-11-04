@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS hospitals (
  city_value TEXT NOT NULL,
  location TEXT NOT NULL,
  image TEXT NOT NULL,
+ logo TEXT NOT NULL DEFAULT '',
  description TEXT NOT NULL DEFAULT ''
 );
 CREATE TABLE IF NOT EXISTS doctors (

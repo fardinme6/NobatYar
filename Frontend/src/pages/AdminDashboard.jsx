@@ -541,6 +541,7 @@ export default function AdminDashboard({ language }) {
               specialtyValues: item.specialty_values || [],
               description: item.description || "",
               image: item.image || "",
+              logo: item.logo || "",
             }
           : {
               name: item.name,
@@ -648,6 +649,32 @@ export default function AdminDashboard({ language }) {
       setUploadingImage(false);
     }
   };
+  const hospitalLogoField = () => (
+    <div className="sm:col-span-2">
+      <label className="block font-medium dark:text-white mb-2">
+        {language === "English" ? "Hospital / Clinic Logo *" : language === "Pashto" ? "د روغتون / کلینیک لوګو *" : "لوگوی شفاخانه / کلینیک *"}
+      </label>
+      <input type="file" accept="image/jpeg,image/png,image/webp"
+        className="block w-full p-3 border rounded-xl dark:text-white"
+        onChange={async (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+          setUploadingImage(true);
+          try {
+            const body = new FormData();
+            body.append("photo", file);
+            const response = await fetch(`${API_URL}/api/admin/catalog/photo`, {
+              method: "POST", credentials: "include", body,
+            });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.message || t.adminUploadFailed);
+            setForm((old) => ({ ...old, logo: result.image }));
+          } catch (error) { setError(error.message); }
+          finally { setUploadingImage(false); }
+        }} />
+      {form.logo && <img src={form.logo} alt="Logo" className="w-24 h-24 rounded-full object-contain bg-white border mt-3" />}
+    </div>
+  );
   const catalogImageField = () => (
     <div className="block sm:col-span-2">
       <label className="block cursor-pointer">
@@ -730,7 +757,8 @@ export default function AdminDashboard({ language }) {
           !form.phone ||
           !form.email ||
           !form.license ||
-          !form.image)) ||
+          !form.image ||
+          !form.logo)) ||
       (kind === "doctor" &&
         (!(form.specialtyValues?.length || form.specialty) || !form.hospitalId))
     ) {
@@ -1185,6 +1213,7 @@ export default function AdminDashboard({ language }) {
                               specialtyValues: [],
                               description: "",
                               image: "",
+                              logo: "",
                             },
                       );
                     }}
@@ -1238,6 +1267,7 @@ export default function AdminDashboard({ language }) {
                       </>
                     )}
                     {catalogImageField()}
+                    {editing === "new-hospitals" && hospitalLogoField()}
                     <button
                       disabled={uploadingImage}
                       onClick={() =>
@@ -1426,6 +1456,7 @@ export default function AdminDashboard({ language }) {
                               {specialtyPicker()}
                               {field("description", t.adminAboutHospital)}
                               {catalogImageField()}
+                              {hospitalLogoField()}
                             </>
                           )}
                           {kind === "specialty" && (

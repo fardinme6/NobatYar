@@ -58,6 +58,7 @@ export default function ProviderRegistration({ language, user }) {
   const [saving, setSaving] = useState(false);
   const [requests, setRequests] = useState([]);
   const [doctorPhoto, setDoctorPhoto] = useState(null);
+  const [hospitalLogo, setHospitalLogo] = useState(null);
   const [hospitalOptions, setHospitalOptions] = useState([]);
   const [specialtyOptions, setSpecialtyOptions] = useState([]);
   const [selectedSpecialties, setSelectedSpecialties] = useState([]);
@@ -90,12 +91,13 @@ export default function ProviderRegistration({ language, user }) {
       setSaving(false);
       return;
     }
-    if (!doctorPhoto) {
+    if (!doctorPhoto || (providerType !== "doctor" && !hospitalLogo)) {
       setError("Photo is required / عکس ضروری است");
       setSaving(false);
       return;
     }
     let photoUrl = "";
+    let logoUrl = "";
     try {
       if (doctorPhoto) {
         const photoBody = new FormData();
@@ -106,6 +108,12 @@ export default function ProviderRegistration({ language, user }) {
         });
         photoUrl = uploaded.photoUrl;
       }
+      if (providerType !== "doctor" && hospitalLogo) {
+        const body = new FormData();
+        body.append("photo", hospitalLogo);
+        const uploaded = await api("/provider-requests/photo", { method: "POST", body });
+        logoUrl = uploaded.photoUrl;
+      }
     } catch (err) {
       setError(err.message);
       setSaving(false);
@@ -113,6 +121,7 @@ export default function ProviderRegistration({ language, user }) {
     }
     const details = JSON.stringify({
       photoUrl,
+      logoUrl,
       type: providerType,
       city: data.city,
       specialty: specialtyValues[0] || "",
@@ -379,6 +388,17 @@ export default function ProviderRegistration({ language, user }) {
                     {doctorPhoto ? doctorPhoto.name : t.noFileChosen}
                   </label>
                 </div>
+                {providerType !== "doctor" && (
+                  <div className="md:col-span-2">
+                    <label className="block mb-2 font-medium dark:text-white">
+                      {language === "English" ? "Hospital / Clinic Logo *" : language === "Pashto" ? "د روغتون / کلینیک لوګو *" : "لوگوی شفاخانه / کلینیک *"}
+                    </label>
+                    <input type="file" accept="image/jpeg,image/png,image/webp" required
+                      onChange={(e) => setHospitalLogo(e.target.files[0] || null)}
+                      className={inputStyle} />
+                    {hospitalLogo && <p className="mt-2 text-sm text-teal-600">{hospitalLogo.name}</p>}
+                  </div>
+                )}
                 {providerType === "doctor" && (
                   <>
                     <div>

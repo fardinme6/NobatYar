@@ -101,6 +101,12 @@ export default function HospitalDetails({ language }) {
             </span>
           </div>
 
+          {hospital.logo && (
+            <div className="flex justify-start px-6 md:px-9 -mt-12 relative z-10">
+              <img src={hospital.logo} alt={`${label(hospital.name)} logo`}
+                className="w-24 h-24 md:w-28 md:h-28 rounded-full object-contain bg-white border-4 border-white shadow-md" />
+            </div>
+          )}
           <div className="p-6 md:p-9">
             <div className="flex items-center gap-2 text-teal-600 dark:text-teal-400 text-sm font-medium mb-3">
               <Building2 size={18} />

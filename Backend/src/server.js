@@ -939,7 +939,7 @@ app.get(
   "/api/hospitals",
   asyncRoute(async (req, res) => {
     const result = await db.query(
-  'SELECT id,name,type,type_value AS "typeValue",city,city_value AS "cityValue",location,image,description,services,phone,email,specialty_values AS "specialtyValues" FROM hospitals ORDER BY id',
+  'SELECT id,name,type,type_value AS "typeValue",city,city_value AS "cityValue",location,image,logo,description,services,phone,email,specialty_values AS "specialtyValues" FROM hospitals ORDER BY id',
 );
     const search = String(req.query.search || "").toLowerCase();
     const type = String(req.query.type || "all");
@@ -971,7 +971,7 @@ app.get(
   "/api/hospitals/:id",
   asyncRoute(async (req, res) => {
     const result = await db.query(
-  'SELECT id,name,type,type_value AS "typeValue",city,city_value AS "cityValue",location,image,description,services,phone,email,specialty_values AS "specialtyValues" FROM hospitals WHERE id=$1',
+  'SELECT id,name,type,type_value AS "typeValue",city,city_value AS "cityValue",location,image,logo,description,services,phone,email,specialty_values AS "specialtyValues" FROM hospitals WHERE id=$1',
   [req.params.id],
 );
     if (!result.rows[0])
@@ -1311,7 +1311,7 @@ async function addProviderCard(client, request, details, providerId = null) {
       "SELECT COALESCE(MAX(id),0)+1 AS id FROM hospitals",
     );
     await client.query(
-      "INSERT INTO hospitals(id,name,type,type_value,city,city_value,location,image,description) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)",
+      "INSERT INTO hospitals(id,name,type,type_value,city,city_value,location,image,logo,description) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)",
       [
         next.rows[0].id,
         request.name,
@@ -1321,6 +1321,7 @@ async function addProviderCard(client, request, details, providerId = null) {
         details.city || "",
         details.address || "",
         details.photoUrl,
+        details.logoUrl || "",
         details.information || "",
       ],
     );
@@ -1347,7 +1348,7 @@ app.post(
     } catch {
       return res.status(400).json({ message: "Invalid provider details" });
     }
-    if (!details || !validProviderPhoto(details.photoUrl))
+    if (!details || !validProviderPhoto(details.photoUrl) || (data.providerType !== "doctor" && !validProviderPhoto(details.logoUrl)))
       return res.status(400).json({
         message:
           "A valid photo is required for every doctor, hospital and clinic",
@@ -1591,7 +1592,7 @@ app.patch(
         try {
           details = JSON.parse(request.details);
         } catch {}
-        if (!validProviderPhoto(details.photoUrl)) {
+        if (!validProviderPhoto(details.photoUrl) || (request.provider_type !== "doctor" && !validProviderPhoto(details.logoUrl))) {
           await client.query("ROLLBACK");
           return res.status(400).json({
             message:
@@ -2846,6 +2847,7 @@ app.post(
         email: z.string().email().max(254),
         license: text(120),
         image: z.string().min(1).max(1000),
+        logo: z.string().min(1).max(1000),
       }),
       req.body,
     );
@@ -2854,13 +2856,14 @@ app.post(
       await client.query("BEGIN");
       await client.query("SELECT pg_advisory_xact_lock(20261023)");
       const r = await client.query(
-        "INSERT INTO hospitals(id,name,type,type_value,city,city_value,location,image,description,phone,license_number,services,email) VALUES((SELECT COALESCE(MAX(id),0)+1 FROM hospitals),$1,$2,$2,$3,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *",
+        "INSERT INTO hospitals(id,name,type,type_value,city,city_value,location,image,logo,description,phone,license_number,services,email) VALUES((SELECT COALESCE(MAX(id),0)+1 FROM hospitals),$1,$2,$2,$3,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *",
         [
           d.name,
           d.type,
           d.city,
           d.location,
           d.image,
+          d.logo,
           d.description,
           d.phone,
           d.license,
@@ -2959,6 +2962,7 @@ app.patch(
         experience: z.string().max(3000).default(""),
         education: z.string().max(3000).default(""),
         image: z.string().max(1000).optional(),
+        logo: z.string().max(1000).optional(),
       }),
       req.body,
     );
@@ -3037,6 +3041,7 @@ app.patch(
         email: z.string().email().max(254),
         license: text(120),
         image: z.string().max(1000).optional(),
+        logo: z.string().max(1000).optional(),
       }),
       req.body,
     );
@@ -3052,7 +3057,7 @@ app.patch(
         return res.status(404).json({ message: "Hospital not found" });
       }
       const r = await client.query(
-        "UPDATE hospitals SET name=$1,location=$2,city=$3,city_value=$3,description=$4,image=COALESCE($6,image),type=$7,type_value=$7,phone=$8,license_number=$9,services=$10,email=$11 WHERE id=$5 RETURNING *",
+        "UPDATE hospitals SET name=$1,location=$2,city=$3,city_value=$3,description=$4,image=COALESCE($6,image),logo=COALESCE($12,logo),type=$7,type_value=$7,phone=$8,license_number=$9,services=$10,email=$11 WHERE id=$5 RETURNING *",
         [
           d.name,
           d.location,
@@ -3065,6 +3070,7 @@ app.patch(
           d.license,
           d.services,
           d.email,
+          d.logo || null,
         ],
       );
       await client.query("UPDATE doctors SET hospital=$1 WHERE hospital=$2", [

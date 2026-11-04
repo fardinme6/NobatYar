@@ -126,7 +126,10 @@ export default function App() {
     }
   };
 
-  if (checking) return <Loading language={language} />;
+  // Public pages should render immediately; authentication is only required
+  // before deciding whether a visitor can open a protected page.
+  const protectedPage = ["/admin", "/profile", "/my-appointments", "/provider-dashboard", "/hospital-dashboard"].includes(location.pathname) || location.pathname.startsWith("/book-appointment/");
+  if (checking && protectedPage) return <Loading language={language} />;
 
   return (
     <>

@@ -71,7 +71,8 @@ export default function Hero({ language }) {
             height="1200"
             fetchPriority={current === 0 ? "high" : "auto"}
             decoding="async"
-            className={`w-full max-w-lg h-[390px] sm:h-[480px] lg:h-[610px] object-cover rounded-3xl transition-opacity duration-500 ${
+            loading="eager"
+            className={`w-full max-w-lg h-[390px] sm:h-[480px] lg:h-[610px] object-cover rounded-3xl transition-opacity duration-500 motion-reduce:transition-none ${
               fade ? "opacity-100" : "opacity-0"
             }`}
           />

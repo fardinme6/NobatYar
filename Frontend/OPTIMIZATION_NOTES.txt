@@ -1,0 +1,9 @@
+NobatYar Frontend optimization (2026-11-04)
+
+- App.jsx: public pages render without waiting for /auth/me, improving initial rendering and reducing the full-screen loading transition. Protected routes still wait for the authentication check.
+- Hero.jsx: the above-the-fold hero image is explicitly eager-loaded; respects reduced-motion preference.
+- Existing responsive image dimensions, accessible controls, and SEO metadata are preserved.
+- Backend and database are untouched.
+
+Build and PageSpeed tests intentionally not run (per user request).
+PageSpeed scores are not guaranteed; repeat runs and check all account flows.

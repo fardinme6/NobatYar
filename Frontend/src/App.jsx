@@ -2,7 +2,7 @@ import Loading from "./components/Loading.jsx";
 const AccountRecovery = lazy(() => import("./pages/AccountRecovery.jsx"));
 import { api } from "./api";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
-import { useState, useEffect, lazy, Suspense } from "react";
+import { useState, useEffect, useRef, lazy, Suspense } from "react";
 const SignUp = lazy(() => import("./pages/SignUp.jsx"));
 const VerifyPhone = lazy(() => import("./pages/VerifyPhone.jsx"));
 const CheckEmail = lazy(() => import("./pages/CheckEmail.jsx"));
@@ -94,6 +94,20 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [checking, setChecking] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [routeLoading, setRouteLoading] = useState(false);
+  const firstRoute = useRef(true);
+
+  // Show the existing loading screen whenever the page route changes.
+  // Keep the destination mounted behind the overlay so it can render immediately.
+  useEffect(() => {
+    if (firstRoute.current) {
+      firstRoute.current = false;
+      return;
+    }
+    setRouteLoading(true);
+    const timer = setTimeout(() => setRouteLoading(false), 450);
+    return () => clearTimeout(timer);
+  }, [location.pathname]);
 
   useEffect(() => {
     const update = (e) => setBusy(e.detail);
@@ -130,7 +144,7 @@ export default function App() {
 
   return (
     <>
-      {busy && <Loading language={language} />}
+      {(busy || routeLoading) && <Loading language={language} />}
       <Header
         imageURL="/logo.png"
         title="NobatYar Logo"

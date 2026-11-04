@@ -102,9 +102,13 @@ export default function HospitalDetails({ language }) {
           </div>
 
           {hospital.logo && (
-            <div className="flex justify-end px-6 md:px-9 -mt-14 md:-mt-16 relative z-10">
-              <img src={hospital.logo} alt={`${label(hospital.name)} logo`}
-                className="w-28 h-28 md:w-36 md:h-36 rounded-full object-contain bg-white border-4 border-white shadow-md" />
+            <div className="flex justify-end px-6 md:px-9 -mt-14 md:-mt-16 relative z-10 h-14 md:h-16">
+              {" "}
+              <img
+                src={hospital.logo}
+                alt={`${label(hospital.name)} logo`}
+                className="w-28 h-28 md:w-36 md:h-36 rounded-full object-contain bg-white border-4 border-white shadow-md"
+              />
             </div>
           )}
           <div className="p-6 md:p-9">

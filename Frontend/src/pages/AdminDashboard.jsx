@@ -683,7 +683,7 @@ export default function AdminDashboard({ language }) {
             } catch (error) { setError(error.message); }
             finally { setUploadingImage(false); }
           }} />
-        <span className="block w-full mt-2 border rounded-xl p-3 text-sm text-gray-700 dark:text-gray-200 dark:border-gray-500 hover:border-teal-500 transition-colors">
+        <span className="block w-full mt-2 border rounded-xl p-3 text-sm text-gray-700 dark:text-gray-200 dark:border-[#528077] hover:border-teal-500 transition-colors">
           {logoFileName || t.noFileChosen}
         </span>
       </label>
@@ -700,7 +700,7 @@ export default function AdminDashboard({ language }) {
           onChange={(e) => uploadCatalogPhoto(e.target.files[0])}
           className="sr-only"
         />
-        <span className="block w-full mt-2 border rounded-xl p-3 text-gray-700 dark:text-gray-200 dark:border-gray-500 text-sm">
+        <span className="block w-full mt-2 border rounded-xl p-3 text-gray-700 dark:text-gray-200 dark:border-[#528077] text-sm">
           {catalogFileName || t.noFileChosen}
         </span>
       </label>
@@ -726,7 +726,7 @@ export default function AdminDashboard({ language }) {
           }}
           className="sr-only"
         />
-        <span className="block mt-2 w-full border rounded-xl p-3 text-gray-700 dark:text-gray-200 dark:border-gray-500">
+        <span className="block mt-2 w-full border rounded-xl p-3 text-gray-700 dark:text-gray-200 dark:border-[#528077]">
           {catalogFileName || t.noFileChosen}
         </span>
       </label>
@@ -932,7 +932,7 @@ export default function AdminDashboard({ language }) {
     },
   ];
   return (
-    <main className="min-h-screen bg-teal-50/60 dark:bg-slate-900 px-4 py-12">
+    <main className="min-h-screen bg-teal-50/60 dark:bg-[#061b19] px-4 py-12">
       <style>{`main button:not(:disabled) { cursor: pointer; transition: filter 0.2s, transform 0.2s, background-color 0.2s; }
         main button:not(:disabled):hover { filter: brightness(0.93); }
         main button:not(:disabled):active { transform: scale(0.98); }
@@ -962,7 +962,7 @@ export default function AdminDashboard({ language }) {
                 setForm({});
                 setCatalogFileName("");
               }}
-              className={`rounded-2xl p-4 text-start shadow-sm border transition hover:-translate-y-1 cursor-pointer ${tab === item.id ? "bg-teal-600 text-white border-teal-600" : "bg-white dark:bg-slate-800 dark:text-white border-gray-100 dark:border-slate-700"}`}
+              className={`rounded-2xl p-4 text-start shadow-sm border transition hover:-translate-y-1 cursor-pointer ${tab === item.id ? "bg-teal-600 text-white border-teal-600" : "bg-white dark:bg-[#102d29] dark:text-white border-gray-100 dark:border-[#28534d]"}`}
             >
               <item.icon size={24} />
               <p className="font-semibold mt-3">{item.name}</p>
@@ -995,7 +995,7 @@ export default function AdminDashboard({ language }) {
                 requests.map((r) => (
                   <article
                     key={r.id}
-                    className="bg-white dark:bg-slate-800 dark:text-white rounded-2xl shadow-sm p-6 transition hover:shadow-lg"
+                    className="bg-white dark:bg-[#102d29] dark:text-white rounded-2xl shadow-sm p-6 transition hover:shadow-lg"
                   >
                     <div className="flex justify-between flex-wrap gap-3">
                       <div>
@@ -1030,7 +1030,7 @@ export default function AdminDashboard({ language }) {
                         .map(([key, value]) => (
                           <p
                             key={key}
-                            className="rounded-lg bg-gray-50 dark:bg-slate-700 p-3"
+                            className="rounded-lg bg-gray-50 dark:bg-[#173b35] p-3"
                           >
                             <strong className="capitalize">
                               {requestLabels[key] || key.replace(/([A-Z])/g, " $1")}:{" "}
@@ -1050,7 +1050,7 @@ export default function AdminDashboard({ language }) {
                             setNotes({ ...notes, [r.id]: e.target.value })
                           }
                           rows={2}
-                          className="w-full rounded-xl border p-3 dark:bg-slate-700 dark:border-slate-600"
+                          className="w-full rounded-xl border p-3 dark:bg-[#173b35] dark:border-[#38665d]"
                           placeholder={t.adminReviewPlaceholder}
                         />
                         <div className="flex gap-3 mt-3">
@@ -1079,7 +1079,7 @@ export default function AdminDashboard({ language }) {
                 contacts.map((c) => (
                   <article
                     key={c.id}
-                    className="bg-white dark:bg-slate-800 dark:text-white rounded-2xl shadow-sm p-6"
+                    className="bg-white dark:bg-[#102d29] dark:text-white rounded-2xl shadow-sm p-6"
                   >
                     <div className="flex justify-between gap-3">
                       <div>
@@ -1100,7 +1100,7 @@ export default function AdminDashboard({ language }) {
                       </p>
                     </div>
                     {c.admin_reply && (
-                      <div className="mt-4 rounded-xl bg-teal-50 dark:bg-slate-700 p-3">
+                      <div className="mt-4 rounded-xl bg-teal-50 dark:bg-[#173b35] p-3">
                         <strong>{t.adminPreviousReply || "Sent reply"}:</strong>
                         <p className="whitespace-pre-wrap">{c.admin_reply}</p>
                       </div>
@@ -1131,7 +1131,7 @@ export default function AdminDashboard({ language }) {
                           onChange={(e) =>
                             setReplies({ ...replies, [c.id]: e.target.value })
                           }
-                          className="w-full border rounded-xl p-3 dark:bg-slate-700 dark:border-slate-600"
+                          className="w-full border rounded-xl p-3 dark:bg-[#173b35] dark:border-[#38665d]"
                           rows={4}
                           maxLength={3000}
                           placeholder={t.adminReplyPlaceholder}
@@ -1159,13 +1159,13 @@ export default function AdminDashboard({ language }) {
               <div className="space-y-4">
                 <input type="search" value={patientSearch} onChange={(e) => setPatientSearch(e.target.value)}
                   placeholder={patientLabels.search}
-                  className="w-full p-3 rounded-xl border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white" />
+                  className="w-full p-3 rounded-xl border border-gray-200 dark:border-[#38665d] bg-white dark:bg-[#102d29] dark:text-white" />
                 {patients.filter((patient) =>
                   [patient.name, patient.email, patient.phone].some((value) =>
                     String(value || "").toLowerCase().includes(patientSearch.toLowerCase().trim())
                   )
                 ).map((patient) => (
-                  <article key={patient.id} className="bg-white dark:bg-slate-800 dark:text-white rounded-2xl p-5 shadow-sm grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <article key={patient.id} className="bg-white dark:bg-[#102d29] dark:text-white rounded-2xl p-5 shadow-sm grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div className="space-y-3">
                       <div className="flex items-center gap-3">
                         {patient.avatar && <img src={patient.avatar} alt="" className="w-14 h-14 rounded-full object-cover" />}
@@ -1185,7 +1185,7 @@ export default function AdminDashboard({ language }) {
                           className="bg-red-100 text-red-700 rounded-lg px-4 py-2 disabled:opacity-50">{patientLabels.delete}</button>
                       </div>
                     </div>
-                    <div className="rounded-xl bg-gray-50 dark:bg-slate-700 p-4 space-y-2 text-sm min-w-0">
+                    <div className="rounded-xl bg-gray-50 dark:bg-[#173b35] p-4 space-y-2 text-sm min-w-0">
                       <h4 className="font-bold mb-3">{patientLabels.details}</h4>
                       {[
                         [patientLabels.name, patient.name], [patientLabels.email, patient.email],
@@ -1356,7 +1356,7 @@ export default function AdminDashboard({ language }) {
                   return (
                     <article
                       key={item.id}
-                      className="bg-white dark:bg-slate-800 dark:text-white rounded-2xl p-5 shadow-sm"
+                      className="bg-white dark:bg-[#102d29] dark:text-white rounded-2xl p-5 shadow-sm"
                     >
                       <div className="flex items-center gap-4 flex-wrap">
                         {item.image && (
@@ -1506,7 +1506,7 @@ export default function AdminDashboard({ language }) {
                 providers.map((p) => (
                   <article
                     key={p.id}
-                    className="bg-white dark:bg-slate-800 dark:text-white rounded-2xl p-5 shadow-sm flex flex-wrap justify-between gap-4 items-center"
+                    className="bg-white dark:bg-[#102d29] dark:text-white rounded-2xl p-5 shadow-sm flex flex-wrap justify-between gap-4 items-center"
                   >
                     <div>
                       <h3 className="font-bold">
@@ -1566,7 +1566,7 @@ export default function AdminDashboard({ language }) {
         )}
         {translationEditor && (
           <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-            <div className="bg-white dark:bg-slate-800 dark:text-white rounded-2xl p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+            <div className="bg-white dark:bg-[#102d29] dark:text-white rounded-2xl p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
               <div className="flex justify-between items-center mb-3">
                 <h2 className="text-xl font-bold">
                   🌐 {modalText.translate}: {translationEditor.name}
@@ -1584,7 +1584,7 @@ export default function AdminDashboard({ language }) {
                 <select
                   value={sourceLanguage}
                   onChange={(e) => setSourceLanguage(e.target.value)}
-                  className="border rounded-lg p-2 dark:bg-slate-800 cursor-pointer"
+                  className="border rounded-lg p-2 dark:bg-[#102d29] cursor-pointer"
                 >
                   <option value="fa">دری</option>
                   <option value="ps">پښتو</option>
@@ -1669,7 +1669,7 @@ export default function AdminDashboard({ language }) {
         )}
         {assigning && (
           <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-            <div className="bg-white dark:bg-slate-800 dark:text-white p-6 rounded-2xl w-full max-w-md shadow-xl">
+            <div className="bg-white dark:bg-[#102d29] dark:text-white p-6 rounded-2xl w-full max-w-md shadow-xl">
               <h3 className="font-bold text-xl mb-2">{t.adminAssignAccount}</h3>
               <p className="text-sm mb-4">
                 {assigning.name} — {t.adminExistingProfile} #{assigning.id}

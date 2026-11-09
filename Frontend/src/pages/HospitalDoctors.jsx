@@ -62,7 +62,7 @@ export default function HospitalDoctors({ language }) {
 
   if (!hospital) {
     return (
-      <section className="min-h-screen bg-gray-50 dark:bg-slate-900 flex flex-col items-center justify-center px-5 text-center">
+      <section className="min-h-screen bg-gray-50 dark:bg-[#061b19] flex flex-col items-center justify-center px-5 text-center">
         <SearchX size={50} className="text-gray-400 mb-5" />
 
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
@@ -93,7 +93,7 @@ export default function HospitalDoctors({ language }) {
   );
 
   return (
-    <section className="min-h-screen bg-gray-50 dark:bg-slate-900 px-5 md:px-10 lg:px-20 py-12">
+    <section className="min-h-screen bg-gray-50 dark:bg-[#061b19] px-5 md:px-10 lg:px-20 py-12">
       <div className="max-w-7xl mx-auto">
         <Link
           to={`/hospitals/${hospital.id}`}
@@ -103,7 +103,7 @@ export default function HospitalDoctors({ language }) {
           {t.viewDetails}
         </Link>
 
-        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm p-6 md:p-8 mb-10">
+        <div className="bg-white dark:bg-[#102d29] rounded-2xl border border-gray-100 dark:border-[#28534d] shadow-sm p-6 md:p-8 mb-10">
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
             <img
               src={hospital.image}
@@ -185,10 +185,10 @@ export default function HospitalDoctors({ language }) {
             {hospitalDoctors.map((doctor) => (
               <div
                 key={doctor.id}
-                className="flex flex-col bg-white dark:bg-slate-800 rounded-2xl overflow-hidden border border-gray-100 dark:border-slate-700 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+                className="flex flex-col bg-white dark:bg-[#102d29] rounded-2xl overflow-hidden border border-gray-100 dark:border-[#28534d] shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
               >
                 <div className="relative overflow-hidden">
-                  <span className="absolute top-4 start-4 z-10 bg-white/95 dark:bg-slate-800/95 text-teal-700 dark:text-teal-400 px-3 py-1.5 rounded-lg text-xs font-semibold"><MapPin size={14} className="inline me-1" />{label(doctor.city)}</span>
+                  <span className="absolute top-4 start-4 z-10 bg-white/95 dark:bg-[#102d29]/95 text-teal-700 dark:text-teal-400 px-3 py-1.5 rounded-lg text-xs font-semibold"><MapPin size={14} className="inline me-1" />{label(doctor.city)}</span>
                   <img
                     src={doctor.image}
                     width="480" height="560" loading="lazy" decoding="async"
@@ -214,7 +214,7 @@ export default function HospitalDoctors({ language }) {
                   <div className="grid grid-cols-2 gap-3 mt-auto">
                     <Link
                       to={`/doctors/${doctor.id}`}
-                      className="flex items-center justify-center gap-2 text-center border border-teal-600 text-teal-600 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-slate-700 py-3 rounded-xl text-sm font-medium transition"
+                      className="flex items-center justify-center gap-2 text-center border border-teal-600 text-teal-600 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-[#173b35] py-3 rounded-xl text-sm font-medium transition"
                     >
                       <UserRound size={17} />
                       {t.viewProfile}
@@ -233,7 +233,7 @@ export default function HospitalDoctors({ language }) {
             ))}
           </div>
         ) : (
-          <div className="bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-2xl px-5 py-16 text-center">
+          <div className="bg-white dark:bg-[#102d29] border border-gray-100 dark:border-[#28534d] rounded-2xl px-5 py-16 text-center">
             <Stethoscope size={48} className="mx-auto text-gray-400 mb-5" />
 
             <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">

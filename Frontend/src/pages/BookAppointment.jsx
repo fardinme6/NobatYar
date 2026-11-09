@@ -98,7 +98,7 @@ export default function BookAppointment({ language }) {
 
   if (!doctor) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-5 bg-gray-50 dark:bg-slate-900">
+      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-5 bg-gray-50 dark:bg-[#061b19]">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
           {t.noDoctorsFound}
         </h1>
@@ -126,7 +126,7 @@ export default function BookAppointment({ language }) {
   };
 
   return (
-    <section className="min-h-screen bg-gray-50 dark:bg-slate-900 px-5 md:px-12 lg:px-20 py-12">
+    <section className="min-h-screen bg-gray-50 dark:bg-[#061b19] px-5 md:px-12 lg:px-20 py-12">
       <div className="max-w-6xl mx-auto">
         <Link
           to="/doctors"
@@ -155,7 +155,7 @@ export default function BookAppointment({ language }) {
           <div className="lg:col-span-2">
             <form
               onSubmit={handleSubmit}
-              className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm p-6 md:p-8 space-y-8"
+              className="bg-white dark:bg-[#102d29] rounded-2xl border border-gray-100 dark:border-[#28534d] shadow-sm p-6 md:p-8 space-y-8"
             >
               <div>
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-5 flex items-center gap-2">
@@ -187,7 +187,7 @@ export default function BookAppointment({ language }) {
                     minDate={new Date()}
                     format="YYYY/MM/DD"
                     containerClassName="w-full"
-                    inputClass="!w-full px-4 py-3.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl outline-none focus:border-teal-500 text-gray-900 dark:text-white"
+                    inputClass="!w-full px-4 py-3.5 bg-gray-50 dark:bg-[#173b35] border border-gray-200 dark:border-[#38665d] rounded-xl outline-none focus:border-teal-500 text-gray-900 dark:text-white"
                   />
                 </div>
               </div>
@@ -211,7 +211,7 @@ export default function BookAppointment({ language }) {
                           ? "opacity-40 cursor-not-allowed line-through"
                           : time === item
                           ? "bg-teal-600 text-white border-teal-600"
-                          : "bg-gray-50 dark:bg-slate-700 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-slate-600 hover:border-teal-500"
+                          : "bg-gray-50 dark:bg-[#173b35] text-gray-700 dark:text-gray-200 border-gray-200 dark:border-[#38665d] hover:border-teal-500"
                       }`}
                     >
                       {item}
@@ -238,7 +238,7 @@ export default function BookAppointment({ language }) {
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                       placeholder={t.enterPatientName}
-                      className="w-full px-4 py-3.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl outline-none focus:border-teal-500 text-gray-900 dark:text-white"
+                      className="w-full px-4 py-3.5 bg-gray-50 dark:bg-[#173b35] border border-gray-200 dark:border-[#38665d] rounded-xl outline-none focus:border-teal-500 text-gray-900 dark:text-white"
                     />
                   </div>
 
@@ -253,7 +253,7 @@ export default function BookAppointment({ language }) {
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       placeholder="07XXXXXXXX"
-                      className="w-full px-4 py-3.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl outline-none focus:border-teal-500 text-gray-900 dark:text-white"
+                      className="w-full px-4 py-3.5 bg-gray-50 dark:bg-[#173b35] border border-gray-200 dark:border-[#38665d] rounded-xl outline-none focus:border-teal-500 text-gray-900 dark:text-white"
                     />
                   </div>
                 </div>
@@ -268,7 +268,7 @@ export default function BookAppointment({ language }) {
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                     placeholder={t.enterAppointmentNotes}
-                    className="w-full px-4 py-3.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl outline-none focus:border-teal-500 text-gray-900 dark:text-white resize-none"
+                    className="w-full px-4 py-3.5 bg-gray-50 dark:bg-[#173b35] border border-gray-200 dark:border-[#38665d] rounded-xl outline-none focus:border-teal-500 text-gray-900 dark:text-white resize-none"
                   />
                 </div>
               </div>
@@ -286,7 +286,7 @@ export default function BookAppointment({ language }) {
           </div>
 
           <div>
-            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm p-6 lg:sticky lg:top-24">
+            <div className="bg-white dark:bg-[#102d29] rounded-2xl border border-gray-100 dark:border-[#28534d] shadow-sm p-6 lg:sticky lg:top-24">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
                 {t.appointmentSummary}
               </h2>
@@ -310,7 +310,7 @@ export default function BookAppointment({ language }) {
                 </div>
               </div>
 
-              <div className="border-t border-gray-100 dark:border-slate-700 pt-5 space-y-4 text-sm text-gray-600 dark:text-gray-300">
+              <div className="border-t border-gray-100 dark:border-[#28534d] pt-5 space-y-4 text-sm text-gray-600 dark:text-gray-300">
                 <div className="flex items-center gap-3">
                   <Hospital size={19} className="text-teal-600 shrink-0" />
                   <span>{t[doctor.hospital] || doctor.hospital}</span>

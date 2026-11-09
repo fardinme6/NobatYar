@@ -28,7 +28,7 @@ export default function HowItWorks({ language }) {
   ];
 
   return (
-    <section className="bg-teal-50 dark:bg-slate-900 px-6 py-20 md:px-12 lg:px-20">
+    <section className="bg-teal-50 dark:bg-[#061b19] px-6 py-20 md:px-12 lg:px-20">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-14">
           <span className="text-teal-600 dark:text-teal-400 font-semibold">
@@ -51,9 +51,9 @@ export default function HowItWorks({ language }) {
             return (
               <div
                 key={index}
-                className="bg-white dark:bg-slate-800 p-8 rounded-2xl text-center shadow-sm hover:shadow-lg transition-shadow duration-300"
+                className="bg-white dark:bg-[#102d29] p-8 rounded-2xl text-center shadow-sm hover:shadow-lg transition-shadow duration-300"
               >
-                <div className="w-20 h-20 bg-teal-100 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-6">
+                <div className="w-20 h-20 bg-teal-100 dark:bg-[#173b35] rounded-full flex items-center justify-center mx-auto mb-6">
                   <Icon
                     size={36}
                     className="text-teal-600 dark:text-teal-400"

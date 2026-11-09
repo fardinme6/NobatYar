@@ -65,16 +65,16 @@ export default function AccountRecovery({ language, mode }) {
   };
 
   return (
-    <main className="min-h-[70vh] bg-gray-50 dark:bg-slate-900 px-4 py-16">
+    <main className="min-h-[70vh] bg-gray-50 dark:bg-[#061b19] px-4 py-16">
       {activate && success ? (
-        <section role="status" aria-live="polite" className="max-w-md mx-auto rounded-2xl bg-white dark:bg-slate-800 p-8 shadow-lg text-center space-y-5" dir={language === "English" ? "ltr" : "rtl"}>
+        <section role="status" aria-live="polite" className="max-w-md mx-auto rounded-2xl bg-white dark:bg-[#102d29] p-8 shadow-lg text-center space-y-5" dir={language === "English" ? "ltr" : "rtl"}>
           <CheckCircle2 size={76} className="mx-auto text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{a.successTitle}</h1>
           <p className="text-gray-600 dark:text-gray-300 leading-8">{a.successDescription}</p>
           <Link to="/login" className="block w-full bg-teal-600 hover:bg-teal-700 text-white rounded-xl px-5 py-3 font-semibold">{a.login}</Link>
         </section>
       ) : (
-        <form onSubmit={submit} className="max-w-md mx-auto rounded-2xl bg-white dark:bg-slate-800 p-8 shadow-lg space-y-5" dir={language === "English" ? "ltr" : "rtl"}>
+        <form onSubmit={submit} className="max-w-md mx-auto rounded-2xl bg-white dark:bg-[#102d29] p-8 shadow-lg space-y-5" dir={language === "English" ? "ltr" : "rtl"}>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{title}</h1>
           {!verify && !reset && !activate && (
             <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t.emailAddress} aria-label={t.emailAddress} className="w-full rounded-lg border p-3" />

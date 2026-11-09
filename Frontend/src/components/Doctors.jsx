@@ -58,7 +58,7 @@ export default function Doctors({ language, home = false, user }) {
 
   return (
     <section
-      className={`${home ? "" : "min-h-screen"} bg-gray-50 dark:bg-slate-900 py-16 px-5 md:px-10 lg:px-20`}
+      className={`${home ? "" : "min-h-screen"} bg-gray-50 dark:bg-[#061b19] py-16 px-5 md:px-10 lg:px-20`}
     >
       <div className="max-w-7xl mx-auto">
         {home ? (
@@ -102,7 +102,7 @@ export default function Doctors({ language, home = false, user }) {
               </p>
             </div>
 
-            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm p-5 md:p-7 mb-10">
+            <div className="bg-white dark:bg-[#102d29] rounded-2xl border border-gray-100 dark:border-[#28534d] shadow-sm p-5 md:p-7 mb-10">
               <div className="flex items-center gap-2 mb-5">
                 <SlidersHorizontal
                   size={21}
@@ -126,14 +126,14 @@ export default function Doctors({ language, home = false, user }) {
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     placeholder={t.searchDoctors}
-                    className="w-full ps-12 pe-4 py-3.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/15 text-gray-900 dark:text-white placeholder:text-gray-400 transition"
+                    className="w-full ps-12 pe-4 py-3.5 bg-gray-50 dark:bg-[#173b35] border border-gray-200 dark:border-[#38665d] rounded-xl outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/15 text-gray-900 dark:text-white placeholder:text-gray-400 transition"
                   />
                 </div>
 
                 <select
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
-                  className="w-full px-4 py-3.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl outline-none focus:border-teal-500 text-gray-900 dark:text-white cursor-pointer"
+                  className="w-full px-4 py-3.5 bg-gray-50 dark:bg-[#173b35] border border-gray-200 dark:border-[#38665d] rounded-xl outline-none focus:border-teal-500 text-gray-900 dark:text-white cursor-pointer"
                 >
                   <option value="all">{t.allLocations}</option>
                   <option value="herat">{t.herat}</option>
@@ -144,7 +144,7 @@ export default function Doctors({ language, home = false, user }) {
                 <select
                   value={specialty}
                   onChange={(e) => changeSpecialty(e.target.value)}
-                  className="w-full px-4 py-3.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl outline-none focus:border-teal-500 text-gray-900 dark:text-white cursor-pointer"
+                  className="w-full px-4 py-3.5 bg-gray-50 dark:bg-[#173b35] border border-gray-200 dark:border-[#38665d] rounded-xl outline-none focus:border-teal-500 text-gray-900 dark:text-white cursor-pointer"
                 >
                   <option value="all">{t.allSpecialties}</option>
 
@@ -185,9 +185,9 @@ export default function Doctors({ language, home = false, user }) {
             {displayedDoctors.map((doctor) => (
               <div
                 key={doctor.id}
-                className="flex flex-col bg-white dark:bg-slate-800 rounded-2xl overflow-hidden border border-gray-100 dark:border-slate-700 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+                className="flex flex-col bg-white dark:bg-[#102d29] rounded-2xl overflow-hidden border border-gray-100 dark:border-[#28534d] shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
               >
-                {user?.role === "admin" && <div className="flex gap-2 p-2 bg-teal-50 dark:bg-slate-700">
+                {user?.role === "admin" && <div className="flex gap-2 p-2 bg-teal-50 dark:bg-[#173b35]">
                   <Link to={`/admin?tab=doctors&edit=${doctor.id}`} className="flex-1 bg-teal-600 text-white rounded-lg text-center py-2">Edit</Link>
                   <button onClick={async()=>{
                     if (!window.confirm("Delete this doctor?")) return;
@@ -195,14 +195,14 @@ export default function Doctors({ language, home = false, user }) {
                     catch(error) {alert(error.message);}
                   }} className="flex-1 bg-red-600 text-white rounded-lg py-2">Delete</button>
                 </div>}
-                <div className="relative overflow-hidden bg-gray-100 dark:bg-slate-700">
+                <div className="relative overflow-hidden bg-gray-100 dark:bg-[#173b35]">
                   <img loading="lazy" decoding="async" width="480" height="560"
                     src={doctor.image}
                     alt={label(doctor.name)}
                     className="w-full h-85 object-cover object-top hover:scale-105 transition-transform duration-500"
                   />
 
-                  <span className="absolute top-4 start-4 bg-white/95 dark:bg-slate-800/95 text-teal-700 dark:text-teal-400 px-3 py-1.5 rounded-lg text-xs font-semibold shadow-sm">
+                  <span className="absolute top-4 start-4 bg-white/95 dark:bg-[#102d29]/95 text-teal-700 dark:text-teal-400 px-3 py-1.5 rounded-lg text-xs font-semibold shadow-sm">
                     <MapPin size={14} className="inline me-1" />{label(doctor.city)}
                   </span>
                 </div>
@@ -224,7 +224,7 @@ export default function Doctors({ language, home = false, user }) {
                   <div className="grid grid-cols-2 gap-3 mt-auto">
                     <Link
                       to={`/doctors/${doctor.id}`}
-                      className="flex items-center justify-center text-center border border-teal-600 text-teal-600 dark:text-teal-400 font-medium py-3 px-2 rounded-xl hover:bg-teal-50 dark:hover:bg-slate-700 transition"
+                      className="flex items-center justify-center text-center border border-teal-600 text-teal-600 dark:text-teal-400 font-medium py-3 px-2 rounded-xl hover:bg-teal-50 dark:hover:bg-[#173b35] transition"
                     >
                       {t.viewProfile}
                     </Link>
@@ -241,7 +241,7 @@ export default function Doctors({ language, home = false, user }) {
             ))}
           </div>
         ) : (
-          <div className="bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-2xl py-16 px-5 text-center">
+          <div className="bg-white dark:bg-[#102d29] border border-gray-100 dark:border-[#28534d] rounded-2xl py-16 px-5 text-center">
             <SearchX size={48} className="mx-auto text-gray-400 mb-5" />
 
             <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">

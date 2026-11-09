@@ -80,14 +80,14 @@ export default function SignUp({ language, onLogin }) {
   };
 
   const inputStyle =
-    "w-full bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl py-3 ps-11 pe-4 text-gray-900 dark:text-white outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/15 transition";
+    "w-full bg-gray-50 dark:bg-[#173b35] border border-gray-200 dark:border-[#38665d] rounded-xl py-3 ps-11 pe-4 text-gray-900 dark:text-white outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/15 transition";
 
   const iconStyle = "absolute start-3.5 top-1/2 -translate-y-1/2 text-gray-400";
 
   return (
     <>
       {loading && <Loading language={language} />}
-      <section className="bg-gray-50 dark:bg-slate-900 px-4 py-6 md:py-8">
+      <section className="bg-gray-50 dark:bg-[#061b19] px-4 py-6 md:py-8">
         <div className="max-w-2xl mx-auto">
           <Link to="/home" className="flex justify-center mb-3">
             <img
@@ -98,8 +98,8 @@ export default function SignUp({ language, onLogin }) {
             />
           </Link>
 
-          <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-lg shadow-gray-200/40 dark:shadow-none overflow-hidden">
-            <div className="flex items-center justify-between gap-4 border-b border-gray-100 dark:border-slate-700 px-5 md:px-7 py-5">
+          <div className="bg-white dark:bg-[#102d29] rounded-2xl border border-gray-100 dark:border-[#28534d] shadow-lg shadow-gray-200/40 dark:shadow-none overflow-hidden">
+            <div className="flex items-center justify-between gap-4 border-b border-gray-100 dark:border-[#28534d] px-5 md:px-7 py-5">
               <div>
                 <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
                   {t.signupTitle}
@@ -176,7 +176,7 @@ export default function SignUp({ language, onLogin }) {
                       onChange={(e) => setPhone(e.target.value)}
                       placeholder="07XXXXXXXX"
                       dir="ltr"
-                      className="w-full bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl py-3 pl-11 pr-4 text-gray-900 dark:text-white outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/15 transition"
+                      className="w-full bg-gray-50 dark:bg-[#173b35] border border-gray-200 dark:border-[#38665d] rounded-xl py-3 pl-11 pr-4 text-gray-900 dark:text-white outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/15 transition"
                     />
                   </div>
                 </div>
@@ -198,7 +198,7 @@ export default function SignUp({ language, onLogin }) {
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder={t.enterEmailAddress}
                       dir={language === "English" ? "ltr" : "rtl"}
-                      className="w-full bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl py-3 pl-11 pr-4 text-gray-900 dark:text-white outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/15 transition"
+                      className="w-full bg-gray-50 dark:bg-[#173b35] border border-gray-200 dark:border-[#38665d] rounded-xl py-3 pl-11 pr-4 text-gray-900 dark:text-white outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/15 transition"
                     />
                   </div>
                 </div>
@@ -218,7 +218,7 @@ export default function SignUp({ language, onLogin }) {
                       placeholder={t.createPassword}
                       required
                       minLength={8}
-                      className="w-full bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl py-3 ps-11 pe-11 text-gray-900 dark:text-white outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/15 transition"
+                      className="w-full bg-gray-50 dark:bg-[#173b35] border border-gray-200 dark:border-[#38665d] rounded-xl py-3 ps-11 pe-11 text-gray-900 dark:text-white outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/15 transition"
                     />
 
                     <button
@@ -248,7 +248,7 @@ export default function SignUp({ language, onLogin }) {
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder={t.enterConfirmPassword}
                       required
-                      className="w-full bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl py-3 ps-11 pe-11 text-gray-900 dark:text-white outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/15 transition"
+                      className="w-full bg-gray-50 dark:bg-[#173b35] border border-gray-200 dark:border-[#38665d] rounded-xl py-3 ps-11 pe-11 text-gray-900 dark:text-white outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/15 transition"
                     />
 
                     <button
@@ -282,7 +282,7 @@ export default function SignUp({ language, onLogin }) {
                     className="peer sr-only"
                   />
 
-                  <span className="w-5 h-5 mt-0.5 shrink-0 flex items-center justify-center rounded-md border-2 border-gray-300 dark:border-slate-500 bg-white dark:bg-slate-700 peer-checked:bg-teal-600 peer-checked:border-teal-600 peer-focus-visible:ring-4 peer-focus-visible:ring-teal-500/20 transition">
+                  <span className="w-5 h-5 mt-0.5 shrink-0 flex items-center justify-center rounded-md border-2 border-gray-300 dark:border-[#528077] bg-white dark:bg-[#173b35] peer-checked:bg-teal-600 peer-checked:border-teal-600 peer-focus-visible:ring-4 peer-focus-visible:ring-teal-500/20 transition">
                     {agree && (
                       <Check size={15} className="text-white" strokeWidth={3} />
                     )}
@@ -299,7 +299,7 @@ export default function SignUp({ language, onLogin }) {
                     className={`sm:col-span-2 p-3 rounded-xl text-sm ${
                       error
                         ? "bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400"
-                        : "bg-teal-50 dark:bg-slate-700 text-teal-700 dark:text-teal-300"
+                        : "bg-teal-50 dark:bg-[#173b35] text-teal-700 dark:text-teal-300"
                     }`}
                   >
                     {message}
@@ -316,9 +316,9 @@ export default function SignUp({ language, onLogin }) {
               </form>
 
               <div className="flex items-center gap-4 my-5">
-                <div className="h-px flex-1 bg-gray-200 dark:bg-slate-600"></div>
+                <div className="h-px flex-1 bg-gray-200 dark:bg-[#235149]"></div>
                 <span className="text-sm text-gray-400">{t.or}</span>
-                <div className="h-px flex-1 bg-gray-200 dark:bg-slate-600"></div>
+                <div className="h-px flex-1 bg-gray-200 dark:bg-[#235149]"></div>
               </div>
 
               <p className="text-center text-sm text-gray-600 dark:text-gray-300">

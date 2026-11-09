@@ -52,9 +52,9 @@ export default function UserProfile({ language, user, setUser }) {
     ? `${language === "English" ? "Dr." : language === "Pashto" ? "ډاکټر" : "داکتر"} ${localizedDoctorName.replace(/^(?:(?:داکتر|دکتر|ډاکټر|doctor|dr\.?)\s+)+/i, "")}`
     : user.name;
   const fieldClass =
-    "w-full rounded-xl border border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 px-4 py-3 text-gray-900 dark:text-white outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all duration-200";
+    "w-full rounded-xl border border-gray-200 dark:border-[#38665d] bg-gray-50 dark:bg-[#173b35] px-4 py-3 text-gray-900 dark:text-white outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all duration-200";
   const cardClass =
-    "bg-gray-50 dark:bg-slate-700/70 rounded-2xl p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-md";
+    "bg-gray-50 dark:bg-[#173b35]/70 rounded-2xl p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-md";
 
   const startEdit = () => {
     setName(user.name || "");
@@ -181,16 +181,16 @@ export default function UserProfile({ language, user, setUser }) {
     [FileText, t.profileBio, user.bio],
   ];
   return (
-    <div className="min-h-screen bg-gradient-to-br from-teal-50 via-gray-50 to-emerald-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-900 px-4 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-teal-50 via-gray-50 to-emerald-50 dark:from-[#041512] dark:via-[#061b19] dark:to-[#061b19] px-4 py-12">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl font-bold text-center text-gray-900 dark:text-white mb-8">
           {t.profileTitle}
         </h1>
-        <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-xl overflow-hidden transition-all duration-300">
+        <div className="bg-white dark:bg-[#102d29] rounded-3xl shadow-xl overflow-hidden transition-all duration-300">
           <div className="h-36 bg-gradient-to-r from-teal-600 via-emerald-500 to-cyan-500" />
           <div className="px-6 md:px-10 pb-10">
             <div className="flex flex-col items-center -mt-16 relative">
-              <div className="w-36 h-36 rounded-full bg-teal-100 dark:bg-slate-700 border-4 border-white dark:border-slate-800 overflow-hidden flex items-center justify-center shadow-xl transition-transform duration-300 hover:scale-105">
+              <div className="w-36 h-36 rounded-full bg-teal-100 dark:bg-[#173b35] border-4 border-white dark:border-[#21463f] overflow-hidden flex items-center justify-center shadow-xl transition-transform duration-300 hover:scale-105">
                 {user.avatar && !imageError ? (
                   <img
                     src={
@@ -284,7 +284,7 @@ export default function UserProfile({ language, user, setUser }) {
                       setEmailEditing(!emailEditing);
                       setMessage("");
                     }}
-                    className="flex items-center gap-2 border border-teal-600 text-teal-700 dark:text-teal-400 rounded-xl px-6 py-3 cursor-pointer hover:bg-teal-50 dark:hover:bg-slate-700 transition"
+                    className="flex items-center gap-2 border border-teal-600 text-teal-700 dark:text-teal-400 rounded-xl px-6 py-3 cursor-pointer hover:bg-teal-50 dark:hover:bg-[#173b35] transition"
                   >
                     <ShieldCheck size={18} />
                     {t.changeEmail}
@@ -308,7 +308,7 @@ export default function UserProfile({ language, user, setUser }) {
                   {user.role !== "admin" && user.role !== "provider" && (
                     <Link
                       to="/my-appointments"
-                      className="border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-white rounded-xl px-6 py-3 hover:bg-gray-50 dark:hover:bg-slate-700 transition"
+                      className="border border-gray-300 dark:border-[#38665d] text-gray-700 dark:text-white rounded-xl px-6 py-3 hover:bg-gray-50 dark:hover:bg-[#173b35] transition"
                     >
                       {t.myAppointments}
                     </Link>
@@ -317,7 +317,7 @@ export default function UserProfile({ language, user, setUser }) {
                 {emailEditing && (
                   <form
                     onSubmit={changeEmail}
-                    className="mt-7 p-5 border border-teal-100 dark:border-slate-600 rounded-2xl space-y-4 animate-fade-in"
+                    className="mt-7 p-5 border border-teal-100 dark:border-[#38665d] rounded-2xl space-y-4 animate-fade-in"
                   >
                     <h3 className="font-bold text-gray-900 dark:text-white">
                       {t.changeEmail}
@@ -411,7 +411,7 @@ export default function UserProfile({ language, user, setUser }) {
                       setEditing(false);
                       setMessage("");
                     }}
-                    className="flex items-center gap-2 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-white rounded-xl px-6 py-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700 transition"
+                    className="flex items-center gap-2 border border-gray-300 dark:border-[#38665d] text-gray-700 dark:text-white rounded-xl px-6 py-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-[#173b35] transition"
                   >
                     <X size={18} />
                     {t.profileCancel}

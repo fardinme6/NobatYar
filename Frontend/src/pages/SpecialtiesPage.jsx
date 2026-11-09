@@ -39,7 +39,7 @@ export default function SpecialtiesPage({ language, user }) {
   );
 
   return (
-    <main className="min-h-screen bg-gray-50 dark:bg-slate-900">
+    <main className="min-h-screen bg-gray-50 dark:bg-[#061b19]">
       <section className="bg-teal-600 px-5 py-14 md:py-20 text-center text-white">
         <div className="max-w-4xl mx-auto">
           <div className="inline-flex items-center gap-2 bg-white/15 px-4 py-2 rounded-full text-sm font-medium mb-5">
@@ -70,7 +70,7 @@ export default function SpecialtiesPage({ language, user }) {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={t.searchSpecialties}
-              className="w-full ps-12 pe-4 py-4 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl shadow-sm outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/15 text-gray-900 dark:text-white placeholder:text-gray-400 transition"
+              className="w-full ps-12 pe-4 py-4 bg-white dark:bg-[#102d29] border border-gray-200 dark:border-[#28534d] rounded-2xl shadow-sm outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/15 text-gray-900 dark:text-white placeholder:text-gray-400 transition"
             />
           </div>
         </div>
@@ -97,7 +97,7 @@ export default function SpecialtiesPage({ language, user }) {
               return (
                 <div
                   key={specialty.id}
-                  className="flex flex-col bg-white dark:bg-slate-800 rounded-2xl overflow-hidden border border-gray-100 dark:border-slate-700 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+                  className="flex flex-col bg-white dark:bg-[#102d29] rounded-2xl overflow-hidden border border-gray-100 dark:border-[#28534d] shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
                 >
                   {user?.role === "admin" &&
                     onlineSpecialties.some((s) => s.id === specialty.id) && (
@@ -108,7 +108,7 @@ export default function SpecialtiesPage({ language, user }) {
                         ✎ Edit / Delete Specialty
                       </Link>
                     )}
-                  <div className="overflow-hidden bg-gray-100 dark:bg-slate-700">
+                  <div className="overflow-hidden bg-gray-100 dark:bg-[#173b35]">
                     <img
                       src={specialty.image}
                       alt={t[specialty.name] || specialty.name}
@@ -144,7 +144,7 @@ export default function SpecialtiesPage({ language, user }) {
             })}
           </div>
         ) : (
-          <div className="bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-2xl py-16 px-5 text-center">
+          <div className="bg-white dark:bg-[#102d29] border border-gray-100 dark:border-[#28534d] rounded-2xl py-16 px-5 text-center">
             <SearchX size={48} className="mx-auto text-gray-400 mb-5" />
 
             <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">

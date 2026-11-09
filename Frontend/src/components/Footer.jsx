@@ -9,7 +9,7 @@ export default function Footer({ language }) {
   const linkStyle = "block w-fit max-w-full text-slate-300 hover:text-emerald-300 transition-colors duration-200";
 
   return (
-    <footer dir={isEnglish ? "ltr" : "rtl"} className="relative overflow-hidden bg-[#083b38] dark:bg-[#062c2c] text-white transition-colors duration-300">
+    <footer dir={isEnglish ? "ltr" : "rtl"} className="relative overflow-hidden bg-[#083b38] dark:bg-[#102d29] text-white transition-colors duration-300">
       {/* خط ضربان قلب */}
       <div className="relative h-20 md:h-24 overflow-hidden border-b border-white/10" aria-hidden="true">
         <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "linear-gradient(90deg, transparent 49.8%, #7ce8ca 50%, transparent 50.2%)", backgroundSize: "65px 100%" }} />

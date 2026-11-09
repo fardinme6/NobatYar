@@ -65,7 +65,7 @@ export default function HospitalDetails({ language }) {
 
   if (!hospital) {
     return (
-      <section className="min-h-screen bg-gray-50 dark:bg-slate-900 flex flex-col items-center justify-center px-5 text-center">
+      <section className="min-h-screen bg-gray-50 dark:bg-[#061b19] flex flex-col items-center justify-center px-5 text-center">
         <SearchX size={50} className="text-gray-400 mb-5" />
 
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
@@ -90,7 +90,7 @@ export default function HospitalDetails({ language }) {
   };
 
   return (
-    <section className="min-h-screen bg-gray-50 dark:bg-slate-900 px-5 md:px-10 lg:px-20 py-12">
+    <section className="min-h-screen bg-gray-50 dark:bg-[#061b19] px-5 md:px-10 lg:px-20 py-12">
       <div className="max-w-6xl mx-auto">
         <Link
           to="/hospitals"
@@ -100,7 +100,7 @@ export default function HospitalDetails({ language }) {
           {t.backToHospitals}
         </Link>
 
-        <div className="bg-white dark:bg-slate-800 rounded-2xl overflow-hidden border border-gray-100 dark:border-slate-700 shadow-sm">
+        <div className="bg-white dark:bg-[#102d29] rounded-2xl overflow-hidden border border-gray-100 dark:border-[#28534d] shadow-sm">
           <div className="relative">
             <img
               src={hospital.image}
@@ -108,7 +108,7 @@ export default function HospitalDetails({ language }) {
               className="w-full h-64 md:h-96 object-cover"
             />
 
-            <span className="absolute top-5 start-5 bg-white/95 dark:bg-slate-800/95 text-teal-700 dark:text-teal-400 px-4 py-2 rounded-xl text-sm font-semibold shadow-sm">
+            <span className="absolute top-5 start-5 bg-white/95 dark:bg-[#102d29]/95 text-teal-700 dark:text-teal-400 px-4 py-2 rounded-xl text-sm font-semibold shadow-sm">
               {hospitalTypeLabel(hospital.typeValue || hospital.type, t)}
             </span>
           </div>
@@ -130,7 +130,7 @@ export default function HospitalDetails({ language }) {
             </h1>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-8">
-              <div className="bg-gray-50 dark:bg-slate-700 rounded-xl p-5">
+              <div className="bg-gray-50 dark:bg-[#173b35] rounded-xl p-5">
                 <div className="flex items-center gap-3 mb-3">
                   <Building2
                     size={23}
@@ -147,7 +147,7 @@ export default function HospitalDetails({ language }) {
                 </p>
               </div>
 
-              <div className="bg-gray-50 dark:bg-slate-700 rounded-xl p-5">
+              <div className="bg-gray-50 dark:bg-[#173b35] rounded-xl p-5">
                 <div className="flex items-center gap-3 mb-3">
                   <MapPin
                     size={23}
@@ -164,7 +164,7 @@ export default function HospitalDetails({ language }) {
                 </p>
               </div>
               {hospital.phone && (
-                <div className="bg-gray-50 dark:bg-slate-700 rounded-xl p-5">
+                <div className="bg-gray-50 dark:bg-[#173b35] rounded-xl p-5">
                   <h3 className="flex items-center gap-3 font-semibold dark:text-white mb-3">
                     <Phone size={22} className="text-teal-600" />
                     {contactLabels.phone}
@@ -186,7 +186,7 @@ export default function HospitalDetails({ language }) {
                 </div>
               )}
               {hospital.email && (
-                <div className="bg-gray-50 dark:bg-slate-700 rounded-xl p-5">
+                <div className="bg-gray-50 dark:bg-[#173b35] rounded-xl p-5">
                   <h3 className="flex items-center gap-3 font-semibold dark:text-white mb-3">
                     <Mail size={22} className="text-teal-600" />
                     {contactLabels.email}
@@ -202,7 +202,7 @@ export default function HospitalDetails({ language }) {
               )}
             </div>
 
-            <div className="mt-8 border-t border-gray-100 dark:border-slate-700 pt-8">
+            <div className="mt-8 border-t border-gray-100 dark:border-[#28534d] pt-8">
               <div className="flex items-center gap-3 mb-4">
                 <Info size={23} className="text-teal-600 dark:text-teal-400" />
 
@@ -216,7 +216,7 @@ export default function HospitalDetails({ language }) {
               </p>
             </div>
 
-            <div className="mt-8 border-t border-gray-100 dark:border-slate-700 pt-8">
+            <div className="mt-8 border-t border-gray-100 dark:border-[#28534d] pt-8">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-5">
                 {t.hospitalServices}
               </h2>
@@ -224,7 +224,7 @@ export default function HospitalDetails({ language }) {
                 {departments.map((item) => (
                   <div
                     key={item.id}
-                    className="group overflow-hidden rounded-2xl bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+                    className="group overflow-hidden rounded-2xl bg-white dark:bg-[#102d29] border border-gray-100 dark:border-[#28534d] shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
                   >
                     <div className="relative overflow-hidden">
                       <img
@@ -250,7 +250,7 @@ export default function HospitalDetails({ language }) {
               </div>
             </div>
 
-            <div className="mt-8 border-t border-gray-100 dark:border-slate-700 pt-8">
+            <div className="mt-8 border-t border-gray-100 dark:border-[#28534d] pt-8">
               <div className="flex items-center gap-3 mb-6">
                 <Users size={23} className="text-teal-600 dark:text-teal-400" />
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white">
@@ -261,9 +261,9 @@ export default function HospitalDetails({ language }) {
               {hospitalDoctors.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   {hospitalDoctors.map((doctor) => (
-                    <div key={doctor.id} className="flex flex-col overflow-hidden rounded-2xl bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 shadow-sm hover:shadow-lg transition-shadow">
+                    <div key={doctor.id} className="flex flex-col overflow-hidden rounded-2xl bg-white dark:bg-[#102d29] border border-gray-100 dark:border-[#28534d] shadow-sm hover:shadow-lg transition-shadow">
                       <img src={doctor.image} alt={label(doctor.name)} loading="lazy"
-                        className="w-full h-64 object-cover object-top bg-gray-100 dark:bg-slate-700" />
+                        className="w-full h-64 object-cover object-top bg-gray-100 dark:bg-[#173b35]" />
                       <div className="flex flex-col flex-1 p-5">
                         <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-2">
                           {label(doctor.name)}
@@ -273,7 +273,7 @@ export default function HospitalDetails({ language }) {
                         </p>
                         <div className="grid grid-cols-2 gap-3 mt-auto">
                           <Link to={`/doctors/${doctor.id}`}
-                            className="flex items-center justify-center text-center border border-teal-600 text-teal-600 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-slate-700 px-2 py-3 rounded-xl font-medium transition-colors">
+                            className="flex items-center justify-center text-center border border-teal-600 text-teal-600 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-[#173b35] px-2 py-3 rounded-xl font-medium transition-colors">
                             {t.viewProfile}
                           </Link>
                           <Link to={`/book-appointment/${doctor.id}`}

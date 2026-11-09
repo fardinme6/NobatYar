@@ -58,7 +58,7 @@ export default function Login({ language, onLogin }) {
   return (
     <>
       {loading && <Loading language={language} />}
-      <section className="bg-gray-50 dark:bg-slate-900 px-5 py-5 lg:py-7">
+      <section className="bg-gray-50 dark:bg-[#061b19] px-5 py-5 lg:py-7">
         <div className="max-w-md mx-auto">
           <div className="text-center mb-4">
             <Link to="/home" className="flex justify-center mb-2">
@@ -79,7 +79,7 @@ export default function Login({ language, onLogin }) {
             </p>
           </div>
 
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-slate-700 p-5 md:p-6">
+          <div className="bg-white dark:bg-[#102d29] rounded-2xl shadow-lg shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-[#28534d] p-5 md:p-6">
             <form onSubmit={handleLogin} className="space-y-3">
               <div>
                 <label className="block mb-2 text-sm font-semibold text-gray-700 dark:text-gray-200">
@@ -101,7 +101,7 @@ export default function Login({ language, onLogin }) {
                     }
                     required
                     dir={language === "English" ? "ltr" : "rtl"}
-                    className="w-full border border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 text-gray-900 dark:text-white rounded-xl py-3 pl-12 pr-4 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/15 transition"
+                    className="w-full border border-gray-200 dark:border-[#38665d] bg-gray-50 dark:bg-[#173b35] text-gray-900 dark:text-white rounded-xl py-3 pl-12 pr-4 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/15 transition"
                   />
                 </div>
               </div>
@@ -132,7 +132,7 @@ export default function Login({ language, onLogin }) {
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder={t.enterPassword}
                     required
-                    className="w-full border border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 text-gray-900 dark:text-white rounded-xl py-3.5 ps-12 pe-12 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/15 transition"
+                    className="w-full border border-gray-200 dark:border-[#38665d] bg-gray-50 dark:bg-[#173b35] text-gray-900 dark:text-white rounded-xl py-3.5 ps-12 pe-12 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/15 transition"
                   />
 
                   <button
@@ -156,7 +156,7 @@ export default function Login({ language, onLogin }) {
                   className="peer sr-only"
                 />
 
-                <span className="w-5 h-5 flex items-center justify-center rounded-md border-2 border-gray-300 dark:border-slate-500 bg-white dark:bg-slate-700 peer-checked:bg-teal-600 peer-checked:border-teal-600 peer-focus-visible:ring-4 peer-focus-visible:ring-teal-500/20 transition-all duration-200">
+                <span className="w-5 h-5 flex items-center justify-center rounded-md border-2 border-gray-300 dark:border-[#528077] bg-white dark:bg-[#173b35] peer-checked:bg-teal-600 peer-checked:border-teal-600 peer-focus-visible:ring-4 peer-focus-visible:ring-teal-500/20 transition-all duration-200">
                   {rememberMe && (
                     <svg
                       viewBox="0 0 24 24"
@@ -180,7 +180,7 @@ export default function Login({ language, onLogin }) {
               {message && (
                 <p
                   role="status"
-                  className="bg-teal-50 dark:bg-slate-700 text-teal-700 dark:text-teal-300 p-3 rounded-xl text-sm leading-6"
+                  className="bg-teal-50 dark:bg-[#173b35] text-teal-700 dark:text-teal-300 p-3 rounded-xl text-sm leading-6"
                 >
                   {message}
                 </p>
@@ -197,9 +197,9 @@ export default function Login({ language, onLogin }) {
             </form>
 
             <div className="flex items-center gap-4 my-4">
-              <div className="h-px flex-1 bg-gray-200 dark:bg-slate-600"></div>
+              <div className="h-px flex-1 bg-gray-200 dark:bg-[#235149]"></div>
               <span className="text-sm text-gray-400">{t.or}</span>
-              <div className="h-px flex-1 bg-gray-200 dark:bg-slate-600"></div>
+              <div className="h-px flex-1 bg-gray-200 dark:bg-[#235149]"></div>
             </div>
 
             <p className="text-center text-sm text-gray-600 dark:text-gray-300">

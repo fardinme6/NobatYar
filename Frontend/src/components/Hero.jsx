@@ -24,7 +24,7 @@ export default function Hero({ language }) {
   }, []);
 
   return (
-    <section className="bg-teal-50 dark:bg-slate-900 px-6 py-12 md:px-12 lg:px-20 transition-colors duration-300">
+    <section className="bg-teal-50 dark:bg-[#061b19] px-6 py-12 md:px-12 lg:px-20 transition-colors duration-300">
       <div className="flex flex-col-reverse lg:flex-row items-center gap-10">
         <div
           className={`w-full lg:w-1/2 text-center ${language === "English" ? "lg:text-left" : "lg:text-right"}`}
@@ -55,7 +55,7 @@ export default function Hero({ language }) {
 
             <Link
               to="/hospitals"
-              className="flex items-center justify-center gap-3 bg-white dark:bg-slate-800 text-teal-700 dark:text-teal-400 border border-teal-600 px-7 py-4 rounded-xl hover:bg-teal-50 dark:hover:bg-slate-700 transition"
+              className="flex items-center justify-center gap-3 bg-white dark:bg-[#102d29] text-teal-700 dark:text-teal-400 border border-teal-600 px-7 py-4 rounded-xl hover:bg-teal-50 dark:hover:bg-[#173b35] transition"
             >
               <Hospital size={22} />
               {t.findHospitals}
@@ -87,7 +87,7 @@ export default function Hero({ language }) {
                 className={`w-3 h-3 rounded-full cursor-pointer ${
                   current === index
                     ? "bg-teal-600"
-                    : "bg-gray-300 dark:bg-slate-600"
+                    : "bg-gray-300 dark:bg-[#235149]"
                 }`}
               ></button>
             ))}

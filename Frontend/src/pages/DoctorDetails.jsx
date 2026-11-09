@@ -54,7 +54,7 @@ export default function DoctorDetails({ language }) {
               {headers.map((h) => (
                 <th
                   key={h}
-                  className="p-3 bg-teal-50 dark:bg-slate-700 text-start"
+                  className="p-3 bg-teal-50 dark:bg-[#173b35] text-start"
                 >
                   {h}
                 </th>
@@ -65,7 +65,7 @@ export default function DoctorDetails({ language }) {
             {lines.map((line, i) => (
               <tr
                 key={i}
-                className="border-b border-gray-100 dark:border-slate-700"
+                className="border-b border-gray-100 dark:border-[#28534d]"
               >
                 {line
                   .split("|")
@@ -88,7 +88,7 @@ export default function DoctorDetails({ language }) {
 
   if (!doctor) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-5 bg-gray-50 dark:bg-slate-900">
+      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-5 bg-gray-50 dark:bg-[#061b19]">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
           {t.noDoctorsFound}
         </h1>
@@ -106,7 +106,7 @@ export default function DoctorDetails({ language }) {
   const BackIcon = language === "English" ? ArrowLeft : ArrowRight;
 
   return (
-    <section className="min-h-screen bg-gray-50 dark:bg-slate-900 px-5 md:px-12 lg:px-20 py-12">
+    <section className="min-h-screen bg-gray-50 dark:bg-[#061b19] px-5 md:px-12 lg:px-20 py-12">
       <div className="max-w-6xl mx-auto">
         <Link
           to="/doctors"
@@ -116,9 +116,9 @@ export default function DoctorDetails({ language }) {
           {t.backToDoctors}
         </Link>
 
-        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 overflow-hidden">
+        <div className="bg-white dark:bg-[#102d29] rounded-2xl shadow-sm border border-gray-100 dark:border-[#28534d] overflow-hidden">
           <div className="flex flex-col md:flex-row gap-8 p-6 md:p-9">
-            <div className="w-full md:w-72 shrink-0 bg-gray-100 dark:bg-slate-700 rounded-2xl overflow-hidden">
+            <div className="w-full md:w-72 shrink-0 bg-gray-100 dark:bg-[#173b35] rounded-2xl overflow-hidden">
               <img
                 src={doctor.image}
                 width="480" height="560" decoding="async"
@@ -128,7 +128,7 @@ export default function DoctorDetails({ language }) {
             </div>
 
             <div className="flex-1">
-              <span className="inline-block bg-teal-50 dark:bg-slate-700 text-teal-700 dark:text-teal-400 px-4 py-2 rounded-full text-sm font-semibold">
+              <span className="inline-block bg-teal-50 dark:bg-[#173b35] text-teal-700 dark:text-teal-400 px-4 py-2 rounded-full text-sm font-semibold">
                 {doctorSpecialties(doctor, language).join(" · ")}
               </span>
 
@@ -191,7 +191,7 @@ export default function DoctorDetails({ language }) {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
           <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white dark:bg-slate-800 rounded-2xl p-7 border border-gray-100 dark:border-slate-700 shadow-sm">
+            <div className="bg-white dark:bg-[#102d29] rounded-2xl p-7 border border-gray-100 dark:border-[#28534d] shadow-sm">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
                 {t.aboutDoctor}
               </h2>
@@ -201,7 +201,7 @@ export default function DoctorDetails({ language }) {
               </p>
             </div>
 
-            <div className="bg-white dark:bg-slate-800 rounded-2xl p-7 border border-gray-100 dark:border-slate-700 shadow-sm">
+            <div className="bg-white dark:bg-[#102d29] rounded-2xl p-7 border border-gray-100 dark:border-[#28534d] shadow-sm">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
                 {t.professionalInformation}
               </h2>
@@ -253,7 +253,7 @@ export default function DoctorDetails({ language }) {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-slate-800 rounded-2xl p-7 border border-gray-100 dark:border-slate-700 shadow-sm h-fit">
+          <div className="bg-white dark:bg-[#102d29] rounded-2xl p-7 border border-gray-100 dark:border-[#28534d] shadow-sm h-fit">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-5">
               {t.workingHours}
             </h2>

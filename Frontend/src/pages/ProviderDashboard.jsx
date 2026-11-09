@@ -76,61 +76,61 @@ export default function ProviderDashboard({ language, facility = false }) {
     try {await api(`/provider/appointments/${a.id}`,{method:"PATCH",body:JSON.stringify({status:s})});await load();}
     catch(e){setMessage(e.message);}
   };
-  return <main className="min-h-screen bg-teal-50 dark:bg-slate-900 px-4 py-12"><div className="max-w-5xl mx-auto">
+  return <main className="min-h-screen bg-teal-50 dark:bg-[#061b19] px-4 py-12"><div className="max-w-5xl mx-auto">
     <header className="bg-gradient-to-r from-teal-700 to-cyan-600 rounded-3xl p-8 text-white shadow-lg">
       {profiles[0]?.provider_type === "doctor" ? <Stethoscope size={38}/> : <Building2 size={38}/>}
       <h1 className="text-3xl font-bold mt-3">{language === "English" ? `Hello, ${profiles[0]?.name || ""}! Welcome` : language === "Persian" ? `سلام ${profiles[0]?.name || ""}، خوش آمدید!` : `سلام ${profiles[0]?.name || ""}، ښه راغلاست!`}</h1>
       <p className="mt-2 text-teal-50">{profiles[0]?.provider_type === "doctor" ? t.registerDoctor : profiles[0]?.provider_type === "clinic" ? t.registerClinic : t.registerHospital} — {t.providerDashboard}</p>
     </header>
     {facility && <p className="mt-4 text-teal-800 dark:text-teal-200">{language === "English" ? "Hospital / Clinic management" : language === "Persian" ? "مدیریت شفاخانه و کلینیک" : "د روغتون او کلینیک مدیریت"}</p>}
-    {message && <p className="mt-5 p-4 rounded-xl bg-white dark:bg-slate-800 text-teal-700">{message}</p>}
+    {message && <p className="mt-5 p-4 rounded-xl bg-white dark:bg-[#102d29] text-teal-700">{message}</p>}
     {!profiles.length && <p className="mt-6 text-amber-700">{language === "Persian" ? "حساب تأییدشده‌ای برای این پنل پیدا نشد." : "No approved profile was found for this dashboard."}</p>}
-    {profiles.map(p=><section key={p.id} className="bg-white dark:bg-slate-800 dark:text-white rounded-2xl shadow-md p-6 mt-6">
+    {profiles.map(p=><section key={p.id} className="bg-white dark:bg-[#102d29] dark:text-white rounded-2xl shadow-md p-6 mt-6">
       <div className="flex flex-wrap justify-between items-center gap-3 mb-4"><div><h2 className="font-bold text-xl">{language === "Persian" ? "مشخصات حرفه‌ای" : "Professional details"}</h2><p className="text-sm text-gray-500 mt-1">{language === "Persian" ? "این مشخصات مربوط به خدمات داکتر یا شفاخانه است؛ اطلاعات شخصی در My Profile قرار دارد." : "Professional details are separate from your personal account profile."}</p></div><a href="/profile" className="border border-teal-500 text-teal-700 dark:text-teal-300 rounded-xl px-4 py-2">My Profile</a></div>
-      <div className="grid md:grid-cols-2 gap-4">{[["name",language === "Persian" ? "نام داکتر" : "Doctor name"],["specialty",t.providerSpecialty],["services",t.providerServices],["description",t.profileBio]].filter(([key])=>p.provider_type==="doctor"||key!=="specialty").map(([key,label])=><label key={key} className="text-sm font-medium">{label}<textarea rows={key==="description"?3:2} value={p[key]||""} onChange={e=>edit(p.id,key,e.target.value)} className="block w-full mt-2 rounded-xl border border-gray-200 dark:border-slate-600 dark:bg-slate-700 p-3"/></label>)}</div>
+      <div className="grid md:grid-cols-2 gap-4">{[["name",language === "Persian" ? "نام داکتر" : "Doctor name"],["specialty",t.providerSpecialty],["services",t.providerServices],["description",t.profileBio]].filter(([key])=>p.provider_type==="doctor"||key!=="specialty").map(([key,label])=><label key={key} className="text-sm font-medium">{label}<textarea rows={key==="description"?3:2} value={p[key]||""} onChange={e=>edit(p.id,key,e.target.value)} className="block w-full mt-2 rounded-xl border border-gray-200 dark:border-[#38665d] dark:bg-[#173b35] p-3"/></label>)}</div>
       <button onClick={()=>save(p)} className="mt-4 bg-teal-600 text-white rounded-xl px-5 py-3 cursor-pointer">{t.profileSave}</button>
     </section>)}
-    <section className="bg-white dark:bg-slate-800 dark:text-white rounded-2xl shadow-md p-6 mt-6">
+    <section className="bg-white dark:bg-[#102d29] dark:text-white rounded-2xl shadow-md p-6 mt-6">
       <h2 className="text-xl font-bold mb-5">{t.adminSchedule}</h2>
       {!doctors.length ? <p className="text-gray-500">{t.providerNoLinkedDoctors}</p> : <>
-        {doctors.length > 1 && <label className="block mb-4">{t.registerDoctor}<select value={doctorId} onChange={e=>setDoctorId(e.target.value)} className="block w-full mt-2 border rounded-xl p-3 dark:bg-slate-700 dark:border-slate-600">{doctors.map(d=><option key={d.id} value={d.id}>{d.name}</option>)}</select></label>}
+        {doctors.length > 1 && <label className="block mb-4">{t.registerDoctor}<select value={doctorId} onChange={e=>setDoctorId(e.target.value)} className="block w-full mt-2 border rounded-xl p-3 dark:bg-[#173b35] dark:border-[#38665d]">{doctors.map(d=><option key={d.id} value={d.id}>{d.name}</option>)}</select></label>}
         <form onSubmit={saveSchedule} className="grid sm:grid-cols-2 gap-4">
           <label className="sm:col-span-2">{language === "Persian" ? "تاریخ‌های کاری را انتخاب کنید (شمسی)" : language === "English" ? "Choose available dates (Jalali)" : "د کار نېټې وټاکئ (هجري لمریز)"}
-            <div className="mt-2"><DatePicker multiple value={selectedDates} onChange={setSelectedDates} calendar={persian} locale={persian_fa} minDate={new Date()} format="YYYY/MM/DD" inputClass="w-full border rounded-xl p-3 dark:bg-slate-700 dark:border-slate-600"/></div>
+            <div className="mt-2"><DatePicker multiple value={selectedDates} onChange={setSelectedDates} calendar={persian} locale={persian_fa} minDate={new Date()} format="YYYY/MM/DD" inputClass="w-full border rounded-xl p-3 dark:bg-[#173b35] dark:border-[#38665d]"/></div>
           </label>
-          <label>{t.adminStartTime}<input type="time" value={startTime} onChange={e=>setStartTime(e.target.value)} className="block w-full border rounded-xl p-3 mt-2 dark:bg-slate-700 dark:border-slate-600"/></label>
-          <label>{t.adminEndTime}<input type="time" value={endTime} onChange={e=>setEndTime(e.target.value)} className="block w-full border rounded-xl p-3 mt-2 dark:bg-slate-700 dark:border-slate-600"/></label>
-          <label>{t.adminSlotMinutes}<input type="number" min="10" max="120" value={slotMinutes} onChange={e=>setSlotMinutes(e.target.value)} className="block w-full border rounded-xl p-3 mt-2 dark:bg-slate-700 dark:border-slate-600"/></label>
+          <label>{t.adminStartTime}<input type="time" value={startTime} onChange={e=>setStartTime(e.target.value)} className="block w-full border rounded-xl p-3 mt-2 dark:bg-[#173b35] dark:border-[#38665d]"/></label>
+          <label>{t.adminEndTime}<input type="time" value={endTime} onChange={e=>setEndTime(e.target.value)} className="block w-full border rounded-xl p-3 mt-2 dark:bg-[#173b35] dark:border-[#38665d]"/></label>
+          <label>{t.adminSlotMinutes}<input type="number" min="10" max="120" value={slotMinutes} onChange={e=>setSlotMinutes(e.target.value)} className="block w-full border rounded-xl p-3 mt-2 dark:bg-[#173b35] dark:border-[#38665d]"/></label>
           <button className="sm:col-span-2 bg-teal-600 text-white rounded-xl p-3 cursor-pointer">{editingDate ? "Save Changes" : t.profileSave}</button>
         </form>
         <h3 className="font-semibold mt-7">{language === "Persian" ? "تاریخ‌های ثبت‌شده" : "Available dates"}</h3>
         <div className="mt-3 space-y-3">
-          {availableDates.map(item=><div key={item.date} className="border-l-4 border-green-500 bg-green-50 dark:bg-slate-700 rounded-xl p-4 flex flex-wrap items-center justify-between gap-3">
+          {availableDates.map(item=><div key={item.date} className="border-l-4 border-green-500 bg-green-50 dark:bg-[#173b35] rounded-xl p-4 flex flex-wrap items-center justify-between gap-3">
             <div><p className="font-semibold text-green-800 dark:text-green-300">{toJalali(item.date)}</p><p className="text-sm text-gray-600 dark:text-gray-200">{item.start_time} - {item.end_time} · {item.slot_minutes} min</p></div>
             <div className="flex gap-2"><button type="button" onClick={()=>editSchedule(item)} className="px-4 py-2 border border-teal-500 text-teal-700 dark:text-teal-300 rounded-lg">Edit</button><button type="button" onClick={()=>removeSchedule(item.date)} className="px-4 py-2 bg-red-100 text-red-700 rounded-lg">Delete</button></div>
           </div>)}
           {!availableDates.length && <p className="text-sm text-gray-500">No available dates selected yet.</p>}
         </div>
-        <div className="mt-7 border-t dark:border-slate-700 pt-6">
+        <div className="mt-7 border-t dark:border-[#28534d] pt-6">
           <h3 className="font-bold text-lg mb-2">{language === "Persian" ? "رخصتی‌های داکتر" : "Days off"}</h3><p className="text-sm text-gray-500 mb-4">{language === "Persian" ? "فقط تاریخ مشخص رخصتی می‌شود؛ سایر تاریخ‌های کاری فعال می‌مانند." : "Only the selected date is blocked; other available dates remain open."}</p>
-          <form onSubmit={addDayOff} className="flex flex-wrap gap-4 items-end bg-gradient-to-r from-amber-50 to-orange-50 dark:bg-slate-700 rounded-2xl p-5 border border-amber-200 dark:border-slate-600"><label>{t.adminDayOff}<DatePicker value={dayOffDate} onChange={setDayOffDate} calendar={persian} locale={persian_fa} minDate={new Date()} format="YYYY/MM/DD" inputClass="block border rounded-xl p-3 mt-2 dark:bg-slate-600 dark:border-slate-500"/></label><button className="bg-amber-500 text-white rounded-xl px-5 py-3 cursor-pointer">{t.adminAddDayOff}</button></form>
-          <div className="mt-3 space-y-2">{daysOff.map(date=><div key={date} className="flex items-center justify-between gap-3 rounded-xl bg-amber-50 dark:bg-slate-700 border-l-4 border-amber-400 p-3"><span>{toJalali(date)}</span><button type="button" onClick={()=>removeDayOff(date)} className="text-red-600 border border-red-300 px-3 py-2 rounded-lg">{t.providerRemoveDayOff}</button></div>)}</div>
+          <form onSubmit={addDayOff} className="flex flex-wrap gap-4 items-end bg-gradient-to-r from-amber-50 to-orange-50 dark:bg-[#173b35] rounded-2xl p-5 border border-amber-200 dark:border-[#38665d]"><label>{t.adminDayOff}<DatePicker value={dayOffDate} onChange={setDayOffDate} calendar={persian} locale={persian_fa} minDate={new Date()} format="YYYY/MM/DD" inputClass="block border rounded-xl p-3 mt-2 dark:bg-[#235149] dark:border-[#528077]"/></label><button className="bg-amber-500 text-white rounded-xl px-5 py-3 cursor-pointer">{t.adminAddDayOff}</button></form>
+          <div className="mt-3 space-y-2">{daysOff.map(date=><div key={date} className="flex items-center justify-between gap-3 rounded-xl bg-amber-50 dark:bg-[#173b35] border-l-4 border-amber-400 p-3"><span>{toJalali(date)}</span><button type="button" onClick={()=>removeDayOff(date)} className="text-red-600 border border-red-300 px-3 py-2 rounded-lg">{t.providerRemoveDayOff}</button></div>)}</div>
         </div>
       </>}
     </section>
-    <section className="bg-white dark:bg-slate-800 dark:text-white rounded-2xl shadow-md p-6 mt-6">
+    <section className="bg-white dark:bg-[#102d29] dark:text-white rounded-2xl shadow-md p-6 mt-6">
       <h2 className="text-xl font-bold flex items-center gap-2"><CalendarDays className="text-teal-600"/>{t.adminAppointments}</h2>
       <div className="grid sm:grid-cols-3 gap-3 mt-5">
-        <div className="bg-teal-50 dark:bg-slate-700 rounded-2xl p-4 border border-teal-200"><p className="text-sm text-teal-800 dark:text-teal-200">{language === "Persian" ? "مریضان امروز" : "Today's patients"}</p><p className="text-3xl font-bold mt-2 text-teal-700 dark:text-teal-300">{appointments.filter(a => a.status === "confirmed" && a.date.replaceAll("/","-") === [new Date().getFullYear(),String(new Date().getMonth()+1).padStart(2,"0"),String(new Date().getDate()).padStart(2,"0")].join("-")).length}</p></div>
-        <div className="bg-amber-50 dark:bg-slate-700 rounded-2xl p-4"><p className="text-sm">Pending</p><p className="text-3xl font-bold mt-2">{appointments.filter(a=>a.status === "pending").length}</p></div>
-        <div className="bg-emerald-50 dark:bg-slate-700 rounded-2xl p-4"><p className="text-sm">Confirmed</p><p className="text-3xl font-bold mt-2">{appointments.filter(a=>a.status === "confirmed").length}</p></div>
+        <div className="bg-teal-50 dark:bg-[#173b35] rounded-2xl p-4 border border-teal-200"><p className="text-sm text-teal-800 dark:text-teal-200">{language === "Persian" ? "مریضان امروز" : "Today's patients"}</p><p className="text-3xl font-bold mt-2 text-teal-700 dark:text-teal-300">{appointments.filter(a => a.status === "confirmed" && a.date.replaceAll("/","-") === [new Date().getFullYear(),String(new Date().getMonth()+1).padStart(2,"0"),String(new Date().getDate()).padStart(2,"0")].join("-")).length}</p></div>
+        <div className="bg-amber-50 dark:bg-[#173b35] rounded-2xl p-4"><p className="text-sm">Pending</p><p className="text-3xl font-bold mt-2">{appointments.filter(a=>a.status === "pending").length}</p></div>
+        <div className="bg-emerald-50 dark:bg-[#173b35] rounded-2xl p-4"><p className="text-sm">Confirmed</p><p className="text-3xl font-bold mt-2">{appointments.filter(a=>a.status === "confirmed").length}</p></div>
       </div>
-      <div className="flex flex-wrap gap-2 mt-6 border-b dark:border-slate-700 pb-4">
-        {[["pending","Pending"],["confirmed","Confirmed / History"],["cancelled","Rejected"]].map(([key,label])=><button key={key} type="button" onClick={()=>setAppointmentTab(key)} className={`rounded-xl px-4 py-2 font-semibold cursor-pointer ${appointmentTab===key ? "bg-teal-600 text-white" : "bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-100"}`}>{label} ({appointments.filter(a=>a.status===key).length})</button>)}
+      <div className="flex flex-wrap gap-2 mt-6 border-b dark:border-[#28534d] pb-4">
+        {[["pending","Pending"],["confirmed","Confirmed / History"],["cancelled","Rejected"]].map(([key,label])=><button key={key} type="button" onClick={()=>setAppointmentTab(key)} className={`rounded-xl px-4 py-2 font-semibold cursor-pointer ${appointmentTab===key ? "bg-teal-600 text-white" : "bg-gray-100 dark:bg-[#173b35] text-gray-700 dark:text-gray-100"}`}>{label} ({appointments.filter(a=>a.status===key).length})</button>)}
       </div>
       {!appointments.some(a=>a.status===appointmentTab) && <p className="text-gray-500 mt-6 py-6 text-center">{t.adminEmpty}</p>}
       <div className="grid md:grid-cols-2 gap-4 mt-4">
-        {appointments.filter(a=>a.status===appointmentTab).map(a=><article key={a.id} className="rounded-2xl border border-gray-200 dark:border-slate-600 p-5 bg-gray-50/60 dark:bg-slate-700/40">
+        {appointments.filter(a=>a.status===appointmentTab).map(a=><article key={a.id} className="rounded-2xl border border-gray-200 dark:border-[#38665d] p-5 bg-gray-50/60 dark:bg-[#173b35]/40">
           <div className="flex justify-between gap-3"><p className="font-bold text-lg">{a.patient_name}</p><span className={`text-xs px-3 py-1 rounded-full h-fit ${a.status==="pending" ? "bg-amber-100 text-amber-800" : a.status==="confirmed" ? "bg-emerald-100 text-emerald-800" : "bg-red-100 text-red-800"}`}>{a.status}</span></div>
           <p className="mt-3 text-sm text-gray-600 dark:text-gray-200">📅 {a.date}　🕒 {a.time}</p>
           {a.status === "pending" && <div className="flex gap-3 mt-5"><button onClick={()=>status(a,"confirmed")} className="bg-teal-600 hover:bg-teal-700 text-white rounded-xl px-5 py-2 cursor-pointer">Confirm</button><button onClick={()=>status(a,"cancelled")} className="bg-red-50 border border-red-200 text-red-700 rounded-xl px-5 py-2 cursor-pointer">Reject</button></div>}

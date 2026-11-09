@@ -10,7 +10,7 @@ export default function Specialties({ language }) {
   useEffect(() => { api(`/specialties?lang=${language === "English" ? "en" : language === "Pashto" ? "ps" : "fa"}`).then(setSpecialties).catch(() => {}); }, [language]);
 
   return (
-    <section className="bg-white dark:bg-slate-800 px-6 py-20 md:px-12 lg:px-20">
+    <section className="bg-white dark:bg-[#102d29] px-6 py-20 md:px-12 lg:px-20">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-5 mb-10">
           <div className="text-center sm:text-start">
@@ -41,7 +41,7 @@ export default function Specialties({ language }) {
             <Link
               key={specialty.id}
               to={`/doctors?specialty=${specialty.value}`}
-              className="group bg-teal-50 dark:bg-slate-700 rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+              className="group bg-teal-50 dark:bg-[#173b35] rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
             >
               <div className="overflow-hidden">
                 <img loading="lazy" decoding="async" width="480" height="320"

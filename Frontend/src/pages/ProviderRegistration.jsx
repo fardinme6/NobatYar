@@ -11,10 +11,10 @@ function SearchMultiSelect({ options, selected, setSelected, language, placehold
   return (
     <div className="relative">
       {selected.map((value) => <input key={value} type="hidden" name={name} value={value} />)}
-      <div className="min-h-14 border border-gray-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 p-2 flex flex-wrap items-center gap-2">
+      <div className="min-h-14 border border-gray-200 dark:border-[#38665d] rounded-xl bg-white dark:bg-[#173b35] p-2 flex flex-wrap items-center gap-2">
         {selected.map((value) => {
           const item = options.find((option) => String(option.value) === String(value));
-          return <span key={value} className="inline-flex items-center gap-2 bg-teal-50 dark:bg-slate-600 text-teal-800 dark:text-white px-3 py-1.5 rounded-lg text-sm">
+          return <span key={value} className="inline-flex items-center gap-2 bg-teal-50 dark:bg-[#235149] text-teal-800 dark:text-white px-3 py-1.5 rounded-lg text-sm">
             {item?.label || value}
             <button type="button" aria-label="Remove" onClick={() => setSelected(selected.filter((v) => v !== value))} className="hover:text-red-600">×</button>
           </span>;
@@ -23,10 +23,10 @@ function SearchMultiSelect({ options, selected, setSelected, language, placehold
           {placeholder} ▾
         </button>
       </div>
-      {open && <div className="mt-2 border border-gray-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 p-3 shadow-lg">
-        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={language === "English" ? "Search..." : language === "Pashto" ? "لټون وکړئ..." : "جستجو کنید..."} className="w-full border border-gray-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 dark:text-white p-3 mb-2 outline-none focus:border-teal-500" />
+      {open && <div className="mt-2 border border-gray-200 dark:border-[#38665d] rounded-xl bg-white dark:bg-[#173b35] p-3 shadow-lg">
+        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={language === "English" ? "Search..." : language === "Pashto" ? "لټون وکړئ..." : "جستجو کنید..."} className="w-full border border-gray-200 dark:border-[#38665d] rounded-lg bg-white dark:bg-[#102d29] dark:text-white p-3 mb-2 outline-none focus:border-teal-500" />
         <div className="max-h-44 overflow-y-auto">
-          {filtered.map((item) => <button key={item.value} type="button" onClick={() => setSelected(selected.includes(item.value) ? selected.filter((v) => v !== item.value) : [...selected, item.value])} className="w-full text-start px-3 py-2 rounded-lg hover:bg-teal-50 dark:hover:bg-slate-600 dark:text-white flex justify-between gap-2">
+          {filtered.map((item) => <button key={item.value} type="button" onClick={() => setSelected(selected.includes(item.value) ? selected.filter((v) => v !== item.value) : [...selected, item.value])} className="w-full text-start px-3 py-2 rounded-lg hover:bg-teal-50 dark:hover:bg-[#235149] dark:text-white flex justify-between gap-2">
             <span>{item.label}</span><span className="text-teal-600">{selected.includes(item.value) ? "✓" : "+"}</span>
           </button>)}
           {!filtered.length && <p className="p-3 text-gray-500">{language === "English" ? "No results" : language === "Pashto" ? "پایلې نشته" : "نتیجه‌ای یافت نشد"}</p>}
@@ -100,7 +100,7 @@ export default function ProviderRegistration({ language, user }) {
   }, [user]);
 
   const inputStyle =
-    "w-full p-3.5 border border-gray-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-gray-900 dark:text-white outline-none focus:border-teal-500";
+    "w-full p-3.5 border border-gray-200 dark:border-[#38665d] rounded-xl bg-white dark:bg-[#173b35] text-gray-900 dark:text-white outline-none focus:border-teal-500";
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -190,10 +190,10 @@ export default function ProviderRegistration({ language, user }) {
   }
 
   return (
-    <section className="min-h-screen bg-teal-50 dark:bg-slate-900 px-5 py-16">
+    <section className="min-h-screen bg-teal-50 dark:bg-[#061b19] px-5 py-16">
       <div className="max-w-3xl mx-auto">
         <div className="text-center mb-10">
-          <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-teal-100 dark:bg-slate-700 flex items-center justify-center">
+          <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-teal-100 dark:bg-[#173b35] flex items-center justify-center">
             <ClipboardList
               size={32}
               className="text-teal-600 dark:text-teal-400"
@@ -221,7 +221,7 @@ export default function ProviderRegistration({ language, user }) {
         <form
           key={providerType}
           onSubmit={handleSubmit}
-          className="bg-white dark:bg-slate-800 rounded-3xl shadow-lg p-6 md:p-10"
+          className="bg-white dark:bg-[#102d29] rounded-3xl shadow-lg p-6 md:p-10"
         >
           <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-5">
             {t.registerAs}
@@ -231,8 +231,8 @@ export default function ProviderRegistration({ language, user }) {
             <label
               className={`flex items-center gap-3 p-5 border-2 rounded-2xl cursor-pointer transition ${
                 providerType === "doctor"
-                  ? "border-teal-500 bg-teal-50 dark:bg-slate-700"
-                  : "border-gray-200 dark:border-slate-600"
+                  ? "border-teal-500 bg-teal-50 dark:bg-[#173b35]"
+                  : "border-gray-200 dark:border-[#38665d]"
               }`}
             >
               <input
@@ -256,8 +256,8 @@ export default function ProviderRegistration({ language, user }) {
             <label
               className={`flex items-center gap-3 p-5 border-2 rounded-2xl cursor-pointer transition ${
                 providerType === "hospital"
-                  ? "border-teal-500 bg-teal-50 dark:bg-slate-700"
-                  : "border-gray-200 dark:border-slate-600"
+                  ? "border-teal-500 bg-teal-50 dark:bg-[#173b35]"
+                  : "border-gray-200 dark:border-[#38665d]"
               }`}
             >
               <input
@@ -278,7 +278,7 @@ export default function ProviderRegistration({ language, user }) {
               </span>
             </label>
             <label
-              className={`flex items-center gap-3 p-5 border-2 rounded-2xl cursor-pointer transition ${providerType === "clinic" ? "border-teal-500 bg-teal-50 dark:bg-slate-700" : "border-gray-200 dark:border-slate-600"}`}
+              className={`flex items-center gap-3 p-5 border-2 rounded-2xl cursor-pointer transition ${providerType === "clinic" ? "border-teal-500 bg-teal-50 dark:bg-[#173b35]" : "border-gray-200 dark:border-[#38665d]"}`}
             >
               <input
                 type="radio"
@@ -573,7 +573,7 @@ export default function ProviderRegistration({ language, user }) {
               return (
                 <article
                   key={r.id}
-                  className="bg-white dark:bg-slate-800 rounded-2xl shadow-md border border-teal-100 dark:border-slate-700 p-6 transition hover:-translate-y-1 hover:shadow-xl"
+                  className="bg-white dark:bg-[#102d29] rounded-2xl shadow-md border border-teal-100 dark:border-[#28534d] p-6 transition hover:-translate-y-1 hover:shadow-xl"
                 >
                   <div className="flex flex-wrap justify-between gap-3 items-center">
                     <div>
@@ -606,7 +606,7 @@ export default function ProviderRegistration({ language, user }) {
                     />
                   </div>
                   {r.reviewNote && (
-                    <p className="mt-4 rounded-xl bg-gray-50 dark:bg-slate-700 p-4 text-sm dark:text-white">
+                    <p className="mt-4 rounded-xl bg-gray-50 dark:bg-[#173b35] p-4 text-sm dark:text-white">
                       <strong>{t.reviewReason}: </strong>
                       {r.reviewNote}
                     </p>

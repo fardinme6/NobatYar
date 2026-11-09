@@ -32,13 +32,13 @@ export default function Contact({ language }) {
   };
 
   const inputStyle =
-    "w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-white outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/10 transition";
+    "w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-[#38665d] bg-gray-50 dark:bg-[#061b19] text-gray-900 dark:text-white outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/10 transition";
 
   const labelStyle =
     "block text-sm font-semibold px-3 text-gray-700 dark:text-gray-200 mb-2";
 
   const cardStyle =
-    "bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm";
+    "bg-white dark:bg-[#102d29] rounded-2xl border border-gray-100 dark:border-[#28534d] shadow-sm";
 
   const iconStyle =
     "w-12 h-12 shrink-0 rounded-xl bg-teal-50 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400 flex items-center justify-center";
@@ -46,7 +46,7 @@ export default function Contact({ language }) {
   return (
     <>
       { sending && <Loading language={language} /> }
-    <main className="bg-gray-50 dark:bg-slate-900">
+    <main className="bg-gray-50 dark:bg-[#061b19]">
       <section className="bg-teal-600 text-white px-5 py-14 md:py-20 text-center">
         <div className="max-w-3xl mx-auto">
           <div className="w-20 h-20 mx-auto mb-5 bg-white rounded-2xl p-2 shadow-md">
@@ -143,7 +143,7 @@ export default function Contact({ language }) {
                 </div>
               </div>
 
-              <div className="w-full flex-1 min-h-64 rounded-xl overflow-hidden border border-gray-100 dark:border-slate-700">
+              <div className="w-full flex-1 min-h-64 rounded-xl overflow-hidden border border-gray-100 dark:border-[#28534d]">
                 <iframe
                   title="Herat, Afghanistan Map"
                   src="https://www.google.com/maps?q=Herat,Afghanistan&z=13&output=embed"
@@ -177,7 +177,7 @@ export default function Contact({ language }) {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="GitHub"
-                  className="w-11 h-11 flex items-center justify-center rounded-xl bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-white hover:bg-teal-600 hover:text-white transition"
+                  className="w-11 h-11 flex items-center justify-center rounded-xl bg-gray-100 dark:bg-[#173b35] text-gray-700 dark:text-white hover:bg-teal-600 hover:text-white transition"
                 >
                   <FaGithub size={21} />
                 </a>
@@ -187,7 +187,7 @@ export default function Contact({ language }) {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Instagram"
-                  className="w-11 h-11 flex items-center justify-center rounded-xl bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-white hover:bg-teal-600 hover:text-white transition"
+                  className="w-11 h-11 flex items-center justify-center rounded-xl bg-gray-100 dark:bg-[#173b35] text-gray-700 dark:text-white hover:bg-teal-600 hover:text-white transition"
                 >
                   <FaInstagram size={21} />
                 </a>
@@ -197,7 +197,7 @@ export default function Contact({ language }) {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Facebook"
-                  className="w-11 h-11 flex items-center justify-center rounded-xl bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-white hover:bg-teal-600 hover:text-white transition"
+                  className="w-11 h-11 flex items-center justify-center rounded-xl bg-gray-100 dark:bg-[#173b35] text-gray-700 dark:text-white hover:bg-teal-600 hover:text-white transition"
                 >
                   <FaFacebook size={21} />
                 </a>

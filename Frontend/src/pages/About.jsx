@@ -46,7 +46,7 @@ export default function About({ language }) {
   ];
 
   return (
-    <main className="bg-gray-50 dark:bg-slate-900">
+    <main className="bg-gray-50 dark:bg-[#061b19]">
       <section className="bg-teal-600 text-white px-5 py-14 md:py-20 text-center">
         <div className="max-w-3xl mx-auto">
           <div className="w-20 h-20 mx-auto mb-5 bg-white rounded-2xl flex items-center justify-center p-2 shadow-md">
@@ -91,7 +91,7 @@ export default function About({ language }) {
             </Link>
           </div>
 
-          <div className="bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-2xl p-7 md:p-10 shadow-sm">
+          <div className="bg-white dark:bg-[#102d29] border border-gray-100 dark:border-[#28534d] rounded-2xl p-7 md:p-10 shadow-sm">
             <img
               src="/logo.png"
               alt="NobatYar"
@@ -109,7 +109,7 @@ export default function About({ language }) {
         </div>
       </section>
 
-      <section className="bg-white dark:bg-slate-800 py-12 md:py-16 px-5">
+      <section className="bg-white dark:bg-[#102d29] py-12 md:py-16 px-5">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-10">
             <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-3">
@@ -146,7 +146,7 @@ export default function About({ language }) {
             ].map((feature, index) => (
               <div
                 key={index}
-                className="bg-gray-50 dark:bg-slate-900 border border-gray-100 dark:border-slate-700 rounded-2xl p-6 hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
+                className="bg-gray-50 dark:bg-[#061b19] border border-gray-100 dark:border-[#28534d] rounded-2xl p-6 hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
               >
                 <div className="w-12 h-12 flex items-center justify-center bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400 rounded-xl mb-5">
                   <feature.icon size={25} />
@@ -176,9 +176,9 @@ export default function About({ language }) {
           </p>
         </div>
 
-        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm overflow-hidden">
+        <div className="bg-white dark:bg-[#102d29] rounded-2xl border border-gray-100 dark:border-[#28534d] shadow-sm overflow-hidden">
           <div className="grid grid-cols-1 md:grid-cols-5 items-center p-2">
-              <div className="w-full bg-white dark:bg-slate-800 p-3 rounded-2xl md:col-span-2 p-5 md:p-7 flex items-center justify-center shadow-xl">
+              <div className="w-full bg-white dark:bg-[#102d29] p-3 rounded-2xl md:col-span-2 p-5 md:p-7 flex items-center justify-center shadow-xl">
                 <img
                   src={`${import.meta.env.BASE_URL}fardin-nobatyar.jpg`}
                   alt="Fardin Mehry"
@@ -212,7 +212,7 @@ export default function About({ language }) {
                 ].map((skill) => (
                   <span
                     key={skill}
-                    className="bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 px-3 py-1.5 rounded-lg text-xs font-medium"
+                    className="bg-gray-100 dark:bg-[#173b35] text-gray-700 dark:text-gray-200 px-3 py-1.5 rounded-lg text-xs font-medium"
                   >
                     {skill}
                   </span>
@@ -230,7 +230,7 @@ export default function About({ language }) {
                         key={social.name}
                         href={social.url}
                         target="_blank"
-                        className="flex items-center gap-2 border border-gray-200 dark:border-slate-600 text-gray-700 dark:text-gray-200 hover:border-teal-600 hover:text-teal-600 dark:hover:text-teal-400 px-4 py-2.5 rounded-xl text-sm font-medium transition"
+                        className="flex items-center gap-2 border border-gray-200 dark:border-[#38665d] text-gray-700 dark:text-gray-200 hover:border-teal-600 hover:text-teal-600 dark:hover:text-teal-400 px-4 py-2.5 rounded-xl text-sm font-medium transition"
                       >
                         <Icon size={18} />
                         {social.name}

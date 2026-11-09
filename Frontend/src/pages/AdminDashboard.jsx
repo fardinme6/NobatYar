@@ -1508,6 +1508,11 @@ export default function AdminDashboard({ language }) {
                             : t.registerHospital}{" "}
                         {p.name}
                       </h3>
+                      <p className={`text-sm font-medium ${p.active ? "text-green-600" : "text-red-600"}`}>
+                        {p.active
+                          ? (language === "English" ? "Active — visible publicly" : language === "Pashto" ? "فعال — په عامه پاڼه کې ښکاري" : "فعال — در صفحه عمومی نمایش داده می‌شود")
+                          : (language === "English" ? "Inactive — hidden from public listings" : language === "Pashto" ? "غیرفعال — له عامه لېست څخه پټ دی" : "غیرفعال — از فهرست عمومی پنهان است")}
+                      </p>
                       <p className="text-sm text-gray-500 dark:text-gray-300">
                         {p.city} · {p.phone} · {p.email || ""}
                       </p>

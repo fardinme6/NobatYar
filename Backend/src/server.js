@@ -896,7 +896,7 @@ app.get(
   "/api/doctors",
   asyncRoute(async (req, res) => {
     const result = await db.query(
-      'SELECT id,name,email,specialty,specialty_value AS "specialtyValue",specialty_values AS "specialtyValues",(SELECT COALESCE(array_agg(dh.hospital_id), ARRAY[]::integer[]) FROM doctor_hospitals dh WHERE dh.doctor_id=doctors.id) AS "hospitalIds",hospital,city,city_value AS "cityValue",image,experience,education,about,phone FROM doctors ORDER BY id',
+      'SELECT id,name,email,specialty,specialty_value AS "specialtyValue",specialty_values AS "specialtyValues",(SELECT COALESCE(array_agg(dh.hospital_id), ARRAY[]::integer[]) FROM doctor_hospitals dh WHERE dh.doctor_id=doctors.id) AS "hospitalIds",hospital,city,city_value AS "cityValue",image,experience,education,about,phone FROM doctors WHERE (NOT EXISTS (SELECT 1 FROM provider_doctors pd WHERE pd.doctor_id=doctors.id) OR EXISTS (SELECT 1 FROM provider_doctors pd JOIN provider_profiles pp ON pp.id=pd.provider_id WHERE pd.doctor_id=doctors.id AND pp.active=true)) ORDER BY id',
     );
     const search = String(req.query.search || "").toLowerCase();
     const specialty = String(req.query.specialty || "all");
@@ -922,7 +922,7 @@ app.get(
   "/api/doctors/:id",
   asyncRoute(async (req, res) => {
     const result = await db.query(
-      'SELECT id,name,email,specialty,specialty_value AS "specialtyValue",specialty_values AS "specialtyValues",(SELECT COALESCE(array_agg(dh.hospital_id), ARRAY[]::integer[]) FROM doctor_hospitals dh WHERE dh.doctor_id=doctors.id) AS "hospitalIds",hospital,city,city_value AS "cityValue",image,experience,education,about,phone FROM doctors WHERE id=$1',
+      'SELECT id,name,email,specialty,specialty_value AS "specialtyValue",specialty_values AS "specialtyValues",(SELECT COALESCE(array_agg(dh.hospital_id), ARRAY[]::integer[]) FROM doctor_hospitals dh WHERE dh.doctor_id=doctors.id) AS "hospitalIds",hospital,city,city_value AS "cityValue",image,experience,education,about,phone FROM doctors WHERE id=$1 AND (NOT EXISTS (SELECT 1 FROM provider_doctors pd WHERE pd.doctor_id=doctors.id) OR EXISTS (SELECT 1 FROM provider_doctors pd JOIN provider_profiles pp ON pp.id=pd.provider_id WHERE pd.doctor_id=doctors.id AND pp.active=true))',
       [req.params.id],
     );
     if (!result.rows[0])
@@ -939,7 +939,7 @@ app.get(
   "/api/hospitals",
   asyncRoute(async (req, res) => {
     const result = await db.query(
-  'SELECT id,name,type,type_value AS "typeValue",city,city_value AS "cityValue",location,image,logo,description,services,phone,email,specialty_values AS "specialtyValues" FROM hospitals ORDER BY id',
+  'SELECT id,name,type,type_value AS "typeValue",city,city_value AS "cityValue",location,image,logo,description,services,phone,email,specialty_values AS "specialtyValues" FROM hospitals WHERE (NOT EXISTS (SELECT 1 FROM provider_hospitals ph WHERE ph.hospital_id=hospitals.id) OR EXISTS (SELECT 1 FROM provider_hospitals ph JOIN provider_profiles pp ON pp.id=ph.provider_id WHERE ph.hospital_id=hospitals.id AND pp.active=true)) ORDER BY id',
 );
     const search = String(req.query.search || "").toLowerCase();
     const type = String(req.query.type || "all");
@@ -962,7 +962,7 @@ app.get(
   }),
 );
 app.get("/api/hospitals/:id/specialties", asyncRoute(async (req, res) => {
-  const hospital = await db.query("SELECT specialty_values FROM hospitals WHERE id=$1", [req.params.id]);
+  const hospital = await db.query("SELECT specialty_values FROM hospitals WHERE id=$1 AND (NOT EXISTS (SELECT 1 FROM provider_hospitals ph WHERE ph.hospital_id=hospitals.id) OR EXISTS (SELECT 1 FROM provider_hospitals ph JOIN provider_profiles pp ON pp.id=ph.provider_id WHERE ph.hospital_id=hospitals.id AND pp.active=true))", [req.params.id]);
   if (!hospital.rowCount) return res.status(404).json({message:"Hospital not found"});
   const result = await db.query("SELECT id,name,value,department,image FROM medical_specialties WHERE value=ANY($1::text[]) ORDER BY name", [hospital.rows[0].specialty_values || []]);
   res.json(await localizeProfiles(result.rows, "specialty", String(req.query.lang || "fa")));
@@ -971,7 +971,7 @@ app.get(
   "/api/hospitals/:id",
   asyncRoute(async (req, res) => {
     const result = await db.query(
-  'SELECT id,name,type,type_value AS "typeValue",city,city_value AS "cityValue",location,image,logo,description,services,phone,email,specialty_values AS "specialtyValues" FROM hospitals WHERE id=$1',
+  'SELECT id,name,type,type_value AS "typeValue",city,city_value AS "cityValue",location,image,logo,description,services,phone,email,specialty_values AS "specialtyValues" FROM hospitals WHERE id=$1 AND (NOT EXISTS (SELECT 1 FROM provider_hospitals ph WHERE ph.hospital_id=hospitals.id) OR EXISTS (SELECT 1 FROM provider_hospitals ph JOIN provider_profiles pp ON pp.id=ph.provider_id WHERE ph.hospital_id=hospitals.id AND pp.active=true))',
   [req.params.id],
 );
     if (!result.rows[0])

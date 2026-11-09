@@ -113,10 +113,24 @@ export default function UserProfile({ language, user, setUser }) {
       setMessage(error.message);
     }
   };
+  const deleteText = {
+    English: {
+      confirm: "Are you sure you want to permanently delete your account?",
+      history: "This provider has appointment history. Please contact the NobatYar administrator to close the account safely.",
+    },
+    Persian: {
+      confirm: "آیا مطمئن هستید که می‌خواهید حساب خود را برای همیشه حذف کنید؟",
+      history: "این حساب داکتر سابقه نوبت دارد. برای بستن مصون حساب، لطفاً با مدیریت نوبت‌یار تماس بگیرید.",
+    },
+    Pashto: {
+      confirm: "ایا ډاډه یاست چې غواړئ خپل حساب د تل لپاره ړنګ کړئ؟",
+      history: "د دې ډاکټر حساب د نوبتونو مخینه لري. د حساب د خوندي بندولو لپاره د نوبت‌یار له ادارې سره اړیکه ونیسئ.",
+    },
+  }[language] || { confirm: "Delete account?", history: "Contact the administrator to close this account safely." };
   const deleteAccount = async (e) => {
     e.preventDefault();
     if (
-      !window.confirm("Permanently delete your account and its appointments?")
+      !window.confirm(deleteText.confirm)
     )
       return;
     setSaving(true);
@@ -129,7 +143,7 @@ export default function UserProfile({ language, user, setUser }) {
       setUser(null);
       navigate("/home");
     } catch (error) {
-      setMessage(error.message);
+      setMessage(error.message?.includes("This provider has appointment history") ? deleteText.history : error.message);
     } finally {
       setSaving(false);
     }

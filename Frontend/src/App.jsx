@@ -14,7 +14,9 @@ import Doctors from "./components/Doctors.jsx";
 const DoctorDetails = lazy(() => import("./pages/DoctorDetails.jsx"));
 import HowItWorks from "./components/HowItWorks.jsx";
 import Footer from "./components/Footer.jsx";
-const ProviderRegistration = lazy(() => import("./pages/ProviderRegistration.jsx"));
+const ProviderRegistration = lazy(
+  () => import("./pages/ProviderRegistration.jsx"),
+);
 const BookAppointment = lazy(() => import("./pages/BookAppointment.jsx"));
 const MyAppointments = lazy(() => import("./pages/MyAppointments.jsx"));
 const HospitalDetails = lazy(() => import("./pages/hospitalDetails.jsx"));
@@ -43,12 +45,15 @@ export default function App() {
       language === "English" ? "en" : language === "Persian" ? "fa-AF" : "ps";
   }, [language]);
 
-
   // Update the page title and description when the route or language changes.
   useEffect(() => {
     const pages = {
       "/home": ["خانه", "کور", "Home"],
-      "/hospitals": ["شفاخانه‌ها و کلینیک‌ها", "روغتونونه او کلینیکونه", "Hospitals and Clinics"],
+      "/hospitals": [
+        "شفاخانه‌ها و کلینیک‌ها",
+        "روغتونونه او کلینیکونه",
+        "Hospitals and Clinics",
+      ],
       "/doctors": ["داکتران", "ډاکټران", "Doctors"],
       "/specialties": ["تخصص‌های طبی", "طبي تخصصونه", "Medical Specialties"],
       "/about": ["درباره ما", "زموږ په اړه", "About Us"],
@@ -58,37 +63,96 @@ export default function App() {
       "/verify-phone": ["تأیید شماره تلفن", "د ټیلیفون تایید", "Verify Phone"],
       "/check-email": ["بررسی ایمیل", "برېښنالیک وګورئ", "Check Email"],
       "/verify-email": ["تأیید ایمیل", "د برېښنالیک تایید", "Verify Email"],
-      "/forgot-password": ["فراموشی رمز عبور", "پټ نوم هېر شوی", "Forgot Password"],
+      "/forgot-password": [
+        "فراموشی رمز عبور",
+        "پټ نوم هېر شوی",
+        "Forgot Password",
+      ],
       "/reset-password": ["تغییر رمز عبور", "د پټ نوم بدلول", "Reset Password"],
-      "/register-provider": ["پیوستن به نوبت‌یار", "نوبت‌یار سره یوځای شئ", "Join NobatYar"],
-      "/activate-provider": ["فعال‌سازی حساب", "حساب فعالول", "Activate Account"],
+      "/register-provider": [
+        "پیوستن به نوبت‌یار",
+        "نوبت‌یار سره یوځای شئ",
+        "Join NobatYar",
+      ],
+      "/activate-provider": [
+        "فعال‌سازی حساب",
+        "حساب فعالول",
+        "Activate Account",
+      ],
       "/my-appointments": ["نوبت‌های من", "زما نوبتونه", "My Appointments"],
-      "/how-it-works": ["طرز کار نوبت‌یار", "نوبت‌یار څنګه کار کوي", "How It Works"],
+      "/how-it-works": [
+        "طرز کار نوبت‌یار",
+        "نوبت‌یار څنګه کار کوي",
+        "How It Works",
+      ],
       "/profile": ["پروفایل من", "زما پروفایل", "My Profile"],
       "/admin": ["پنل مدیریتی ادمین", "د اډمین مدیریت", "Admin Dashboard"],
       "/provider-dashboard": ["پنل داکتر", "د ډاکټر پنل", "Doctor Dashboard"],
-      "/hospital-dashboard": ["پنل شفاخانه", "د روغتون پنل", "Hospital Dashboard"],
+      "/hospital-dashboard": [
+        "پنل شفاخانه",
+        "د روغتون پنل",
+        "Hospital Dashboard",
+      ],
     };
-    const langIndex = language === "English" ? 2 : language === "Pashto" ? 1 : 0;
+    const langIndex =
+      language === "English" ? 2 : language === "Pashto" ? 1 : 0;
     const path = location.pathname;
     let names = pages[path] || pages["/home"];
-    if (path.startsWith("/hospitals/") && path.endsWith("/doctors")) names = ["داکتران شفاخانه", "د روغتون ډاکټران", "Hospital Doctors"];
-    else if (path.startsWith("/hospitals/")) names = ["جزئیات شفاخانه", "د روغتون معلومات", "Hospital Details"];
-    else if (path.startsWith("/doctors/")) names = ["پروفایل داکتر", "د ډاکټر پېژندنه", "Doctor Profile"];
-    else if (path.startsWith("/book-appointment/")) names = ["گرفتن نوبت", "نوبت اخیستل", "Book Appointment"];
+    if (path.startsWith("/hospitals/") && path.endsWith("/doctors"))
+      names = ["داکتران شفاخانه", "د روغتون ډاکټران", "Hospital Doctors"];
+    else if (path.startsWith("/hospitals/"))
+      names = ["جزئیات شفاخانه", "د روغتون معلومات", "Hospital Details"];
+    else if (path.startsWith("/doctors/"))
+      names = ["پروفایل داکتر", "د ډاکټر پېژندنه", "Doctor Profile"];
+    else if (path.startsWith("/book-appointment/"))
+      names = ["گرفتن نوبت", "نوبت اخیستل", "Book Appointment"];
     const descriptions = {
-      Persian: "نوبت‌یار؛ یک انتخاب هوشمند برای سلامتی شما! داکتران، شفاخانه‌ها و کلینیک‌های افغانستان را پیدا کنید و نوبت خود را آنلاین رزرو کنید.",
-      Pashto: "نوبت‌یار؛ په افغانستان کې ډاکټران، روغتونونه او کلینیکونه ومومئ او خپله نوبت آنلاین واخلئ.",
-      English: "NobatYar helps you find doctors, hospitals and clinics in Afghanistan and book medical appointments online.",
+      Persian:
+        "نوبت‌یار؛ یک انتخاب هوشمند برای سلامتی شما! داکتران، شفاخانه‌ها و کلینیک‌های افغانستان را پیدا کنید و نوبت خود را آنلاین رزرو کنید.",
+      Pashto:
+        "نوبت‌یار؛ په افغانستان کې ډاکټران، روغتونونه او کلینیکونه ومومئ او خپله نوبت آنلاین واخلئ.",
+      English:
+        "NobatYar helps you find doctors, hospitals and clinics in Afghanistan and book medical appointments online.",
     };
     document.title = `${names[langIndex]} | ${language === "English" ? "NobatYar" : "نوبت‌یار"}`;
-    document.querySelector('meta[name="description"]')?.setAttribute("content", descriptions[language]);
-    document.querySelector('meta[property="og:title"]')?.setAttribute("content", document.title);
-    document.querySelector('meta[property="og:description"]')?.setAttribute("content", descriptions[language]);
+    document
+      .querySelector('meta[name="description"]')
+      ?.setAttribute("content", descriptions[language]);
+    document
+      .querySelector('meta[property="og:title"]')
+      ?.setAttribute("content", document.title);
+    document
+      .querySelector('meta[property="og:description"]')
+      ?.setAttribute("content", descriptions[language]);
     // Private account pages should not appear in Google search results.
-    const privatePage = ["/login", "/signup", "/profile", "/admin", "/my-appointments", "/provider-dashboard", "/hospital-dashboard", "/verify-phone", "/check-email", "/verify-email", "/forgot-password", "/reset-password", "/activate-provider"].includes(path) || path.startsWith("/book-appointment/");
-    document.querySelector('meta[name="robots"]')?.setAttribute("content", privatePage ? "noindex, nofollow" : "index, follow");
-    document.querySelector('link[rel="canonical"]')?.setAttribute("href", `https://nobat-yar.vercel.app${path === "/" ? "/home" : path}`);
+    const privatePage =
+      [
+        "/login",
+        "/signup",
+        "/profile",
+        "/admin",
+        "/my-appointments",
+        "/provider-dashboard",
+        "/hospital-dashboard",
+        "/verify-phone",
+        "/check-email",
+        "/verify-email",
+        "/forgot-password",
+        "/reset-password",
+        "/activate-provider",
+      ].includes(path) || path.startsWith("/book-appointment/");
+    document
+      .querySelector('meta[name="robots"]')
+      ?.setAttribute(
+        "content",
+        privatePage ? "noindex, nofollow" : "index, follow",
+      );
+    document
+      .querySelector('link[rel="canonical"]')
+      ?.setAttribute(
+        "href",
+        `https://nobat-yar.vercel.app${path === "/" ? "/home" : path}`,
+      );
   }, [language, location.pathname]);
 
   const [user, setUser] = useState(null);
@@ -97,8 +161,6 @@ export default function App() {
   const [routeLoading, setRouteLoading] = useState(false);
   const firstRoute = useRef(true);
 
-  // Show the existing loading screen whenever the page route changes.
-  // Keep the destination mounted behind the overlay so it can render immediately.
   useEffect(() => {
     if (firstRoute.current) {
       firstRoute.current = false;
@@ -156,157 +218,161 @@ export default function App() {
       />
 
       <Suspense fallback={<Loading language={language} />}>
-      <Routes>
-        <Route
-          path="/forgot-password"
-          element={<AccountRecovery language={language} mode="forgot" />}
-        />
-        <Route
-          path="/reset-password"
-          element={<AccountRecovery language={language} mode="reset" />}
-        />
-        <Route
-          path="/verify-email"
-          element={<AccountRecovery language={language} mode="verify" />}
-        />
-        <Route path="/verify-phone" element={<VerifyPhone />} />
-        <Route
-          path="/check-email"
-          element={<CheckEmail language={language} />}
-        />
-        <Route path="/" element={<Navigate to="/home" replace />} />
+        <Routes>
+          <Route
+            path="/forgot-password"
+            element={<AccountRecovery language={language} mode="forgot" />}
+          />
+          <Route
+            path="/reset-password"
+            element={<AccountRecovery language={language} mode="reset" />}
+          />
+          <Route
+            path="/verify-email"
+            element={<AccountRecovery language={language} mode="verify" />}
+          />
+          <Route path="/verify-phone" element={<VerifyPhone />} />
+          <Route
+            path="/check-email"
+            element={<CheckEmail language={language} />}
+          />
+          <Route path="/" element={<Navigate to="/home" replace />} />
 
-        <Route
-          path="/home"
-          element={
-            <>
-              <Hero language={language} />
-              <Specialties language={language} />
-              <Hospitals language={language} home={true} user={user} />
-              <Doctors language={language} home={true} user={user} />
-              <HowItWorks language={language} home={true} />
-            </>
-          }
-        />
+          <Route
+            path="/home"
+            element={
+              <>
+                <Hero language={language} />
+                <Specialties language={language} />
+                <Hospitals language={language} home={true} user={user} />
+                <Doctors language={language} home={true} user={user} />
+                <HowItWorks language={language} home={true} />
+              </>
+            }
+          />
 
-        <Route
-          path="/hospitals"
-          element={<Hospitals language={language} user={user} />}
-        />
+          <Route
+            path="/hospitals"
+            element={<Hospitals language={language} user={user} />}
+          />
 
-        <Route
-          path="/doctors"
-          element={<Doctors language={language} user={user} />}
-        />
+          <Route
+            path="/doctors"
+            element={<Doctors language={language} user={user} />}
+          />
 
-        <Route
-          path="/doctors/:id"
-          element={<DoctorDetails language={language} />}
-        />
+          <Route
+            path="/doctors/:id"
+            element={<DoctorDetails language={language} />}
+          />
 
-        <Route
-          path="/register-provider"
-          element={<ProviderRegistration language={language} user={user} />}
-        />
-        <Route
-          path="/book-appointment/:id"
-          element={
-            user ? (
-              <BookAppointment language={language} />
-            ) : (
-              <Navigate to="/login" replace />
-            )
-          }
-        />
-        <Route
-          path="/my-appointments"
-          element={
-            user ? (
-              <MyAppointments language={language} />
-            ) : (
-              <Navigate to="/login" replace />
-            )
-          }
-        />
-        <Route
-          path="/hospitals/:id"
-          element={<HospitalDetails language={language} />}
-        />
+          <Route
+            path="/register-provider"
+            element={<ProviderRegistration language={language} user={user} />}
+          />
+          <Route
+            path="/book-appointment/:id"
+            element={
+              user ? (
+                <BookAppointment language={language} />
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+          <Route
+            path="/my-appointments"
+            element={
+              user ? (
+                <MyAppointments language={language} />
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+          <Route
+            path="/hospitals/:id"
+            element={<HospitalDetails language={language} />}
+          />
 
-        <Route
-          path="/hospitals/:id/doctors"
-          element={<HospitalDoctors language={language} />}
-        />
-        <Route
-          path="/how-it-works"
-          element={<HowItWorks language={language} />}
-        />
-        <Route
-          path="/login"
-          element={<Login language={language} onLogin={setUser} />}
-        />
-        <Route
-          path="/activate-provider"
-          element={<AccountRecovery language={language} mode="activate" />}
-        />
-        <Route
-          path="/signup"
-          element={<SignUp language={language} onLogin={setUser} />}
-        />
-        <Route
-          path="/admin"
-          element={
-            user?.role === "admin" ? (
-              <AdminDashboard language={language} />
-            ) : (
-              <Navigate to="/home" replace />
-            )
-          }
-        />
-        <Route
-          path="/provider-dashboard"
-          element={
-            user && ["provider", "admin"].includes(user.role) ? (
-              user.providerType === "hospital" ||
-              user.providerType === "clinic" ? (
+          <Route
+            path="/hospitals/:id/doctors"
+            element={<HospitalDoctors language={language} />}
+          />
+          <Route
+            path="/how-it-works"
+            element={<HowItWorks language={language} />}
+          />
+          <Route
+            path="/login"
+            element={<Login language={language} onLogin={setUser} />}
+          />
+          <Route
+            path="/activate-provider"
+            element={<AccountRecovery language={language} mode="activate" />}
+          />
+          <Route
+            path="/signup"
+            element={<SignUp language={language} onLogin={setUser} />}
+          />
+          <Route
+            path="/admin"
+            element={
+              user?.role === "admin" ? (
+                <AdminDashboard language={language} />
+              ) : (
+                <Navigate to="/home" replace />
+              )
+            }
+          />
+          <Route
+            path="/provider-dashboard"
+            element={
+              user && ["provider", "admin"].includes(user.role) ? (
+                user.providerType === "hospital" ||
+                user.providerType === "clinic" ? (
+                  <HospitalDashboard language={language} />
+                ) : (
+                  <ProviderDashboard language={language} />
+                )
+              ) : (
+                <Navigate to="/home" replace />
+              )
+            }
+          />
+          <Route
+            path="/hospital-dashboard"
+            element={
+              user &&
+              ["provider", "admin"].includes(user.role) &&
+              ["hospital", "clinic"].includes(user.providerType) ? (
                 <HospitalDashboard language={language} />
               ) : (
-                <ProviderDashboard language={language} />
+                <Navigate to="/home" replace />
               )
-            ) : (
-              <Navigate to="/home" replace />
-            )
-          }
-        />
-        <Route
-          path="/hospital-dashboard"
-          element={
-            user &&
-            ["provider", "admin"].includes(user.role) &&
-            ["hospital", "clinic"].includes(user.providerType) ? (
-              <HospitalDashboard language={language} />
-            ) : (
-              <Navigate to="/home" replace />
-            )
-          }
-        />
-        <Route path="/about" element={<About language={language} />} />
-        <Route path="/contact" element={<Contact language={language} />} />
-        <Route
-          path="/specialties"
-          element={<SpecialtiesPage language={language} user={user} />}
-        />
-        <Route
-          path="/profile"
-          element={
-            user ? (
-              <UserProfile language={language} user={user} setUser={setUser} />
-            ) : (
-              <Navigate to="/login" replace />
-            )
-          }
-        />
-      </Routes>
+            }
+          />
+          <Route path="/about" element={<About language={language} />} />
+          <Route path="/contact" element={<Contact language={language} />} />
+          <Route
+            path="/specialties"
+            element={<SpecialtiesPage language={language} user={user} />}
+          />
+          <Route
+            path="/profile"
+            element={
+              user ? (
+                <UserProfile
+                  language={language}
+                  user={user}
+                  setUser={setUser}
+                />
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+        </Routes>
       </Suspense>
 
       <Footer language={language} />

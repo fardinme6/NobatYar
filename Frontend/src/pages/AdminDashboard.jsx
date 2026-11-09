@@ -285,7 +285,7 @@ export default function AdminDashboard({ language }) {
         api("/admin/provider-requests"),
         api("/admin/patients"),
         api("/admin/contacts"),
-        api("/admin/providers"),
+        api(`/admin/providers?lang=${language === "English" ? "en" : language === "Pashto" ? "ps" : "fa"}`),
         api("/admin/doctors"),
         api("/admin/hospitals"),
         api(
@@ -1506,7 +1506,7 @@ export default function AdminDashboard({ language }) {
                           : p.provider_type === "clinic"
                             ? t.registerClinic
                             : t.registerHospital}{" "}
-                        {p.name}
+                        {(p.displayName || p.name).replace(/^(?:(?:داکتر|دکتر|ډاکټر|doctor|dr\.?)\s+)+/i, "")}
                       </h3>
                       <p className={`text-sm font-medium ${p.active ? "text-green-600" : "text-red-600"}`}>
                         {p.active

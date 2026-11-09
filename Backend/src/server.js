@@ -573,11 +573,23 @@ app.get(
       "SELECT provider_type,name FROM provider_profiles WHERE user_id=$1 ORDER BY id DESC LIMIT 1",
       [req.user.id],
     );
+    let localizedDoctorName = null;
+    if (result.rows[0]?.provider_type === "doctor") {
+      const linked = await db.query(
+        "SELECT d.id,d.name FROM doctors d JOIN provider_doctors pd ON pd.doctor_id=d.id JOIN provider_profiles p ON p.id=pd.provider_id WHERE p.user_id=$1 ORDER BY d.id LIMIT 1",
+        [req.user.id],
+      );
+      if (linked.rows.length) {
+        const localized = await localizeProfiles(linked.rows, "doctor", String(req.query.lang || "fa"));
+        localizedDoctorName = localized[0].name;
+      }
+    }
     res.json({
       user: {
         ...req.user,
         providerType: result.rows[0]?.provider_type || null,
         providerName: result.rows[0]?.name || null,
+        localizedDoctorName,
       },
     });
   }),
@@ -2400,7 +2412,16 @@ app.get(
     const r = await db.query(
       "SELECT p.*,u.email,u.email_verified FROM provider_profiles p JOIN users u ON u.id=p.user_id ORDER BY p.id DESC",
     );
-    res.json(r.rows);
+    const lang = String(req.query.lang || "fa");
+    const linked = await db.query(
+      "SELECT p.id AS provider_id,d.id,d.name FROM provider_profiles p JOIN provider_doctors pd ON pd.provider_id=p.id JOIN doctors d ON d.id=pd.doctor_id WHERE p.provider_type='doctor' ORDER BY d.id",
+    );
+    const localized = await localizeProfiles(linked.rows, "doctor", lang);
+    const names = new Map();
+    for (const doctor of localized) {
+      if (!names.has(doctor.provider_id)) names.set(doctor.provider_id, doctor.name);
+    }
+    res.json(r.rows.map(p => ({ ...p, displayName: names.get(p.id) || p.name })));
   }),
 );
 app.post(

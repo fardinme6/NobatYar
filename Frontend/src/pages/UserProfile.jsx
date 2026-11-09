@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   UserRound,
@@ -38,6 +38,19 @@ export default function UserProfile({ language, user, setUser }) {
   const [message, setMessage] = useState("");
   const [saving, setSaving] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [localizedDoctorName, setLocalizedDoctorName] = useState("");
+  useEffect(() => {
+    if (user.role !== "provider") return;
+    let active = true;
+    const lang = language === "English" ? "en" : language === "Pashto" ? "ps" : "fa";
+    api(`/auth/me?lang=${lang}`).then(data => {
+      if (active) setLocalizedDoctorName(data.user?.localizedDoctorName || "");
+    }).catch(() => {});
+    return () => { active = false; };
+  }, [language, user.role]);
+  const displayName = localizedDoctorName
+    ? `${language === "English" ? "Dr." : language === "Pashto" ? "ډاکټر" : "داکتر"} ${localizedDoctorName.replace(/^(?:(?:داکتر|دکتر|ډاکټر|doctor|dr\.?)\s+)+/i, "")}`
+    : user.name;
   const fieldClass =
     "w-full rounded-xl border border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 px-4 py-3 text-gray-900 dark:text-white outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all duration-200";
   const cardClass =
@@ -127,6 +140,16 @@ export default function UserProfile({ language, user, setUser }) {
       history: "د دې ډاکټر حساب د نوبتونو مخینه لري. د حساب د خوندي بندولو لپاره د نوبت‌یار له ادارې سره اړیکه ونیسئ.",
     },
   }[language] || { confirm: "Delete account?", history: "Contact the administrator to close this account safely." };
+  useEffect(() => {
+    setMessage(previous => {
+      const historyMessages = [
+        "This provider has appointment history. Please contact the NobatYar administrator to close the account safely.",
+        "این حساب داکتر سابقه نوبت دارد. برای بستن مصون حساب، لطفاً با مدیریت نوبت‌یار تماس بگیرید.",
+        "د دې ډاکټر حساب د نوبتونو مخینه لري. د حساب د خوندي بندولو لپاره د نوبت‌یار له ادارې سره اړیکه ونیسئ.",
+      ];
+      return historyMessages.includes(previous) ? deleteText.history : previous;
+    });
+  }, [language]);
   const deleteAccount = async (e) => {
     e.preventDefault();
     if (
@@ -149,7 +172,7 @@ export default function UserProfile({ language, user, setUser }) {
     }
   };
   const details = [
-    [UserRound, t.profileFullName, user.name],
+    [UserRound, t.profileFullName, displayName],
     [Mail, t.profileEmail, user.email],
     [Phone, t.profilePhone, user.phone],
     [MapPin, t.profileCity, user.city],
@@ -184,7 +207,7 @@ export default function UserProfile({ language, user, setUser }) {
                 )}
               </div>
               <h2 className="mt-4 text-2xl font-bold text-gray-900 dark:text-white">
-                {user.name}
+                {displayName}
               </h2>
               <p className="text-gray-500 dark:text-gray-400 mt-1">
                 {user.email}

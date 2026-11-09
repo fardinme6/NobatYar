@@ -47,6 +47,16 @@ function specialistLabel(name, language) {
   return value.startsWith("متخصص") ? value : prefix + value;
 }
 
+// Convert Persian and Arabic-Indic numerals to ASCII before sending to the API.
+const normalizeDigits = (value) => String(value).replace(/[۰-۹٠-٩]/g, (digit) => {
+  const code = digit.charCodeAt(0);
+  return String(code >= 0x06F0 ? code - 0x06F0 : code - 0x0660);
+});
+
+const displayPhone = (value, language) => language === "English"
+  ? normalizeDigits(value)
+  : normalizeDigits(value).replace(/[0-9]/g, (digit) => "۰۱۲۳۴۵۶۷۸۹"[Number(digit)]);
+
 export default function ProviderRegistration({ language, user }) {
   const t = translations[language];
 
@@ -63,6 +73,20 @@ export default function ProviderRegistration({ language, user }) {
   const [specialtyOptions, setSpecialtyOptions] = useState([]);
   const [selectedSpecialties, setSelectedSpecialties] = useState([]);
   const [selectedHospitals, setSelectedHospitals] = useState([]);
+  const [phoneValue, setPhoneValue] = useState("+93");
+
+  function changeProviderType(type) {
+    if (type === providerType) return;
+    setProviderType(type);
+    setSubmitted(false);
+    setError("");
+    setDoctorPhoto(null);
+    setHospitalLogo(null);
+    setSelectedSpecialties([]);
+    setSelectedHospitals([]);
+    setPhoneValue("+93");
+  }
+
   useEffect(() => {
     const lang = language === "Persian" ? "fa" : language === "Pashto" ? "ps" : "en";
     api(`/hospitals?lang=${lang}`).then(setHospitalOptions).catch(() => {});
@@ -96,7 +120,7 @@ export default function ProviderRegistration({ language, user }) {
       setSaving(false);
       return;
     }
-    const phone = String(data.phone || "").replace(/[\s-]/g, "");
+    const phone = normalizeDigits(data.phone || "").replace(/[\s-]/g, "");
     if (!/^\+93[2-7]\d{8}$/.test(phone)) {
       setError(language === "English" ? "Enter a valid Afghanistan phone number, e.g. +937xxxxxxxx." : language === "Pashto" ? "د افغانستان سمه شمېره ولیکئ، لکه +937xxxxxxxx." : "شماره معتبر افغانستان را وارد کنید، مانند +937xxxxxxxx.");
       setSaving(false);
@@ -195,6 +219,7 @@ export default function ProviderRegistration({ language, user }) {
           </div>
         )}
         <form
+          key={providerType}
           onSubmit={handleSubmit}
           className="bg-white dark:bg-slate-800 rounded-3xl shadow-lg p-6 md:p-10"
         >
@@ -216,8 +241,7 @@ export default function ProviderRegistration({ language, user }) {
                 value="doctor"
                 checked={providerType === "doctor"}
                 onChange={() => {
-                  setProviderType("doctor");
-                  setSubmitted(false);
+                  changeProviderType("doctor");
                 }}
                 className="accent-teal-600"
               />
@@ -242,8 +266,7 @@ export default function ProviderRegistration({ language, user }) {
                 value="hospital"
                 checked={providerType === "hospital"}
                 onChange={() => {
-                  setProviderType("hospital");
-                  setSubmitted(false);
+                  changeProviderType("hospital");
                 }}
                 className="accent-teal-600"
               />
@@ -263,8 +286,7 @@ export default function ProviderRegistration({ language, user }) {
                 value="clinic"
                 checked={providerType === "clinic"}
                 onChange={() => {
-                  setProviderType("clinic");
-                  setSubmitted(false);
+                  changeProviderType("clinic");
                 }}
                 className="accent-teal-600"
               />
@@ -339,10 +361,10 @@ export default function ProviderRegistration({ language, user }) {
                     type="tel"
                     name="phone"
                     required
-                    placeholder="+937xxxxxxxx"
-                    defaultValue="+93"
-                    pattern="\+93[2-7][0-9]{8}"
-                    title="+937xxxxxxxx"
+                    placeholder={displayPhone("+937xxxxxxxx", language)}
+                    value={displayPhone(phoneValue, language)}
+                    onChange={(e) => setPhoneValue(normalizeDigits(e.target.value))}
+                    title={displayPhone("+937xxxxxxxx", language)}
                     dir="ltr"
                     className={inputStyle}
                   />

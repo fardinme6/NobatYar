@@ -1337,6 +1337,9 @@ async function addProviderCard(client, request, details, providerId = null) {
         details.information || "",
       ],
     );
+    await client.query("UPDATE hospitals SET specialty_values=$1,phone=$2,email=$3 WHERE id=$4", [details.specialtyValues || [], request.phone, request.email, next.rows[0].id]);
+    if (providerId)
+      await client.query("INSERT INTO provider_hospitals(provider_id,hospital_id) VALUES($1,$2)", [providerId, next.rows[0].id]);
   }
 }
 
@@ -1367,6 +1370,17 @@ app.post(
       });
     if (!details.city || !details.address)
       return res.status(400).json({ message: "City and address are required" });
+    if (!/^\+93[2-7]\d{8}$/.test(data.phone.replace(/[\s-]/g, "")))
+      return res.status(400).json({ message: "Enter a valid Afghanistan phone number (+93...)" });
+    if (data.providerType !== "doctor") {
+      const specialties = [...new Set(details.specialtyValues || [])];
+      if (!specialties.length || specialties.some(v => typeof v !== "string" || !v))
+        return res.status(400).json({ message: "Select at least one medical specialty" });
+      const found = await db.query("SELECT value FROM medical_specialties WHERE value=ANY($1::text[])", [specialties]);
+      if (found.rowCount !== specialties.length)
+        return res.status(400).json({ message: "Selected specialty does not exist" });
+      details.specialtyValues = specialties;
+    }
     if (data.providerType === "doctor") {
       const specialties = [...new Set(details.specialtyValues || [details.specialty])];
       const hospitals = [...new Set(details.hospitalIds || [details.hospitalId])];

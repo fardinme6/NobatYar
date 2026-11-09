@@ -20,6 +20,15 @@ import {
 
 export default function AdminDashboard({ language }) {
   const t = translations[language];
+  const requestLabels = {
+    city: t.cityLabel, logoUrl: language === "English" ? "Logo URL" : language === "Pashto" ? "د لوګو لینک" : "لینک لوگو",
+    hospitalIds: language === "English" ? "Hospital IDs" : language === "Pashto" ? "د روغتونونو پېژندشمېرې" : "شناسه‌های شفاخانه‌ها",
+    hospitalId: language === "English" ? "Hospital ID" : language === "Pashto" ? "د روغتون پېژندشمېره" : "شناسه شفاخانه",
+    specialtyValues: language === "English" ? "Medical specialties" : language === "Pashto" ? "طبي تخصصونه" : "تخصص‌های طبی",
+    specialty: t.medicalSpecialty, license: t.licenseNumber,
+    hospitalType: language === "English" ? "Hospital / clinic type" : language === "Pashto" ? "د روغتون / کلینیک ډول" : "نوع شفاخانه / کلینیک",
+    address: t.fullAddress, information: language === "English" ? "About doctor / hospital / clinic" : language === "Pashto" ? "د ډاکټر / روغتون / کلینیک په اړه" : "درباره داکتر / شفاخانه / کلینیک",
+  };
   const modalText =
     {
       English: {
@@ -1024,9 +1033,9 @@ export default function AdminDashboard({ language }) {
                             className="rounded-lg bg-gray-50 dark:bg-slate-700 p-3"
                           >
                             <strong className="capitalize">
-                              {key.replace(/([A-Z])/g, " $1")}:{" "}
+                              {requestLabels[key] || key.replace(/([A-Z])/g, " $1")}:{" "}
                             </strong>
-                            {String(value)}
+                            {Array.isArray(value) ? value.join("، ") : String(value)}
                           </p>
                         ))}
                     </div>

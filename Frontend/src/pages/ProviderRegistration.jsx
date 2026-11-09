@@ -91,6 +91,17 @@ export default function ProviderRegistration({ language, user }) {
       setSaving(false);
       return;
     }
+    if (providerType !== "doctor" && !specialtyValues.length) {
+      setError(language === "English" ? "Select at least one medical specialty." : language === "Pashto" ? "لږ تر لږه یوه طبي تخصص وټاکئ." : "حداقل یک تخصص طبی انتخاب کنید.");
+      setSaving(false);
+      return;
+    }
+    const phone = String(data.phone || "").replace(/[\s-]/g, "");
+    if (!/^\+93[2-7]\d{8}$/.test(phone)) {
+      setError(language === "English" ? "Enter a valid Afghanistan phone number, e.g. +937xxxxxxxx." : language === "Pashto" ? "د افغانستان سمه شمېره ولیکئ، لکه +937xxxxxxxx." : "شماره معتبر افغانستان را وارد کنید، مانند +937xxxxxxxx.");
+      setSaving(false);
+      return;
+    }
     if (!doctorPhoto || (providerType !== "doctor" && !hospitalLogo)) {
       setError("Photo is required / عکس ضروری است");
       setSaving(false);
@@ -139,7 +150,7 @@ export default function ProviderRegistration({ language, user }) {
         body: JSON.stringify({
           name: data.name,
           email: data.email,
-          phone: data.phone,
+          phone,
           providerType,
           details,
         }),
@@ -328,7 +339,10 @@ export default function ProviderRegistration({ language, user }) {
                     type="tel"
                     name="phone"
                     required
-                    placeholder="07xxxxxxxx"
+                    placeholder="+937xxxxxxxx"
+                    defaultValue="+93"
+                    pattern="\+93[2-7][0-9]{8}"
+                    title="+937xxxxxxxx"
                     dir="ltr"
                     className={inputStyle}
                   />
@@ -462,6 +476,17 @@ export default function ProviderRegistration({ language, user }) {
                   </>
                 )}
 
+                {providerType !== "doctor" && (
+                  <div className="md:col-span-2">
+                    <label className="block mb-2 font-medium text-gray-700 dark:text-gray-200">
+                      {language === "English" ? "Medical specialties / departments" : language === "Pashto" ? "طبي تخصصونه او څانګې" : "تخصص‌ها و بخش‌های طبی"} <span className="text-red-500">*</span>
+                    </label>
+                    <SearchMultiSelect name="specialtyValues" language={language}
+                      options={specialtyOptions.map((item) => ({ value: item.value, label: t[item.name] || item.name }))}
+                      selected={selectedSpecialties} setSelected={setSelectedSpecialties}
+                      placeholder={language === "English" ? "Select specialties" : language === "Pashto" ? "تخصصونه وټاکئ" : "انتخاب تخصص‌ها"} />
+                  </div>
+                )}
                 <div className="md:col-span-2">
                   <label className="block mb-2 font-medium text-gray-700 dark:text-gray-200">
                     {t.fullAddress} <span className="text-red-500">*</span>
@@ -478,13 +503,13 @@ export default function ProviderRegistration({ language, user }) {
 
                 <div className="md:col-span-2">
                   <label className="block mb-2 font-medium text-gray-700 dark:text-gray-200">
-                    {t.additionalInformation}
+                    {providerType === "doctor" ? t.aboutDoctor : language === "English" ? "About hospital / clinic" : language === "Pashto" ? "د روغتون / کلینیک په اړه" : "درباره شفاخانه / کلینیک"}
                   </label>
 
                   <textarea
                     name="information"
                     rows="4"
-                    placeholder={t.enterInformation}
+                    placeholder={providerType === "doctor" ? (language === "English" ? "Briefly introduce yourself and your medical practice" : language === "Pashto" ? "خپل ځان او طبي فعالیت په لنډ ډول معرفي کړئ" : "خود و فعالیت طبی‌تان را مختصر معرفی کنید") : (language === "English" ? "Briefly describe your hospital or clinic" : language === "Pashto" ? "د روغتون یا کلینیک په اړه ولیکئ" : "شفاخانه یا کلینیک را مختصر معرفی کنید")}
                     className={`${inputStyle} resize-none`}
                   />
                 </div>

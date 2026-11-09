@@ -9,3 +9,23 @@ html[lang="fa-AF"] *,
 html[lang="ps"] * {
   font-family: "Vazirmatn", sans-serif;
 }
+/* NobatYar emerald dark theme. Light-mode utilities are untouched.
+   Override only the existing Tailwind dark variants so every page,
+   including admin and forms, shares the same dark palette. */
+.dark .dark\:bg-slate-900 { background-color: #061b19; }
+.dark .dark\:bg-slate-800 { background-color: #102d29; }
+.dark .dark\:bg-slate-700 { background-color: #173b35; }
+.dark .dark\:bg-slate-600 { background-color: #235149; }
+.dark .dark\:bg-slate-800\/95 { background-color: rgb(16 45 41 / 0.95); }
+.dark .dark\:bg-slate-700\/70 { background-color: rgb(23 59 53 / 0.70); }
+.dark .dark\:bg-slate-700\/40 { background-color: rgb(23 59 53 / 0.40); }
+.dark .dark\:border-slate-800 { border-color: #21463f; }
+.dark .dark\:border-slate-700 { border-color: #28534d; }
+.dark .dark\:border-slate-600 { border-color: #38665d; }
+.dark .dark\:border-slate-500 { border-color: #528077; }
+.dark .dark\:border-gray-500 { border-color: #528077; }
+.dark .dark\:from-slate-950 { --tw-gradient-from: #041512 var(--tw-gradient-from-position); --tw-gradient-to: rgb(4 21 18 / 0) var(--tw-gradient-to-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
+.dark .dark\:via-slate-900 { --tw-gradient-to: rgb(6 27 25 / 0) var(--tw-gradient-to-position); --tw-gradient-stops: var(--tw-gradient-from), #061b19 var(--tw-gradient-via-position), var(--tw-gradient-to); }
+.dark .dark\:to-slate-900 { --tw-gradient-to: #061b19 var(--tw-gradient-to-position); }
+.dark .dark\:hover\:bg-slate-600:hover { background-color: #235149; }
+.dark .dark\:hover\:bg-slate-700:hover { background-color: #173b35; }

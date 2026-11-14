@@ -232,7 +232,7 @@ export default function App() {
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
           aria-label={language === "English" ? "Back to top" : language === "Pashto" ? "بېرته پورته" : "بازگشت به بالا"}
           title={language === "English" ? "Back to top" : language === "Pashto" ? "بېرته پورته" : "بازگشت به بالا"}
-          className={`fixed bottom-6 z-[60] flex h-12 w-12 items-center justify-center rounded-2xl bg-teal-600 text-white shadow-xl ring-4 ring-white/70 transition hover:-translate-y-1 hover:bg-teal-700 dark:bg-teal-500 dark:text-[#061b19] dark:ring-[#102d29] ${language === "English" ? "left-5 md:left-8" : "right-5 md:right-8"}`}
+          className={`fixed bottom-6 z-[60] flex h-12 w-12 items-center justify-center rounded-2xl bg-teal-600 text-white shadow-xl ring-4 ring-white/70 transition hover:-translate-y-1 hover:bg-teal-700 dark:bg-teal-500 dark:text-[#061b19] dark:ring-[#102d29] right-5 md:right-8`}
         >
           <ArrowUp size={23} strokeWidth={2.5} />
         </button>

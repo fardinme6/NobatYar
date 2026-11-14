@@ -53,7 +53,7 @@ export default function Hospitals({ language, home = false, user }) {
 
   return (
     <section
-      className={`${home ? "" : "min-h-screen"} bg-gray-50 dark:bg-[#061b19] py-16 px-5 md:px-10 lg:px-20`}
+      className={`${home ? "py-16" : "min-h-screen pb-16 pt-0"} bg-gray-50 dark:bg-[#061b19] px-5 md:px-10 lg:px-20`}
     >
       <div className="max-w-7xl mx-auto">
         {home ? (
@@ -82,7 +82,7 @@ export default function Hospitals({ language, home = false, user }) {
           </div>
         ) : (
           <>
-            <div className="text-center mb-10">
+            <div className="relative left-1/2 -translate-x-1/2 w-screen bg-[#0d9488] text-center py-16 md:py-20 mb-12 px-5">
               <div className="inline-flex items-center gap-2 bg-white/15 text-white px-4 py-2 rounded-full text-sm font-medium mb-5">
                 <Hospital size={17} />
                 {t.healthcareCenters}

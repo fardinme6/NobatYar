@@ -58,7 +58,7 @@ export default function Doctors({ language, home = false, user }) {
 
   return (
     <section
-      className={`${home ? "" : "min-h-screen"} bg-gray-50 dark:bg-[#061b19] py-16 px-5 md:px-10 lg:px-20`}
+      className={`${home ? "py-16" : "min-h-screen pb-16 pt-0"} bg-gray-50 dark:bg-[#061b19] px-5 md:px-10 lg:px-20`}
     >
       <div className="max-w-7xl mx-auto">
         {home ? (
@@ -87,7 +87,7 @@ export default function Doctors({ language, home = false, user }) {
           </div>
         ) : (
           <>
-            <div className="text-center mb-10">
+            <div className="relative left-1/2 -translate-x-1/2 w-screen bg-[#0d9488] text-center py-16 md:py-20 mb-12 px-5">
               <div className="inline-flex items-center gap-2 bg-white/15 text-white px-4 py-2 rounded-full text-sm font-medium mb-5">
                 <Users size={17} />
                 {t.medicalTeam}
@@ -200,25 +200,25 @@ export default function Doctors({ language, home = false, user }) {
                   </div>
                 </div>
               ) : (
-                <div key={doctor.id} className="bg-white dark:bg-[#102d29] border border-teal-100 dark:border-[#28534d] rounded-2xl p-3 shadow-sm hover:shadow-lg transition-shadow">
+                <div key={doctor.id} className="bg-white dark:bg-[#102d29] border border-teal-100 dark:border-[#28534d] rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow">
                   {user?.role === "admin" && (
-                    <div className="flex gap-2 mb-3">
+                    <div className="flex gap-2 p-3 pb-0">
                       <Link to={`/admin?tab=doctors&edit=${doctor.id}`} className="flex-1 bg-teal-600 text-white rounded-lg text-center py-2">Edit</Link>
                       <button type="button" onClick={async () => { if (!window.confirm("Delete this doctor?")) return; try { await api(`/admin/doctors/${doctor.id}`, { method: "DELETE" }); setOnlineDoctors(items => items.filter(item => item.id !== doctor.id)); } catch(error) { alert(error.message); } }} className="flex-1 bg-red-600 text-white rounded-lg py-2">Delete</button>
                     </div>
                   )}
-                  <div className="flex flex-row items-start gap-4">
-                    <img src={doctor.image} alt={label(doctor.name)} loading="lazy" decoding="async" width="144" height="160" className="w-28 sm:w-36 h-36 sm:h-40 object-cover object-top rounded-xl bg-gray-100 dark:bg-[#173b35] shrink-0" />
-                    <div className="flex-1 min-w-0 py-1">
-                      <span className="inline-block rounded-full bg-teal-100 dark:bg-[#173b35] text-teal-700 dark:text-teal-300 px-3 py-1 text-xs font-semibold">{doctorSpecialties(doctor, language).join(" · ")}</span>
+                  <div className="flex items-stretch gap-3 p-3 min-h-48">
+                    <img src={doctor.image} alt={label(doctor.name)} loading="lazy" decoding="async" width="160" height="220" className="w-28 sm:w-36 self-stretch object-cover object-top rounded-xl bg-gray-100 dark:bg-[#173b35] shrink-0" />
+                    <div className="flex flex-col flex-1 min-w-0 py-1">
+                      <span className="self-start rounded-full bg-teal-100 dark:bg-[#173b35] text-teal-700 dark:text-teal-300 px-3 py-1 text-xs font-semibold">{doctorSpecialties(doctor, language).join(" · ")}</span>
                       <h3 className="text-lg font-bold text-gray-900 dark:text-white mt-2 mb-2">{label(doctor.name)}</h3>
                       <p className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300"><Hospital size={16} className="shrink-0 text-teal-600 dark:text-teal-400" />{label(doctor.hospital)}</p>
                       <p className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 mt-2"><MapPin size={13}/>{label(doctor.city)}</p>
+                      <div className="grid grid-cols-2 gap-2 mt-auto pt-3">
+                        <Link to={`/doctors/${doctor.id}`} className="flex items-center justify-center text-center border border-teal-600 text-teal-600 dark:text-teal-300 text-xs sm:text-sm font-medium py-2 px-1 rounded-lg hover:bg-teal-50 dark:hover:bg-[#173b35] transition">{t.viewProfile}</Link>
+                        <Link to={`/book-appointment/${doctor.id}`} className="flex items-center justify-center text-center bg-teal-600 hover:bg-teal-700 text-white text-xs sm:text-sm font-medium py-2 px-1 rounded-lg transition">{t.bookAppointment}</Link>
+                      </div>
                     </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2 mt-3">
-                    <Link to={`/doctors/${doctor.id}`} className="flex items-center justify-center text-center border border-teal-600 text-teal-600 dark:text-teal-300 text-sm font-medium py-2.5 px-2 rounded-lg hover:bg-teal-50 dark:hover:bg-[#173b35] transition">{t.viewProfile}</Link>
-                    <Link to={`/book-appointment/${doctor.id}`} className="flex items-center justify-center text-center bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium py-2.5 px-2 rounded-lg transition">{t.bookAppointment}</Link>
                   </div>
                 </div>
               )

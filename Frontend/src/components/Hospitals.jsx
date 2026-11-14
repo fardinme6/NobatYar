@@ -82,7 +82,7 @@ export default function Hospitals({ language, home = false, user }) {
           </div>
         ) : (
           <>
-            <div className="relative left-1/2 -translate-x-1/2 w-screen bg-[#0d9488] text-center py-16 md:py-20 mb-12 px-5">
+            <div className="relative isolate text-center py-16 md:py-20 mb-12 px-5 before:content-[''] before:absolute before:inset-y-0 before:left-1/2 before:-translate-x-1/2 before:w-screen before:bg-[#0d9488] before:-z-10">
               <div className="inline-flex items-center gap-2 bg-white/15 text-white px-4 py-2 rounded-full text-sm font-medium mb-5">
                 <Hospital size={17} />
                 {t.healthcareCenters}

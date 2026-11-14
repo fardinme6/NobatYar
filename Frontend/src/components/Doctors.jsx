@@ -87,7 +87,7 @@ export default function Doctors({ language, home = false, user }) {
           </div>
         ) : (
           <>
-            <div className="relative left-1/2 -translate-x-1/2 w-screen bg-[#0d9488] text-center py-16 md:py-20 mb-12 px-5">
+            <div className="relative isolate text-center py-16 md:py-20 mb-12 px-5 before:content-[''] before:absolute before:inset-y-0 before:left-1/2 before:-translate-x-1/2 before:w-screen before:bg-[#0d9488] before:-z-10">
               <div className="inline-flex items-center gap-2 bg-white/15 text-white px-4 py-2 rounded-full text-sm font-medium mb-5">
                 <Users size={17} />
                 {t.medicalTeam}
@@ -181,7 +181,7 @@ export default function Doctors({ language, home = false, user }) {
         )}
 
         {displayedDoctors.length > 0 ? (
-          <div className={home ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" : "grid grid-cols-1 lg:grid-cols-2 gap-5"}>
+          <div className={home ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" : "grid grid-cols-1 xl:grid-cols-2 gap-6"}>
             {displayedDoctors.map((doctor) => (
               home ? (
                 <div key={doctor.id} className="flex flex-col bg-white dark:bg-[#102d29] rounded-2xl overflow-hidden border border-gray-100 dark:border-[#28534d] shadow-sm hover:shadow-xl transition-all duration-300">
@@ -207,16 +207,31 @@ export default function Doctors({ language, home = false, user }) {
                       <button type="button" onClick={async () => { if (!window.confirm("Delete this doctor?")) return; try { await api(`/admin/doctors/${doctor.id}`, { method: "DELETE" }); setOnlineDoctors(items => items.filter(item => item.id !== doctor.id)); } catch(error) { alert(error.message); } }} className="flex-1 bg-red-600 text-white rounded-lg py-2">Delete</button>
                     </div>
                   )}
-                  <div className="flex items-stretch gap-3 p-3 min-h-48">
-                    <img src={doctor.image} alt={label(doctor.name)} loading="lazy" decoding="async" width="160" height="220" className="w-28 sm:w-36 self-stretch object-cover object-top rounded-xl bg-gray-100 dark:bg-[#173b35] shrink-0" />
+                  <div className="flex flex-col sm:flex-row items-stretch gap-4 p-4 min-h-[250px]">
+                    <img
+                      src={doctor.image}
+                      alt={label(doctor.name)}
+                      loading="lazy"
+                      decoding="async"
+                      width="200"
+                      height="250"
+                      className="w-full sm:w-44 h-56 sm:h-auto sm:min-h-[220px] object-cover object-top rounded-xl bg-gray-100 dark:bg-[#173b35] shrink-0"
+                    />
                     <div className="flex flex-col flex-1 min-w-0 py-1">
-                      <span className="self-start rounded-full bg-teal-100 dark:bg-[#173b35] text-teal-700 dark:text-teal-300 px-3 py-1 text-xs font-semibold">{doctorSpecialties(doctor, language).join(" · ")}</span>
-                      <h3 className="text-lg font-bold text-gray-900 dark:text-white mt-2 mb-2">{label(doctor.name)}</h3>
-                      <p className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300"><Hospital size={16} className="shrink-0 text-teal-600 dark:text-teal-400" />{label(doctor.hospital)}</p>
-                      <p className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 mt-2"><MapPin size={13}/>{label(doctor.city)}</p>
-                      <div className="grid grid-cols-2 gap-2 mt-auto pt-3">
-                        <Link to={`/doctors/${doctor.id}`} className="flex items-center justify-center text-center border border-teal-600 text-teal-600 dark:text-teal-300 text-xs sm:text-sm font-medium py-2 px-1 rounded-lg hover:bg-teal-50 dark:hover:bg-[#173b35] transition">{t.viewProfile}</Link>
-                        <Link to={`/book-appointment/${doctor.id}`} className="flex items-center justify-center text-center bg-teal-600 hover:bg-teal-700 text-white text-xs sm:text-sm font-medium py-2 px-1 rounded-lg transition">{t.bookAppointment}</Link>
+                      <span className="self-start rounded-full bg-teal-100 dark:bg-[#173b35] text-teal-700 dark:text-teal-300 px-3 py-1 text-xs font-semibold leading-5">
+                        {doctorSpecialties(doctor, language).join(" · ")}
+                      </span>
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-white mt-3 mb-3">{label(doctor.name)}</h3>
+                      <p className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+                        <Hospital size={17} className="shrink-0 text-teal-600 dark:text-teal-400" />
+                        {label(doctor.hospital)}
+                      </p>
+                      <p className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 mt-3">
+                        <MapPin size={15} />{label(doctor.city)}
+                      </p>
+                      <div className="grid grid-cols-2 gap-3 mt-auto pt-5">
+                        <Link to={`/doctors/${doctor.id}`} className="flex items-center justify-center text-center border border-teal-600 text-teal-600 dark:text-teal-300 text-sm font-medium py-3 px-2 rounded-xl hover:bg-teal-50 dark:hover:bg-[#173b35] transition">{t.viewProfile}</Link>
+                        <Link to={`/book-appointment/${doctor.id}`} className="flex items-center justify-center text-center bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium py-3 px-2 rounded-xl transition">{t.bookAppointment}</Link>
                       </div>
                     </div>
                   </div>

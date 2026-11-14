@@ -87,17 +87,17 @@ export default function Doctors({ language, home = false, user }) {
           </div>
         ) : (
           <>
-            <div className="text-center mb-8 rounded-3xl bg-teal-50/80 dark:bg-[#102d29] border border-teal-100/70 dark:border-[#28534d] px-5 py-8 md:py-10">
-              <div className="inline-flex items-center gap-2 bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400 px-4 py-2 rounded-full text-sm font-medium mb-5">
+            <div className="text-center mb-10">
+              <div className="inline-flex items-center gap-2 bg-white/15 text-white px-4 py-2 rounded-full text-sm font-medium mb-5">
                 <Users size={17} />
                 {t.medicalTeam}
               </div>
 
-              <h1 className="text-3xl md:text-5xl font-bold text-gray-900 dark:text-white">
+              <h1 className="text-3xl md:text-5xl font-bold text-white">
                 {t.Doctors}
               </h1>
 
-              <p className="text-gray-600 dark:text-gray-300 mt-4 max-w-2xl mx-auto">
+              <p className="text-teal-50 mt-4 max-w-2xl mx-auto">
                 {t.doctorsDescription}
               </p>
             </div>
@@ -181,72 +181,47 @@ export default function Doctors({ language, home = false, user }) {
         )}
 
         {displayedDoctors.length > 0 ? (
-          <div className={home ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" : "grid grid-cols-1 lg:grid-cols-2 gap-6"}>
+          <div className={home ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" : "grid grid-cols-1 lg:grid-cols-2 gap-5"}>
             {displayedDoctors.map((doctor) => (
-              <div
-                key={doctor.id}
-                className={`flex flex-col bg-white dark:bg-[#102d29] rounded-2xl overflow-hidden border border-gray-100 dark:border-[#28534d] shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ${home ? "" : "sm:flex-row sm:flex-wrap"}`}
-              >
-                {user?.role === "admin" && <div className="flex gap-2 p-2 bg-teal-50 dark:bg-[#173b35]">
-                  <Link to={`/admin?tab=doctors&edit=${doctor.id}`} className="flex-1 bg-teal-600 text-white rounded-lg text-center py-2">Edit</Link>
-                  <button onClick={async()=>{
-                    if (!window.confirm("Delete this doctor?")) return;
-                    try { await api(`/admin/doctors/${doctor.id}`, {method:"DELETE"}); setOnlineDoctors(items=>items.filter(item=>item.id!==doctor.id)); }
-                    catch(error) {alert(error.message);}
-                  }} className="flex-1 bg-red-600 text-white rounded-lg py-2">Delete</button>
-                </div>}
-                <div className={`relative overflow-hidden bg-gray-100 dark:bg-[#173b35] ${home ? "" : "sm:order-1 sm:w-44 md:w-48 sm:shrink-0"}`}>
-                  <img loading="lazy" decoding="async" width="480" height="560"
-                    src={doctor.image}
-                    alt={label(doctor.name)}
-                    className={`w-full object-cover object-top hover:scale-105 transition-transform duration-500 ${home ? "h-85" : "h-72 sm:h-full sm:min-h-56"}`}
-                  />
-
-                  <span className="absolute top-4 start-4 bg-white/95 dark:bg-[#102d29]/95 text-teal-700 dark:text-teal-400 px-3 py-1.5 rounded-lg text-xs font-semibold shadow-sm">
-                    <MapPin size={14} className="inline me-1" />{label(doctor.city)}
-                  </span>
+              home ? (
+                <div key={doctor.id} className="flex flex-col bg-white dark:bg-[#102d29] rounded-2xl overflow-hidden border border-gray-100 dark:border-[#28534d] shadow-sm hover:shadow-xl transition-all duration-300">
+                  <div className="relative bg-gray-100 dark:bg-[#173b35]">
+                    <img loading="lazy" decoding="async" width="480" height="560" src={doctor.image} alt={label(doctor.name)} className="w-full h-85 object-cover object-top" />
+                    <span className="absolute top-4 start-4 bg-white/95 dark:bg-[#102d29]/95 text-teal-700 dark:text-teal-400 px-3 py-1.5 rounded-lg text-xs font-semibold shadow-sm"><MapPin size={14} className="inline me-1" />{label(doctor.city)}</span>
+                  </div>
+                  <div className="flex flex-col flex-1 p-6">
+                    <div className="flex items-center gap-2 text-teal-600 dark:text-teal-400 text-sm mb-3"><Hospital size={17}/>{label(doctor.hospital)}</div>
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">{label(doctor.name)}</h3>
+                    <div className="flex items-start gap-2 text-gray-600 dark:text-gray-300 mb-6"><span className="text-sm leading-6">{doctorSpecialties(doctor, language).join(" · ")}</span></div>
+                    <div className="grid grid-cols-2 gap-3 mt-auto">
+                      <Link to={`/doctors/${doctor.id}`} className="flex items-center justify-center text-center border border-teal-600 text-teal-600 dark:text-teal-400 font-medium py-3 px-2 rounded-xl hover:bg-teal-50 dark:hover:bg-[#173b35] transition">{t.viewProfile}</Link>
+                      <Link to={`/book-appointment/${doctor.id}`} className="flex items-center justify-center text-center bg-teal-600 hover:bg-teal-700 text-white font-medium py-3 px-2 rounded-xl transition">{t.bookAppointment}</Link>
+                    </div>
+                  </div>
                 </div>
-
-                <div className={`flex flex-col flex-1 p-6 ${home ? "" : "sm:order-2 sm:min-w-0"}`}>
-                  <div className="flex items-center gap-2 text-teal-600 dark:text-teal-400 text-sm mb-3">
-                    <Hospital size={17} />
-                    {label(doctor.hospital)}
-                  </div>
-
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                    {label(doctor.name)}
-                  </h3>
-
-                  <div className="flex items-start gap-2 text-gray-600 dark:text-gray-300 mb-6">
-                    <span className="text-sm leading-6">{doctorSpecialties(doctor, language).join(" · ")}</span>
-                  </div>
-
-                  {home && (
-                  <div className="grid grid-cols-2 gap-3 mt-auto">
-                    <Link
-                      to={`/doctors/${doctor.id}`}
-                      className="flex items-center justify-center text-center border border-teal-600 text-teal-600 dark:text-teal-400 font-medium py-3 px-2 rounded-xl hover:bg-teal-50 dark:hover:bg-[#173b35] transition"
-                    >
-                      {t.viewProfile}
-                    </Link>
-
-                    <Link
-                      to={`/book-appointment/${doctor.id}`}
-                      className="flex items-center justify-center text-center bg-teal-600 hover:bg-teal-700 text-white font-medium py-3 px-2 rounded-xl transition"
-                    >
-                      {t.bookAppointment}
-                    </Link>
-                  </div>
+              ) : (
+                <div key={doctor.id} className="bg-white dark:bg-[#102d29] border border-teal-100 dark:border-[#28534d] rounded-2xl p-3 shadow-sm hover:shadow-lg transition-shadow">
+                  {user?.role === "admin" && (
+                    <div className="flex gap-2 mb-3">
+                      <Link to={`/admin?tab=doctors&edit=${doctor.id}`} className="flex-1 bg-teal-600 text-white rounded-lg text-center py-2">Edit</Link>
+                      <button type="button" onClick={async () => { if (!window.confirm("Delete this doctor?")) return; try { await api(`/admin/doctors/${doctor.id}`, { method: "DELETE" }); setOnlineDoctors(items => items.filter(item => item.id !== doctor.id)); } catch(error) { alert(error.message); } }} className="flex-1 bg-red-600 text-white rounded-lg py-2">Delete</button>
+                    </div>
                   )}
-
-                </div>
-                {!home && (
-                  <div className="grid grid-cols-2 gap-3 p-4 pt-0 sm:order-3 sm:w-full sm:px-6 sm:pb-6">
-                    <Link to={`/doctors/${doctor.id}`} className="flex items-center justify-center text-center border border-teal-600 text-teal-600 dark:text-teal-400 font-medium py-3 px-2 rounded-xl hover:bg-teal-50 dark:hover:bg-[#173b35] transition">{t.viewProfile}</Link>
-                    <Link to={`/book-appointment/${doctor.id}`} className="flex items-center justify-center text-center bg-teal-600 hover:bg-teal-700 text-white font-medium py-3 px-2 rounded-xl transition">{t.bookAppointment}</Link>
+                  <div className="flex flex-row items-start gap-4">
+                    <img src={doctor.image} alt={label(doctor.name)} loading="lazy" decoding="async" width="144" height="160" className="w-28 sm:w-36 h-36 sm:h-40 object-cover object-top rounded-xl bg-gray-100 dark:bg-[#173b35] shrink-0" />
+                    <div className="flex-1 min-w-0 py-1">
+                      <span className="inline-block rounded-full bg-teal-100 dark:bg-[#173b35] text-teal-700 dark:text-teal-300 px-3 py-1 text-xs font-semibold">{doctorSpecialties(doctor, language).join(" · ")}</span>
+                      <h3 className="text-lg font-bold text-gray-900 dark:text-white mt-2 mb-2">{label(doctor.name)}</h3>
+                      <p className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300"><Hospital size={16} className="shrink-0 text-teal-600 dark:text-teal-400" />{label(doctor.hospital)}</p>
+                      <p className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 mt-2"><MapPin size={13}/>{label(doctor.city)}</p>
+                    </div>
                   </div>
-                )}
-              </div>
+                  <div className="grid grid-cols-2 gap-2 mt-3">
+                    <Link to={`/doctors/${doctor.id}`} className="flex items-center justify-center text-center border border-teal-600 text-teal-600 dark:text-teal-300 text-sm font-medium py-2.5 px-2 rounded-lg hover:bg-teal-50 dark:hover:bg-[#173b35] transition">{t.viewProfile}</Link>
+                    <Link to={`/book-appointment/${doctor.id}`} className="flex items-center justify-center text-center bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium py-2.5 px-2 rounded-lg transition">{t.bookAppointment}</Link>
+                  </div>
+                </div>
+              )
             ))}
           </div>
         ) : (

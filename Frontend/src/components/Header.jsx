@@ -53,7 +53,7 @@ export default function Header({
   };
 
   return (
-    <header className="bg-white dark:bg-[#102d29] shadow-md sticky top-0 z-50 transition-colors duration-300">
+    <header className="bg-white dark:bg-[#102d29] shadow-md fixed inset-x-0 top-0 z-50 transition-colors duration-300">
       <div className="flex items-center justify-between gap-4 px-5 py-4">
         <NavLink to="/home" className="flex items-center gap-3 shrink-0">
           <img

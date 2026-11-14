@@ -34,9 +34,8 @@ const HospitalDashboard = lazy(() => import("./pages/HospitalDashboard.jsx"));
 export default function App() {
   const location = useLocation();
   const [showBackToTop, setShowBackToTop] = useState(false);
-
   useEffect(() => {
-    const onScroll = () => setShowBackToTop(window.scrollY > 450);
+    const onScroll = () => setShowBackToTop(window.scrollY > 400);
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
     return () => window.removeEventListener("scroll", onScroll);
@@ -216,17 +215,6 @@ export default function App() {
   return (
     <>
       {(busy || routeLoading) && <Loading language={language} />}
-      {showBackToTop && (
-        <button
-          type="button"
-          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          aria-label={language === "English" ? "Back to top" : language === "Pashto" ? "بېرته پورته" : "بازگشت به بالا"}
-          title={language === "English" ? "Back to top" : language === "Pashto" ? "بېرته پورته" : "بازگشت به بالا"}
-          className="fixed bottom-6 end-5 md:bottom-8 md:end-8 z-[60] flex h-12 w-12 items-center justify-center rounded-2xl bg-teal-600 text-white shadow-lg shadow-teal-900/20 ring-4 ring-white/70 transition-all duration-300 hover:-translate-y-1 hover:bg-teal-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500 dark:bg-teal-500 dark:text-[#061b19] dark:ring-[#102d29]/80 dark:hover:bg-teal-400"
-        >
-          <ArrowUp size={23} strokeWidth={2.5} />
-        </button>
-      )}
       <Header
         imageURL="/logo.png"
         title="NobatYar Logo"
@@ -237,6 +225,18 @@ export default function App() {
         onLogout={logout}
       />
 
+      <div className="h-[88px] shrink-0" aria-hidden="true" />
+      {showBackToTop && (
+        <button
+          type="button"
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          aria-label={language === "English" ? "Back to top" : language === "Pashto" ? "بېرته پورته" : "بازگشت به بالا"}
+          title={language === "English" ? "Back to top" : language === "Pashto" ? "بېرته پورته" : "بازگشت به بالا"}
+          className={`fixed bottom-6 z-[60] flex h-12 w-12 items-center justify-center rounded-2xl bg-teal-600 text-white shadow-xl ring-4 ring-white/70 transition hover:-translate-y-1 hover:bg-teal-700 dark:bg-teal-500 dark:text-[#061b19] dark:ring-[#102d29] ${language === "English" ? "left-5 md:left-8" : "right-5 md:right-8"}`}
+        >
+          <ArrowUp size={23} strokeWidth={2.5} />
+        </button>
+      )}
       <Suspense fallback={<Loading language={language} />}>
         <Routes>
           <Route

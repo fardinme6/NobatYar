@@ -96,13 +96,13 @@ export default function HospitalDoctors({ language }) {
     <section className="min-h-screen bg-gray-50 dark:bg-[#061b19] px-5 md:px-10 lg:px-20 py-12">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-8">
-          <Link to="/hospitals" className="inline-flex items-center gap-2 rounded-xl border border-teal-500 px-4 py-2.5 text-teal-700 dark:text-teal-400 font-medium hover:bg-teal-50 dark:hover:bg-[#173b35] transition">
+          <Link to="/hospitals" className="inline-flex items-center gap-2 rounded-full border border-teal-500 text-teal-600 dark:text-teal-300 px-4 py-2 font-medium hover:bg-teal-50 dark:hover:bg-[#173b35] transition">
             <BackIcon size={19} />
             {t.backToHospitals}
           </Link>
-          <Link to={`/hospitals/${hospital.id}`} className="inline-flex items-center gap-2 rounded-xl border border-teal-500 px-4 py-2.5 text-teal-700 dark:text-teal-400 font-medium hover:bg-teal-50 dark:hover:bg-[#173b35] transition">
+          <Link to={`/hospitals/${hospital.id}`} className="inline-flex items-center gap-2 rounded-full border border-teal-500 text-teal-600 dark:text-teal-300 px-4 py-2 font-medium hover:bg-teal-50 dark:hover:bg-[#173b35] transition">
             {t.viewDetails}
-            <BackIcon size={19} className="rotate-180" />
+            <BackIcon size={19} />
           </Link>
         </div>
 

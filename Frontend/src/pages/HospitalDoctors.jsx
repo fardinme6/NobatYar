@@ -102,7 +102,7 @@ export default function HospitalDoctors({ language }) {
           </Link>
           <Link to={`/hospitals/${hospital.id}`} className="inline-flex items-center gap-2 rounded-full border border-teal-500 text-teal-600 dark:text-teal-300 px-4 py-2 font-medium hover:bg-teal-50 dark:hover:bg-[#173b35] transition">
             {t.viewDetails}
-            <BackIcon size={19} />
+            <ArrowRight size={19} />
           </Link>
         </div>
 
@@ -203,7 +203,7 @@ export default function HospitalDoctors({ language }) {
                 <div className="flex flex-col flex-1 p-6">
                   <div className="flex items-center gap-2 text-teal-600 dark:text-teal-400 text-sm mb-3">
                     <UserRound size={17} />
-                    {doctorSpecialties(doctor, language).join(" · ")}
+                    {label(hospital.name)}
                   </div>
 
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">

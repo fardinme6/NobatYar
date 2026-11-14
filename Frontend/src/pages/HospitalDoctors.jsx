@@ -95,13 +95,16 @@ export default function HospitalDoctors({ language }) {
   return (
     <section className="min-h-screen bg-gray-50 dark:bg-[#061b19] px-5 md:px-10 lg:px-20 py-12">
       <div className="max-w-7xl mx-auto">
-        <Link
-          to={`/hospitals/${hospital.id}`}
-          className="inline-flex items-center gap-2 text-teal-600 dark:text-teal-400 font-medium mb-8 hover:text-teal-700 transition"
-        >
-          <BackIcon size={19} />
-          {t.viewDetails}
-        </Link>
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-8">
+          <Link to="/hospitals" className="inline-flex items-center gap-2 rounded-xl border border-teal-500 px-4 py-2.5 text-teal-700 dark:text-teal-400 font-medium hover:bg-teal-50 dark:hover:bg-[#173b35] transition">
+            <BackIcon size={19} />
+            {t.backToHospitals}
+          </Link>
+          <Link to={`/hospitals/${hospital.id}`} className="inline-flex items-center gap-2 rounded-xl border border-teal-500 px-4 py-2.5 text-teal-700 dark:text-teal-400 font-medium hover:bg-teal-50 dark:hover:bg-[#173b35] transition">
+            {t.viewDetails}
+            <BackIcon size={19} className="rotate-180" />
+          </Link>
+        </div>
 
         <div className="bg-white dark:bg-[#102d29] rounded-2xl border border-gray-100 dark:border-[#28534d] shadow-sm p-6 md:p-8 mb-10">
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">

@@ -87,7 +87,7 @@ export default function Doctors({ language, home = false, user }) {
           </div>
         ) : (
           <>
-            <div className="text-center mb-10">
+            <div className="text-center mb-8 rounded-3xl bg-teal-50/80 dark:bg-[#102d29] border border-teal-100/70 dark:border-[#28534d] px-5 py-8 md:py-10">
               <div className="inline-flex items-center gap-2 bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400 px-4 py-2 rounded-full text-sm font-medium mb-5">
                 <Users size={17} />
                 {t.medicalTeam}
@@ -181,11 +181,11 @@ export default function Doctors({ language, home = false, user }) {
         )}
 
         {displayedDoctors.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className={home ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" : "grid grid-cols-1 lg:grid-cols-2 gap-6"}>
             {displayedDoctors.map((doctor) => (
               <div
                 key={doctor.id}
-                className="flex flex-col bg-white dark:bg-[#102d29] rounded-2xl overflow-hidden border border-gray-100 dark:border-[#28534d] shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+                className={`flex flex-col bg-white dark:bg-[#102d29] rounded-2xl overflow-hidden border border-gray-100 dark:border-[#28534d] shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ${home ? "" : "sm:flex-row sm:flex-wrap"}`}
               >
                 {user?.role === "admin" && <div className="flex gap-2 p-2 bg-teal-50 dark:bg-[#173b35]">
                   <Link to={`/admin?tab=doctors&edit=${doctor.id}`} className="flex-1 bg-teal-600 text-white rounded-lg text-center py-2">Edit</Link>
@@ -195,11 +195,11 @@ export default function Doctors({ language, home = false, user }) {
                     catch(error) {alert(error.message);}
                   }} className="flex-1 bg-red-600 text-white rounded-lg py-2">Delete</button>
                 </div>}
-                <div className="relative overflow-hidden bg-gray-100 dark:bg-[#173b35]">
+                <div className={`relative overflow-hidden bg-gray-100 dark:bg-[#173b35] ${home ? "" : "sm:order-1 sm:w-44 md:w-48 sm:shrink-0"}`}>
                   <img loading="lazy" decoding="async" width="480" height="560"
                     src={doctor.image}
                     alt={label(doctor.name)}
-                    className="w-full h-85 object-cover object-top hover:scale-105 transition-transform duration-500"
+                    className={`w-full object-cover object-top hover:scale-105 transition-transform duration-500 ${home ? "h-85" : "h-72 sm:h-full sm:min-h-56"}`}
                   />
 
                   <span className="absolute top-4 start-4 bg-white/95 dark:bg-[#102d29]/95 text-teal-700 dark:text-teal-400 px-3 py-1.5 rounded-lg text-xs font-semibold shadow-sm">
@@ -207,7 +207,7 @@ export default function Doctors({ language, home = false, user }) {
                   </span>
                 </div>
 
-                <div className="flex flex-col flex-1 p-6">
+                <div className={`flex flex-col flex-1 p-6 ${home ? "" : "sm:order-2 sm:min-w-0"}`}>
                   <div className="flex items-center gap-2 text-teal-600 dark:text-teal-400 text-sm mb-3">
                     <Hospital size={17} />
                     {label(doctor.hospital)}
@@ -221,6 +221,7 @@ export default function Doctors({ language, home = false, user }) {
                     <span className="text-sm leading-6">{doctorSpecialties(doctor, language).join(" · ")}</span>
                   </div>
 
+                  {home && (
                   <div className="grid grid-cols-2 gap-3 mt-auto">
                     <Link
                       to={`/doctors/${doctor.id}`}
@@ -236,7 +237,15 @@ export default function Doctors({ language, home = false, user }) {
                       {t.bookAppointment}
                     </Link>
                   </div>
+                  )}
+
                 </div>
+                {!home && (
+                  <div className="grid grid-cols-2 gap-3 p-4 pt-0 sm:order-3 sm:w-full sm:px-6 sm:pb-6">
+                    <Link to={`/doctors/${doctor.id}`} className="flex items-center justify-center text-center border border-teal-600 text-teal-600 dark:text-teal-400 font-medium py-3 px-2 rounded-xl hover:bg-teal-50 dark:hover:bg-[#173b35] transition">{t.viewProfile}</Link>
+                    <Link to={`/book-appointment/${doctor.id}`} className="flex items-center justify-center text-center bg-teal-600 hover:bg-teal-700 text-white font-medium py-3 px-2 rounded-xl transition">{t.bookAppointment}</Link>
+                  </div>
+                )}
               </div>
             ))}
           </div>

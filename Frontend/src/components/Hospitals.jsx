@@ -82,7 +82,7 @@ export default function Hospitals({ language, home = false, user }) {
           </div>
         ) : (
           <>
-            <div className="text-center mb-10">
+            <div className="text-center mb-8 rounded-3xl bg-teal-50/80 dark:bg-[#102d29] border border-teal-100/70 dark:border-[#28534d] px-5 py-8 md:py-10">
               <div className="inline-flex items-center gap-2 bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400 px-4 py-2 rounded-full text-sm font-medium mb-5">
                 <Hospital size={17} />
                 {t.healthcareCenters}

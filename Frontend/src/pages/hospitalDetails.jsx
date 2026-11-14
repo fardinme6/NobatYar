@@ -265,6 +265,7 @@ export default function HospitalDetails({ language }) {
                       <img src={doctor.image} alt={label(doctor.name)} loading="lazy"
                         className="w-full h-64 object-cover object-top bg-gray-100 dark:bg-[#173b35]" />
                       <div className="flex flex-col flex-1 p-5">
+                        <p className="text-sm font-semibold text-teal-600 dark:text-teal-400 mb-2">{label(hospital.name)}</p>
                         <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-2">
                           {label(doctor.name)}
                         </h3>

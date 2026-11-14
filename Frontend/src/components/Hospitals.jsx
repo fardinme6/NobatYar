@@ -7,7 +7,8 @@ import {
   Building2,
   SlidersHorizontal,
   RotateCcw,
-  ArrowUpRight,
+  ArrowLeft,
+  ArrowRight,
   Hospital,
   SearchX,
 } from "lucide-react";
@@ -77,7 +78,7 @@ export default function Hospitals({ language, home = false, user }) {
               className="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-5 py-3 rounded-xl whitespace-nowrap transition"
             >
               {t.viewAll}
-              <ArrowUpRight size={19} />
+              {language === "English" ? <ArrowRight size={19} /> : <ArrowLeft size={19} />}
             </Link>
           </div>
         ) : (
@@ -223,6 +224,7 @@ export default function Hospitals({ language, home = false, user }) {
                       className="flex items-center justify-center text-center border border-teal-600 text-teal-600 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-[#173b35] px-2 py-3 rounded-xl text-sm font-medium transition"
                     >
                       {t.viewDetails}
+                      {language === "English" ? <ArrowRight size={17} className="ms-2 shrink-0" /> : <ArrowLeft size={17} className="ms-2 shrink-0" />}
                     </Link>
 
                     <Link

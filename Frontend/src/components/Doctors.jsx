@@ -5,9 +5,11 @@ import {
   Search,
   MapPin,
   Hospital,
+  Stethoscope,
   SlidersHorizontal,
   RotateCcw,
-  ArrowUpRight,
+  ArrowLeft,
+  ArrowRight,
   Users,
   SearchX,
 } from "lucide-react";
@@ -82,7 +84,7 @@ export default function Doctors({ language, home = false, user }) {
               className="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-5 py-3 rounded-xl whitespace-nowrap transition"
             >
               {t.viewAllDoctors}
-              <ArrowUpRight size={19} />
+              {language === "English" ? <ArrowRight size={19} /> : <ArrowLeft size={19} />}
             </Link>
           </div>
         ) : (
@@ -219,12 +221,12 @@ export default function Doctors({ language, home = false, user }) {
                     />
                     <div className="flex flex-col flex-1 min-w-0 py-1">
                       <span className="self-start rounded-full bg-teal-100 dark:bg-[#173b35] text-teal-700 dark:text-teal-300 px-3 py-1 text-xs font-semibold leading-5">
-                        {doctorSpecialties(doctor, language).join(" · ")}
+                        {label(doctor.hospital)}
                       </span>
                       <h3 className="text-xl font-bold text-gray-900 dark:text-white mt-3 mb-3">{label(doctor.name)}</h3>
                       <p className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-                        <Hospital size={17} className="shrink-0 text-teal-600 dark:text-teal-400" />
-                        {label(doctor.hospital)}
+                        <Stethoscope size={17} className="shrink-0 text-teal-600 dark:text-teal-400" />
+                        {doctorSpecialties(doctor, language).join(" · ")}
                       </p>
                       <p className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 mt-3">
                         <MapPin size={15} />{label(doctor.city)}

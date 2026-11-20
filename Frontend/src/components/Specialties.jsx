@@ -1,4 +1,4 @@
-import { ArrowUpRight } from "lucide-react";
+import { ArrowRight, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 import { translations } from "../data/translations";
 import { useEffect, useState } from "react";
@@ -32,7 +32,7 @@ export default function Specialties({ language }) {
             className="flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-5 py-3 rounded-xl whitespace-nowrap transition"
           >
             {t.viewAllSpecialties}
-            <ArrowUpRight size={19} />
+            {language === "English" ? <ArrowRight size={19} /> : <ArrowLeft size={19} />}
           </Link>
         </div>
 
@@ -47,7 +47,7 @@ export default function Specialties({ language }) {
                 <img loading="lazy" decoding="async" width="480" height="320"
                   src={specialty.image}
                   alt={t[specialty.name] || specialty.name}
-                  className="w-full h-40 sm:h-45 md:h-50 object-cover group-hover:scale-105 transition-transform duration-500"
+                  className="w-full h-100 sm:h-80 md:h-80 object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               </div>
 

@@ -121,9 +121,9 @@ export default function DoctorDetails({ language }) {
             <div className="w-full md:w-72 shrink-0 bg-gray-100 dark:bg-[#173b35] rounded-2xl overflow-hidden">
               <img
                 src={doctor.image}
-                width="480" height="560" decoding="async"
+                width="600" height="650" decoding="async"
                 alt={label(doctor.name)}
-                className="w-full h-90 object-cover object-top"
+                className="w-full h-full object-cover "
               />
             </div>
 

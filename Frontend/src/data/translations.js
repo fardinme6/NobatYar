@@ -75,6 +75,7 @@ export const translations = {
     submitRequest: "Submit",
     backToLogin: "Back to login",
     developername: "Fardin Mehry",
+    developer:"Developed & Designed By: ",
 
     logout: "Logout",
     brandFirst: "Nobat",
@@ -119,6 +120,7 @@ export const translations = {
     address: "Herat, Afghanistan",
     contactUs: "Contact Us",
     rights: "All rights reserved.",
+    description: "NobatYar is Afghanistan's only smart appointment booking platform! Book appointments with doctors in just a few clicks, without visiting in person.",
 
     specialtiesLabel: "OUR SPECIALTIES",
     Specialties: "Specialties",
@@ -155,7 +157,15 @@ export const translations = {
 
     simpleEasy: "SIMPLE & EASY",
     howItWorks: "How It Works",
-    howDescription: "Book your medical appointment in three simple steps.",
+    howDescription: "Create an account or sign in, find your doctor, request an appointment, and wait for the doctor’s approval.",
+    howStep1Title: "Sign Up or Log In",
+    howStep1Description: "Create and verify your account, then sign in. Already registered? Simply log in.",
+    howStep2Title: "Find Your Doctor",
+    howStep2Description: "Search doctors, specialties, and hospitals, and review the doctor’s profile.",
+    howStep3Title: "Request an Appointment",
+    howStep3Description: "Choose an available date and time and submit your appointment request.",
+    howStep4Title: "Doctor Confirms Your Appointment",
+    howStep4Description: "Your request remains pending until the doctor approves it. Check its status in My Appointments.",
     step: "STEP",
     findDoctor: "Find a Doctor",
     findDoctorDescription:
@@ -651,6 +661,8 @@ Herat Heart Hospital aims to improve the quality of cardiovascular healthcare, i
     contactUs: "تماس با ما",
     rights: "تمام حقوق محفوظ است.",
     clinics: "کلینیک",
+    description: "نوبت‌یار یگانه پلتفرم هوشمند نوبت‌دهی در افغانستان! بدون مراجعه حضوری نزدیک داکتران، تنها با چند کلیک نوبت بگیرید.",
+
 
     specialtiesLabel: "تخصص‌های طبی",
     importantSpecialties: "تخصص های مهم طبی",
@@ -691,8 +703,16 @@ Herat Heart Hospital aims to improve the quality of cardiovascular healthcare, i
     clinicName: "نام کلینیک",
 
     simpleEasy: "ساده و آسان",
-    howItWorks: "نوبت‌گیری چگونه کار می‌کند؟",
-    howDescription: "تنها در سه مرحله ساده نوبت طبی خود را ثبت نمایید.",
+    howItWorks: "نوبت‌یار چگونه کار می‌کند؟",
+    howDescription: "فقط با چهار قدم می‌توانید نوبت خود را نزد داکتر بگیرید.",
+    howStep1Title: "ثبت‌نام یا ورود به حساب",
+    howStep1Description: "اگر حساب ندارید، ثبت‌نام کنید و حساب خود را تأیید کنید. اگر حساب دارید، وارد شوید.",
+    howStep2Title: "پیدا کردن داکتر",
+    howStep2Description: "داکتر یا شفاخانه مورد نظر خود را جستجو کنید و معلومات داکتر را ببینید.",
+    howStep3Title: "ارسال درخواست نوبت",
+    howStep3Description: "تاریخ و ساعت دلخواه خود را از بین وقت‌های موجود انتخاب کنید و درخواست نوبت بفرستید.",
+    howStep4Title: "تأیید نوبت توسط داکتر",
+    howStep4Description: "داکتر درخواست شما را بررسی می‌کند. وقتی تأیید کرد، نوبت‌تان قطعی می‌شود. وضعیت آن را در «نوبت‌های من» ببینید.",
     step: "مرحله",
     findDoctor: "پیدا کردن داکتر",
     findDoctorDescription:
@@ -958,6 +978,7 @@ Herat Heart Hospital aims to improve the quality of cardiovascular healthcare, i
       "رابط کاربری ساده با پشتیبانی از زبان‌های دری، پشتو و انگلیسی.",
     meetDeveloper: "آشنایی با سازنده",
     developerSubtitle: "با سازنده نوبت‌یار آشنا شوید",
+    developer:"طراحی و توسعه: ",
     developerRole:
       "برنامه نویس فرانت‌اند | توسعه‌دهنده اپلیکیشن موبایل | حسابدار",
 
@@ -1137,6 +1158,7 @@ Herat Heart Hospital aims to improve the quality of cardiovascular healthcare, i
     submitRequest: "غوښتنه لېږل",
     backToLogin: "ننوتلو ته ستنېدل",
     developername: "فردین مهری",
+    developer:"پراختیا او ډیزاین: ",
     noFileChosen: "هېڅ انځور نه دی غوره شوی",
 
     logout: "له حسابه وتل",
@@ -1181,6 +1203,7 @@ Herat Heart Hospital aims to improve the quality of cardiovascular healthcare, i
     address: "هرات، افغانستان",
     contactUs: "اړیکه ونیسئ",
     rights: "ټول حقونه خوندي دي.",
+    description: "نوبت‌یار په افغانستان کې د نوبت اخیستلو یوازینی هوښیار پلېټفارم دی! ډاکټرانو ته له حضوري تګ پرته، یوازې په څو کلیکونو خپل نوبت واخلئ.",
 
     specialtiesLabel: "طبي تخصصونه",
     Specialties: " طبي تخصصونه",
@@ -1217,8 +1240,16 @@ Herat Heart Hospital aims to improve the quality of cardiovascular healthcare, i
     neurologist: "د مغزو او اعصابو متخصص",
 
     simpleEasy: "ساده او اسانه",
-    howItWorks: "دا څنګه کار کوي؟",
-    howDescription: "په درې ساده پړاوونو کې خپل طبي نوبت واخلئ.",
+    howItWorks: "نوبت‌یار څنګه کار کوي؟",
+    howDescription: "په څلورو اسانه پړاوونو کې حساب جوړ کړئ، ډاکټر ومومئ، د نوبت غوښتنه وکړئ او د ډاکټر تایید ته انتظار وباسئ.",
+    howStep1Title: "نوم‌لیکنه یا حساب ته ننوتل",
+    howStep1Description: "خپل حساب جوړ او تایید کړئ. که مخکې حساب لرئ، خپل حساب ته ننوځئ.",
+    howStep2Title: "د ډاکټر موندل",
+    howStep2Description: "ډاکټر، طبي تخصص یا روغتون ولټوئ او د ډاکټر معلومات وګورئ.",
+    howStep3Title: "د نوبت غوښتنه لېږل",
+    howStep3Description: "شته نېټه او وخت وټاکئ او د نوبت غوښتنه ثبت کړئ.",
+    howStep4Title: "د ډاکټر له خوا د نوبت تایید",
+    howStep4Description: "ستاسو غوښتنه د ډاکټر تر تایید پورې د انتظار په حالت کې وي. حالت یې «زما نوبتونه» کې وګورئ.",
     step: "پړاو",
     findDoctor: "ډاکټر ومومئ",
     findDoctorDescription:

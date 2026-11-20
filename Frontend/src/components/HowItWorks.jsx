@@ -1,91 +1,79 @@
-
-import { Search, CalendarCheck, CheckCircle2, ArrowUpRight } from "lucide-react";
+import { UserRoundPlus, Search, CalendarDays, BadgeCheck, ArrowUpRight, ArrowLeft } from "lucide-react";
 import { translations } from "../data/translations";
 import { Link } from "react-router-dom";
 
-export default function HowItWorks({ language }) {
-  const t = translations[language];
+export default function HowItWorks({ language, home = false }) {
+  const t = translations[language] || translations.English;
+  const isEnglish = language === "English";
 
   const steps = [
-    {
-      number: "01",
-      title: t.findDoctor,
-      description: t.findDoctorDescription,
-      icon: Search,
-    },
-    {
-      number: "02",
-      title: t.chooseTime,
-      description: t.chooseTimeDescription,
-      icon: CalendarCheck,
-    },
-    {
-      number: "03",
-      title: t.getConfirmed,
-      description: t.getConfirmedDescription,
-      icon: CheckCircle2,
-    },
+    { title: t.howStep1Title, description: t.howStep1Description, icon: UserRoundPlus },
+    { title: t.howStep2Title, description: t.howStep2Description, icon: Search },
+    { title: t.howStep3Title, description: t.howStep3Description, icon: CalendarDays },
+    { title: t.howStep4Title, description: t.howStep4Description, icon: BadgeCheck },
   ];
 
   return (
-    <section className="bg-teal-50 dark:bg-[#061b19] px-6 py-20 md:px-12 lg:px-20">
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-14">
-          <span className="text-teal-600 dark:text-teal-400 font-semibold">
+    <section className={`bg-teal-50 dark:bg-[#061b19] px-5 sm:px-8 lg:px-16 ${home ? "py-16 md:py-20" : "py-20 md:py-28"}`}>
+      <div className="mx-auto max-w-7xl">
+        <div className="mx-auto mb-12 max-w-2xl text-center md:mb-16">
+          <span className="text-sm font-semibold text-teal-600 dark:text-teal-400">
             {t.simpleEasy}
           </span>
-
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mt-3">
+          <h2 className="mt-5 text-3xl font-bold leading-tight text-slate-900 dark:text-white md:text-4xl">
             {t.howItWorks}
           </h2>
-
-          <p className="text-gray-600 dark:text-gray-300 mt-4">
+          <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-slate-600 dark:text-slate-300 sm:text-base">
             {t.howDescription}
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {steps.map((step, index) => {
-            const Icon = step.icon;
+        <div className="relative">
+          {/* The line connects all four steps on larger screens. */}
+          <div className="absolute left-[12.5%] right-[12.5%] top-7 hidden border-t-2 border-dashed border-teal-200 dark:border-teal-800 lg:block" />
 
-            return (
-              <div
-                key={index}
-                className="bg-white dark:bg-[#102d29] p-8 rounded-2xl text-center shadow-sm hover:shadow-lg transition-shadow duration-300"
-              >
-                <div className="w-20 h-20 bg-teal-100 dark:bg-[#173b35] rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Icon
-                    size={36}
-                    className="text-teal-600 dark:text-teal-400"
-                  />
+          <div className="grid grid-cols-1 gap-0 sm:grid-cols-2 sm:gap-x-8 sm:gap-y-12 lg:grid-cols-4 lg:gap-6">
+            {steps.map((step, index) => {
+              const Icon = step.icon;
+              return (
+                <div key={index} className="relative flex gap-4 pb-9 last:pb-0 sm:block sm:pb-0 sm:text-center">
+                  {/* Vertical connector on mobile. */}
+                  {index !== steps.length - 1 && (
+                    <div className={`absolute top-14 bottom-0 border-s-2 border-dashed border-teal-200 dark:border-teal-800 sm:hidden ${isEnglish ? "left-7" : "right-7"}`} />
+                  )}
+
+                  <div className="relative z-10 flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-teal-200 bg-white text-teal-600 shadow-sm dark:border-teal-800 dark:bg-[#102d29] dark:text-teal-400 sm:mx-auto sm:mb-7">
+                    <Icon size={25} strokeWidth={1.9} />
+                    <span className={`absolute -top-2 flex h-6 min-w-6 items-center justify-center rounded-full bg-teal-600 px-1 text-xs font-bold text-white ring-4 ring-teal-50 dark:ring-[#061b19] ${isEnglish ? "-right-2" : "-left-2"}`}>
+                      {index + 1}
+                    </span>
+                  </div>
+
+                  <div className="min-w-0 pt-1 sm:pt-0">
+                    <h3 className="text-base font-bold leading-7 text-slate-900 dark:text-white md:text-lg">
+                      {step.title}
+                    </h3>
+                    <p className={`mt-2 text-sm leading-7 text-slate-600 dark:text-slate-300 ${home ? "sm:line-clamp-3" : ""}`}>
+                      {step.description}
+                    </p>
+                  </div>
                 </div>
-
-                <span className="text-teal-600 dark:text-teal-400 font-bold">
-                  {t.step} {step.number}
-                </span>
-
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mt-3">
-                  {step.title}
-                </h3>
-
-                <p className="text-gray-600 dark:text-gray-300 mt-4 leading-relaxed">
-                  {step.description}
-                </p>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
 
-        <div className="flex justify-center mt-10">
+        <div className="mt-12 flex justify-center md:mt-14">
           <Link
             to="/doctors"
-            className="group flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 hover:shadow-lg text-white font-semibold px-8 py-4 rounded-xl transition-all duration-300"
+            className="group inline-flex items-center justify-center gap-3 rounded-xl bg-teal-600 px-7 py-3.5 font-semibold text-white shadow-sm transition-all duration-200 hover:bg-teal-700 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
           >
-            {t.findDoctor}
-            <ArrowUpRight
-              size={20}
-              className="group-hover:-translate-y-1 group-hover:translate-x-1 transition-transform duration-300"
-            />
+            {t.findDoctors}
+            {isEnglish ? (
+              <ArrowUpRight size={19} className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+            ) : (
+              <ArrowLeft size={19} className="transition-transform group-hover:-translate-x-1" />
+            )}
           </Link>
         </div>
       </div>

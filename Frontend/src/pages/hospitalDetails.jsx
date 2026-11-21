@@ -25,7 +25,9 @@ export default function HospitalDetails({ language }) {
   const [departments, setDepartments] = useState([]);
   const [doctors, setDoctors] = useState([]);
   useEffect(() => {
-    api(`/doctors?lang=${language === "Persian" ? "fa" : language === "Pashto" ? "ps" : "en"}`)
+    api(
+      `/doctors?lang=${language === "Persian" ? "fa" : language === "Pashto" ? "ps" : "en"}`,
+    )
       .then(setDoctors)
       .catch(() => setDoctors([]));
   }, [language]);
@@ -47,11 +49,16 @@ export default function HospitalDetails({ language }) {
       .catch(() => setDepartments([]));
   }, [id, language]);
   const hospital = onlineHospital;
-  const hospitalDoctors = doctors.filter((doctor) =>
-    (doctor.hospitalIds?.length > 0 && doctor.hospitalIds.includes(Number(id))) ||
-    (!doctor.hospitalIds?.length &&
-      (doctor.hospital === hospital?.name || doctor.hospital === hospital?.originalName))
-  ).slice(0, 3);
+  const hospitalDoctors = doctors
+    .filter(
+      (doctor) =>
+        (doctor.hospitalIds?.length > 0 &&
+          doctor.hospitalIds.includes(Number(id))) ||
+        (!doctor.hospitalIds?.length &&
+          (doctor.hospital === hospital?.name ||
+            doctor.hospital === hospital?.originalName)),
+    )
+    .slice(0, 3);
   const label = (value) => t[value] || value || "";
   const contactLabels = {
     Persian: { phone: "شماره تماس شفاخانه", email: "ایمیل شفاخانه" },
@@ -115,8 +122,11 @@ export default function HospitalDetails({ language }) {
 
           {hospital.logo && (
             <div className="flex justify-end px-6 md:px-9 -mt-14 md:-mt-16 relative z-10 h-14 md:h-16">
-              <img src={hospital.logo} alt={`${label(hospital.name)} logo`}
-                className="w-28 h-28 md:w-36 md:h-36 rounded-full object-contain bg-white border-4 border-white shadow-md" />
+              <img
+                src={hospital.logo}
+                alt={`${label(hospital.name)} logo`}
+                className="w-28 h-28 md:w-36 md:h-36 rounded-full object-contain bg-white border-4 border-white shadow-md"
+              />
             </div>
           )}
           <div className="p-6 md:p-9">
@@ -259,35 +269,59 @@ export default function HospitalDetails({ language }) {
               </div>
 
               {hospitalDoctors.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                   {hospitalDoctors.map((doctor) => (
-                    <div key={doctor.id} className="flex flex-col overflow-hidden rounded-2xl bg-white dark:bg-[#102d29] border border-gray-100 dark:border-[#28534d] shadow-sm hover:shadow-lg transition-shadow">
-                      <img src={doctor.image} alt={label(doctor.name)} loading="lazy"
-                        className="w-full h-64 object-cover object-top bg-gray-100 dark:bg-[#173b35]" />
-                      <div className="flex flex-col flex-1 p-5">
-                        <p className="text-sm font-semibold text-teal-600 dark:text-teal-400 mb-2">{label(hospital.name)}</p>
-                        <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-2">
-                          {label(doctor.name)}
-                        </h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-300 mb-5">
-                          {doctorSpecialties(doctor, language).join(" · ")}
-                        </p>
-                        <div className="grid grid-cols-2 gap-3 mt-auto">
-                          <Link to={`/doctors/${doctor.id}`}
-                            className="flex items-center justify-center text-center border border-teal-600 text-teal-600 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-[#173b35] px-2 py-3 rounded-xl font-medium transition-colors">
-                            {t.viewProfile}
-                          </Link>
-                          <Link to={`/book-appointment/${doctor.id}`}
-                            className="flex items-center justify-center text-center bg-teal-600 hover:bg-teal-700 text-white px-2 py-3 rounded-xl font-medium transition-colors">
-                            {t.bookAppointment}
-                          </Link>
+                    <div
+                      key={doctor.id}
+                      className="bg-white dark:bg-[#102d29] border border-teal-100 dark:border-[#28534d] rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow"
+                    >
+                      <div className="flex flex-col sm:flex-row items-stretch gap-4 p-4 min-h-[250px]">
+                        <img
+                          src={doctor.image}
+                          alt={label(doctor.name)}
+                          loading="lazy"
+                          decoding="async"
+                          width="200"
+                          height="250"
+                          className="w-full sm:w-44 h-100 sm:h-auto sm:min-h-[220px] object-cover object-top rounded-xl bg-gray-100 dark:bg-[#173b35] shrink-0"
+                        />
+                        <div className="flex flex-col flex-1 min-w-0 py-1">
+                          <span className="self-start rounded-full bg-teal-100 dark:bg-[#173b35] text-teal-700 dark:text-teal-300 px-3 py-1 text-xs font-semibold leading-5">
+                            {label(hospital.name)}
+                          </span>
+                          <h3 className="text-xl font-bold text-gray-900 dark:text-white mt-3 mb-3">
+                            {label(doctor.name)}
+                          </h3>
+                          <p className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+                            {doctorSpecialties(doctor, language).join(" · ")}
+                          </p>
+                          <p className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 mt-3">
+                            <MapPin size={15} />
+                            {label(doctor.city)}
+                          </p>
+                          <div className="grid grid-cols-2 gap-3 mt-auto pt-5">
+                            <Link
+                              to={`/doctors/${doctor.id}`}
+                              className="flex items-center justify-center text-center border border-teal-600 text-teal-600 dark:text-teal-300 text-sm font-medium py-3 px-2 rounded-xl hover:bg-teal-50 dark:hover:bg-[#173b35] transition"
+                            >
+                              {t.viewProfile}
+                            </Link>
+                            <Link
+                              to={`/book-appointment/${doctor.id}`}
+                              className="flex items-center justify-center text-center bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium py-3 px-2 rounded-xl transition"
+                            >
+                              {t.bookAppointment}
+                            </Link>
+                          </div>
                         </div>
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-gray-500 dark:text-gray-400">{t.noHospitalDoctors}</p>
+                <p className="text-gray-500 dark:text-gray-400">
+                  {t.noHospitalDoctors}
+                </p>
               )}
             </div>
 

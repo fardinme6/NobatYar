@@ -96,13 +96,19 @@ export default function HospitalDoctors({ language }) {
     <section className="min-h-screen bg-gray-50 dark:bg-[#061b19] px-5 md:px-10 lg:px-20 py-12">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-8">
-          <Link to="/hospitals" className="inline-flex items-center gap-2 rounded-full border border-teal-500 text-teal-600 dark:text-teal-300 px-4 py-2 font-medium hover:bg-teal-50 dark:hover:bg-[#173b35] transition">
+          <Link
+            to="/hospitals"
+            className="inline-flex items-center gap-2 rounded-full border border-teal-500 text-teal-600 dark:text-teal-300 px-4 py-2 font-medium hover:bg-teal-50 dark:hover:bg-[#173b35] transition"
+          >
             <BackIcon size={19} />
             {t.backToHospitals}
           </Link>
-          <Link to={`/hospitals/${hospital.id}`} className="inline-flex items-center gap-2 rounded-full border border-teal-500 text-teal-600 dark:text-teal-300 px-4 py-2 font-medium hover:bg-teal-50 dark:hover:bg-[#173b35] transition">
+          <Link
+            to={`/hospitals/${hospital.id}`}
+            className="inline-flex items-center gap-2 rounded-full border border-teal-500 text-teal-600 dark:text-teal-300 px-4 py-2 font-medium hover:bg-teal-50 dark:hover:bg-[#173b35] transition"
+          >
             {t.viewDetails}
-            <ArrowRight size={19} />
+            <ArrowLeft size={19} />
           </Link>
         </div>
 
@@ -110,7 +116,10 @@ export default function HospitalDoctors({ language }) {
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
             <img
               src={hospital.image}
-              width="320" height="240" loading="lazy" decoding="async"
+              width="320"
+              height="240"
+              loading="lazy"
+              decoding="async"
               alt={label(hospital.name)}
               className="w-full sm:w-48 h-44 object-cover rounded-xl"
             />
@@ -146,7 +155,7 @@ export default function HospitalDoctors({ language }) {
                     ))}
                   </div>
                 </div>
-              )}{" "}
+              )}
               {hospital.email && (
                 <p className="flex items-center gap-2 mt-2 text-sm text-gray-600 dark:text-gray-300">
                   <Mail size={17} className="text-teal-600" />
@@ -184,52 +193,50 @@ export default function HospitalDoctors({ language }) {
         </div>
 
         {hospitalDoctors.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
             {hospitalDoctors.map((doctor) => (
               <div
                 key={doctor.id}
-                className="flex flex-col bg-white dark:bg-[#102d29] rounded-2xl overflow-hidden border border-gray-100 dark:border-[#28534d] shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+                className="bg-white dark:bg-[#102d29] border border-teal-100 dark:border-[#28534d] rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow"
               >
-                <div className="relative overflow-hidden">
-                  <span className="absolute top-4 start-4 z-10 bg-white/95 dark:bg-[#102d29]/95 text-teal-700 dark:text-teal-400 px-3 py-1.5 rounded-lg text-xs font-semibold"><MapPin size={14} className="inline me-1" />{label(doctor.city)}</span>
+                <div className="flex flex-col sm:flex-row items-stretch gap-4 p-4 min-h-[250px]">
                   <img
                     src={doctor.image}
-                    width="480" height="560" loading="lazy" decoding="async"
                     alt={label(doctor.name)}
-                    className="w-full h-100 object-cover object-top hover:scale-105 transition-transform duration-500"
+                    loading="lazy"
+                    decoding="async"
+                    width="200"
+                    height="250"
+                    className="w-full sm:w-44 h-100 sm:h-auto sm:min-h-[220px] object-cover object-top rounded-xl bg-gray-100 dark:bg-[#173b35] shrink-0"
                   />
-                </div>
-
-                <div className="flex flex-col flex-1 p-6">
-                  <div className="flex items-center gap-2 text-teal-600 dark:text-teal-400 text-sm mb-3">
-                    <UserRound size={17} />
-                    {label(hospital.name)}
-                  </div>
-
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">
-                    {label(doctor.name)}
-                  </h3>
-
-                  <p className="flex items-center gap-2 text-gray-600 dark:text-gray-300 text-sm mb-6">
-                    {doctorSpecialties(doctor, language).join(" · ")}
-                  </p>
-
-                  <div className="grid grid-cols-2 gap-3 mt-auto">
-                    <Link
-                      to={`/doctors/${doctor.id}`}
-                      className="flex items-center justify-center gap-2 text-center border border-teal-600 text-teal-600 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-[#173b35] py-3 rounded-xl text-sm font-medium transition"
-                    >
-                      <UserRound size={17} />
-                      {t.viewProfile}
-                    </Link>
-
-                    <Link
-                      to={`/book-appointment/${doctor.id}`}
-                      className="flex items-center justify-center gap-2 text-center bg-teal-600 hover:bg-teal-700 text-white py-3 rounded-xl text-sm font-medium transition"
-                    >
-                      <CalendarDays size={17} />
-                      {t.bookAppointment}
-                    </Link>
+                  <div className="flex flex-col flex-1 min-w-0 py-1">
+                    <span className="self-start rounded-full bg-teal-100 dark:bg-[#173b35] text-teal-700 dark:text-teal-300 px-3 py-1 text-xs font-semibold leading-5">
+                      {label(hospital.name)}
+                    </span>
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mt-3 mb-3">
+                      {label(doctor.name)}
+                    </h3>
+                    <p className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+                      {doctorSpecialties(doctor, language).join(" · ")}
+                    </p>
+                    <p className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 mt-3">
+                      <MapPin size={15} />
+                      {label(doctor.city)}
+                    </p>
+                    <div className="grid grid-cols-2 gap-3 mt-auto pt-5">
+                      <Link
+                        to={`/doctors/${doctor.id}`}
+                        className="flex items-center justify-center text-center border border-teal-600 text-teal-600 dark:text-teal-300 text-sm font-medium py-3 px-2 rounded-xl hover:bg-teal-50 dark:hover:bg-[#173b35] transition"
+                      >
+                        {t.viewProfile}
+                      </Link>
+                      <Link
+                        to={`/book-appointment/${doctor.id}`}
+                        className="flex items-center justify-center text-center bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium py-3 px-2 rounded-xl transition"
+                      >
+                        {t.bookAppointment}
+                      </Link>
+                    </div>
                   </div>
                 </div>
               </div>

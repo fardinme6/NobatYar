@@ -46,7 +46,7 @@ export default function Doctors({ language, home = false, user }) {
     return matchSearch && matchCity && matchSpecialty;
   });
 
-  const displayedDoctors = home ? allDoctors.slice(-3) : filteredDoctors;
+  const displayedDoctors = home ? allDoctors.slice(0, 4) : filteredDoctors;
 
   const resetFilters = () => {
     setSearch("");
@@ -183,27 +183,10 @@ export default function Doctors({ language, home = false, user }) {
         )}
 
         {displayedDoctors.length > 0 ? (
-          <div className={home ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" : "grid grid-cols-1 xl:grid-cols-2 gap-6"}>
+          <div className={"grid grid-cols-1 xl:grid-cols-2 gap-6"}>
             {displayedDoctors.map((doctor) => (
-              home ? (
-                <div key={doctor.id} className="flex flex-col bg-white dark:bg-[#102d29] rounded-2xl overflow-hidden border border-gray-100 dark:border-[#28534d] shadow-sm hover:shadow-xl transition-all duration-300">
-                  <div className="relative bg-gray-100 dark:bg-[#173b35]">
-                    <img loading="lazy" decoding="async" width="480" height="560" src={doctor.image} alt={label(doctor.name)} className="w-full h-85 object-cover object-top" />
-                    <span className="absolute top-4 start-4 bg-white/95 dark:bg-[#102d29]/95 text-teal-700 dark:text-teal-400 px-3 py-1.5 rounded-lg text-xs font-semibold shadow-sm"><MapPin size={14} className="inline me-1" />{label(doctor.city)}</span>
-                  </div>
-                  <div className="flex flex-col flex-1 p-6">
-                    <div className="flex items-center gap-2 text-teal-600 dark:text-teal-400 text-sm mb-3"><Hospital size={17}/>{label(doctor.hospital)}</div>
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">{label(doctor.name)}</h3>
-                    <div className="flex items-start gap-2 text-gray-600 dark:text-gray-300 mb-6"><span className="text-sm leading-6">{doctorSpecialties(doctor, language).join(" · ")}</span></div>
-                    <div className="grid grid-cols-2 gap-3 mt-auto">
-                      <Link to={`/doctors/${doctor.id}`} className="flex items-center justify-center text-center border border-teal-600 text-teal-600 dark:text-teal-400 font-medium py-3 px-2 rounded-xl hover:bg-teal-50 dark:hover:bg-[#173b35] transition">{t.viewProfile}</Link>
-                      <Link to={`/book-appointment/${doctor.id}`} className="flex items-center justify-center text-center bg-teal-600 hover:bg-teal-700 text-white font-medium py-3 px-2 rounded-xl transition">{t.bookAppointment}</Link>
-                    </div>
-                  </div>
-                </div>
-              ) : (
                 <div key={doctor.id} className="bg-white dark:bg-[#102d29] border border-teal-100 dark:border-[#28534d] rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow">
-                  {user?.role === "admin" && (
+                  {!home && user?.role === "admin" && (
                     <div className="flex gap-2 p-3 pb-0">
                       <Link to={`/admin?tab=doctors&edit=${doctor.id}`} className="flex-1 bg-teal-600 text-white rounded-lg text-center py-2">Edit</Link>
                       <button type="button" onClick={async () => { if (!window.confirm("Delete this doctor?")) return; try { await api(`/admin/doctors/${doctor.id}`, { method: "DELETE" }); setOnlineDoctors(items => items.filter(item => item.id !== doctor.id)); } catch(error) { alert(error.message); } }} className="flex-1 bg-red-600 text-white rounded-lg py-2">Delete</button>
@@ -217,7 +200,7 @@ export default function Doctors({ language, home = false, user }) {
                       decoding="async"
                       width="200"
                       height="250"
-                      className="w-full sm:w-44 h-56 sm:h-auto sm:min-h-[220px] object-cover object-top rounded-xl bg-gray-100 dark:bg-[#173b35] shrink-0"
+                      className="w-full sm:w-44 h-100 sm:h-auto sm:min-h-[220px] object-cover object-top rounded-xl bg-gray-100 dark:bg-[#173b35] shrink-0"
                     />
                     <div className="flex flex-col flex-1 min-w-0 py-1">
                       <span className="self-start rounded-full bg-teal-100 dark:bg-[#173b35] text-teal-700 dark:text-teal-300 px-3 py-1 text-xs font-semibold leading-5">
@@ -238,7 +221,6 @@ export default function Doctors({ language, home = false, user }) {
                     </div>
                   </div>
                 </div>
-              )
             ))}
           </div>
         ) : (

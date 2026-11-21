@@ -36,22 +36,22 @@ export default function Specialties({ language }) {
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-5">
           {specialties.slice(0, 6).map((specialty) => (
             <Link
               key={specialty.id}
               to={`/doctors?specialty=${specialty.value}`}
-              className="group bg-teal-50 dark:bg-[#173b35] rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+              className="group bg-white dark:bg-[#173b35] border border-teal-100 dark:border-[#28534d] rounded-2xl overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
             >
               <div className="overflow-hidden">
                 <img loading="lazy" decoding="async" width="480" height="320"
                   src={specialty.image}
                   alt={t[specialty.name] || specialty.name}
-                  className="w-full h-100 sm:h-80 md:h-80 object-cover group-hover:scale-105 transition-transform duration-500"
+                  className="w-full h-32 sm:h-40 lg:h-44 object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               </div>
 
-              <div className="p-4 text-center">
+              <div className="p-3 text-center bg-teal-100 dark:bg-[#20483f]">
                 <h3 className="font-semibold text-gray-900 dark:text-white">
                   {t[specialty.name] || specialty.name}
                 </h3>

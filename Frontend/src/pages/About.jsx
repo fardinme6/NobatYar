@@ -176,17 +176,17 @@ export default function About({ language }) {
           </p>
         </div>
 
-        <div className="bg-white dark:bg-[#102d29] rounded-2xl border border-gray-100 dark:border-[#28534d] shadow-sm overflow-hidden">
-          <div className="grid grid-cols-1 md:grid-cols-5 items-center p-2">
-              <div className="w-full bg-white dark:bg-[#102d29] p-3 rounded-2xl md:col-span-2 p-5 md:p-7 flex items-center justify-center shadow-xl">
-                <img
-                  src={`${import.meta.env.BASE_URL}fardin-nobatyar.jpg`}
-                  alt="Fardin Mehry"
-                  className="w-full h-auto rounded-xl"
-                />
+        <div className="bg-white dark:bg-[#102d29] rounded-3xl border border-gray-100 dark:border-[#28534d] shadow-sm overflow-hidden">
+          <div className="grid grid-cols-1 lg:grid-cols-5">
+            <div className="lg:col-span-2 bg-teal-50 dark:bg-[#0a2521] p-6 md:p-8 flex flex-col justify-center">
+              <div className="relative w-full max-w-md mx-auto">
+                <div className="absolute -top-3 -right-3 w-24 h-24 bg-teal-200/60 dark:bg-teal-800/40 rounded-3xl" />
+                <div className="absolute -bottom-3 -left-3 w-24 h-24 bg-teal-200/60 dark:bg-teal-800/40 rounded-3xl" />
+                <img src={`${import.meta.env.BASE_URL}fardin-nobatyar.jpg`} alt="Fardin Mehry" className="relative w-full h-auto rounded-2xl shadow-lg" />
               </div>
-
-            <div className="md:col-span-3 p-6 md:p-10">
+            </div>
+            <div className="lg:col-span-3 p-6 md:p-9 xl:p-11">
+              <div className="w-12 h-1 bg-teal-500 rounded-full mb-5" />
               <h3 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-4">
                 {t.developername}
               </h3>
@@ -252,13 +252,18 @@ export default function About({ language }) {
 
           <p className="text-teal-50 mb-7 leading-7">{t.aboutCtaDescription}</p>
 
-          <Link
-            to="/hospitals"
-            className="inline-flex items-center gap-2 bg-white text-teal-700 hover:bg-teal-50 px-6 py-3 rounded-xl font-semibold transition"
-          >
-            {t.hospitals}
-            <ArrowIcon size={18} />
-          </Link>
+          <div className="flex flex-wrap justify-center gap-3">
+            {[
+              { to: "/hospitals", label: t.hospitals },
+              { to: "/doctors", label: t.doctors },
+              { to: "/specialties", label: t.Specialties },
+            ].map((item) => (
+              <Link key={item.to} to={item.to} className="inline-flex items-center gap-2 bg-white text-teal-700 hover:bg-teal-50 px-6 py-3 rounded-xl font-semibold transition">
+                {item.label}
+                <ArrowIcon size={18} />
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
     </main>

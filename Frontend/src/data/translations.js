@@ -460,7 +460,9 @@ Herat Heart Hospital aims to improve the quality of cardiovascular healthcare, i
     contactMessage: "Your Message",
     contactMessagePlaceholder: "Write your message here...",
     contactSendMessage: "Send Message",
-    contactMessageSuccess: "Your message has been sent successfully! ✅",
+    contactMessageSuccess: "Your message has been sent successfully!",
+    contactReplyNotice: "If we respond to your message, you will receive our reply by email.",
+    contactSendNewMessage: "Send a new message",
     contactNotConnected:
       "The contact form is not connected yet. Your message has not been sent.",
     contactFormNotice:
@@ -1010,7 +1012,9 @@ Herat Heart Hospital aims to improve the quality of cardiovascular healthcare, i
     contactMessage: "پیام شما",
     contactMessagePlaceholder: "پیام خود را اینجا بنویسید...",
     contactSendMessage: "ارسال پیام",
-    contactMessageSuccess: "پیام شما موفقانه ارسال گردید ✅",
+    contactMessageSuccess: "پیام شما با موفقیت ارسال گردید!",
+    contactReplyNotice: "در صورت پاسخ به پیام شما، جواب از طریق ایمیل برایتان ارسال خواهد شد.",
+    contactSendNewMessage: "ارسال پیام جدید",
     contactNotConnected:
       "فرم تماس هنوز فعال نشده است و پیام شما ارسال نشده است.",
     contactFormNotice:
@@ -1542,7 +1546,9 @@ Herat Heart Hospital aims to improve the quality of cardiovascular healthcare, i
     contactMessage: "ستاسو پیغام",
     contactMessagePlaceholder: "خپل پیغام دلته ولیکئ...",
     contactSendMessage: "پیغام واستوئ",
-    contactMessageSuccess: "ستاسو پیغام په بریالیتوب سره واستول شو ✅",
+    contactMessageSuccess: "ستاسو پیغام په بریالیتوب سره واستول شو!",
+    contactReplyNotice: "که ستاسو پیغام ته ځواب ورکړل شي، ځواب به د برېښنالیک له لارې درولېږل شي.",
+    contactSendNewMessage: "نوی پیغام واستوئ",
     contactNotConnected:
       "د اړیکې فورمه لا فعاله شوې نه ده او ستاسو پیغام نه دی لېږل شوی.",
     contactFormNotice:

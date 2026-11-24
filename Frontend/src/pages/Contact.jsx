@@ -207,119 +207,143 @@ export default function Contact({ language }) {
 
           <div className="lg:col-span-3 flex">
             <div className={`${cardStyle} w-full h-full p-6 md:p-8 flex flex-col`}>
-              <div className="flex items-center gap-3 mb-3">
-                <div className={iconStyle}>
-                  <MessageSquare size={24} />
-                </div>
-
-                <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
-                  {t.contactFormTitle}
-                </h2>
-              </div>
-
-              <p className="text-gray-500 dark:text-gray-400 text-sm mb-7 leading-7">
-                {t.contactFormDescription}
-              </p>
-
-              {error && <p role="alert" className="text-red-600">{error}</p>}
-              <form
-                onSubmit={handleSubmit}
-                className="flex flex-col flex-1 gap-5"
-              >
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  <div>
-                    <label htmlFor="contact-name" className={labelStyle}>
-                      {t.fullName}
-                    </label>
-
-                    <input
-                      id="contact-name"
-                      type="text"
-                      value={name}
-                      onChange={(e) => {
-                        setName(e.target.value);
-                        setSubmitted(false);
-                      }}
-                      placeholder={t.enterFullName}
-                      required
-                      className={inputStyle}
-                    />
+              {submitted ? (
+                <div role="status" className="flex flex-1 flex-col items-center justify-center text-center gap-5 py-12 min-h-80">
+                  <div className="w-24 h-24 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 dark:text-green-400 motion-safe:animate-[contactSuccess_0.35s_ease-out]">
+                    <CheckCircle2 size={52} strokeWidth={1.8} />
                   </div>
-
-                  <div>
-                    <label htmlFor="contact-email" className={labelStyle}>
-                      {t.emailAddress}
-                    </label>
-
-                    <input
-                      id="contact-email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => {
-                        setEmail(e.target.value);
-                        setSubmitted(false);
-                      }}
-                      placeholder={t.enterEmailAddress}
-                      dir={language === "English" ? "ltr" : "rtl"}
-                      required
-                      className={inputStyle}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label htmlFor="contact-subject" className={labelStyle}>
-                    {t.contactSubject}
-                  </label>
-
-                  <input
-                    id="contact-subject"
-                    type="text"
-                    value={subject}
-                    onChange={(e) => {
-                      setSubject(e.target.value);
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {t.contactMessageSuccess}
+                  </h2>
+                  <p className="max-w-md text-gray-500 dark:text-gray-300 leading-8">
+                    {t.contactReplyNotice}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setName("");
+                      setEmail("");
+                      setSubject("");
+                      setMessage("");
+                      setError("");
                       setSubmitted(false);
                     }}
-                    placeholder={t.contactSubjectPlaceholder}
-                    required
-                    className={inputStyle}
-                  />
+                    className="bg-teal-600 hover:bg-teal-700 text-white font-semibold px-6 py-3 rounded-xl transition cursor-pointer"
+                  >
+                    {t.contactSendNewMessage}
+                  </button>
+                  <style>{`@keyframes contactSuccess { from { opacity: 0; transform: scale(0.85); } to { opacity: 1; transform: scale(1); } }`}</style>
                 </div>
+              ) : (
+                <>
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className={iconStyle}>
+                      <MessageSquare size={24} />
+                    </div>
 
-                <div className="flex flex-col flex-1">
-                  <label htmlFor="contact-message" className={labelStyle}>
-                    {t.contactMessage}
-                  </label>
-
-                  <textarea
-                    id="contact-message"
-                    value={message}
-                    onChange={(e) => {
-                      setMessage(e.target.value);
-                      setSubmitted(false);
-                    }}
-                    placeholder={t.contactMessagePlaceholder}
-                    required
-                    className={`${inputStyle} resize-none flex-1 min-h-48`}
-                  />
-                </div>
-
-                {submitted && (
-                  <div className="flex items-start gap-3 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded-xl p-4 text-sm leading-7">
-                    <CheckCircle2 size={20} className="shrink-0 mt-1" />
-                    <span>{t.contactMessageSuccess}</span>
+                    <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
+                      {t.contactFormTitle}
+                    </h2>
                   </div>
-                )}
 
-                <button
-                  type="submit"
-                  disabled={sending}
-                  className="w-full flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 text-white font-semibold py-3.5 rounded-xl transition cursor-pointer disabled:opacity-60 disabled:cursor-wait"
-                >
-                  <Send size={18} />
-                  {t.contactSendMessage}
-                </button>
-              </form>
+                  <p className="text-gray-500 dark:text-gray-400 text-sm mb-7 leading-7">
+                    {t.contactFormDescription}
+                  </p>
+
+                  {error && <p role="alert" className="text-red-600">{error}</p>}
+                  <form
+                    onSubmit={handleSubmit}
+                    className="flex flex-col flex-1 gap-5"
+                  >
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                      <div>
+                        <label htmlFor="contact-name" className={labelStyle}>
+                          {t.fullName}
+                        </label>
+
+                        <input
+                          id="contact-name"
+                          type="text"
+                          value={name}
+                          onChange={(e) => {
+                            setName(e.target.value);
+                            setSubmitted(false);
+                          }}
+                          placeholder={t.enterFullName}
+                          required
+                          className={inputStyle}
+                        />
+                      </div>
+
+                      <div>
+                        <label htmlFor="contact-email" className={labelStyle}>
+                          {t.emailAddress}
+                        </label>
+
+                        <input
+                          id="contact-email"
+                          type="email"
+                          value={email}
+                          onChange={(e) => {
+                            setEmail(e.target.value);
+                            setSubmitted(false);
+                          }}
+                          placeholder={t.enterEmailAddress}
+                          dir={language === "English" ? "ltr" : "rtl"}
+                          required
+                          className={inputStyle}
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label htmlFor="contact-subject" className={labelStyle}>
+                        {t.contactSubject}
+                      </label>
+
+                      <input
+                        id="contact-subject"
+                        type="text"
+                        value={subject}
+                        onChange={(e) => {
+                          setSubject(e.target.value);
+                          setSubmitted(false);
+                        }}
+                        placeholder={t.contactSubjectPlaceholder}
+                        required
+                        className={inputStyle}
+                      />
+                    </div>
+
+                    <div className="flex flex-col flex-1">
+                      <label htmlFor="contact-message" className={labelStyle}>
+                        {t.contactMessage}
+                      </label>
+
+                      <textarea
+                        id="contact-message"
+                        value={message}
+                        onChange={(e) => {
+                          setMessage(e.target.value);
+                          setSubmitted(false);
+                        }}
+                        placeholder={t.contactMessagePlaceholder}
+                        required
+                        className={`${inputStyle} resize-none flex-1 min-h-48`}
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={sending}
+                      className="w-full flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 text-white font-semibold py-3.5 rounded-xl transition cursor-pointer disabled:opacity-60 disabled:cursor-wait"
+                    >
+                      <Send size={18} />
+                      {t.contactSendMessage}
+                    </button>
+                  </form>
+                </>
+              )}
             </div>
           </div>
         </div>

@@ -1529,13 +1529,26 @@ app.post(
     res.json({ message: "Activation email sent" });
   }),
 );
+app.get("/api/admin/statistics", requireAuth, requireAdmin, asyncRoute(async (req, res) => {
+  const totals = await db.query(`SELECT COUNT(*)::int AS total,
+    COUNT(*) FILTER (WHERE status='pending')::int AS pending,
+    COUNT(*) FILTER (WHERE status='confirmed')::int AS confirmed,
+    COUNT(*) FILTER (WHERE status='cancelled')::int AS cancelled FROM appointments`);
+  const daily = await db.query(`WITH days AS (
+    SELECT generate_series((NOW() AT TIME ZONE 'Asia/Kabul')::date - 89, (NOW() AT TIME ZONE 'Asia/Kabul')::date, interval '1 day')::date AS day
+  ), counts AS (
+    SELECT (created_at AT TIME ZONE 'Asia/Kabul')::date AS day, COUNT(*)::int AS count FROM appointments
+    WHERE created_at >= (((NOW() AT TIME ZONE 'Asia/Kabul')::date - 89)::timestamp AT TIME ZONE 'Asia/Kabul') GROUP BY 1
+  ) SELECT to_char(days.day, 'YYYY-MM-DD') AS day, COALESCE(counts.count,0)::int AS count FROM days LEFT JOIN counts USING(day) ORDER BY days.day`);
+  res.json({ ...totals.rows[0], daily: daily.rows });
+}));
 app.get(
   "/api/admin/appointments",
   requireAuth,
   requireAdmin,
   asyncRoute(async (req, res) => {
     const result = await db.query(
-      "SELECT * FROM appointments ORDER BY created_at DESC LIMIT 500",
+      "SELECT a.id,a.doctor_id,a.patient_name,a.phone,a.date,a.time,a.status,a.created_at,d.name AS doctor_name,d.hospital AS hospital_name FROM appointments a LEFT JOIN doctors d ON d.id=a.doctor_id ORDER BY a.created_at DESC",
     );
     res.json(result.rows);
   }),
@@ -1570,7 +1583,10 @@ app.get(
   requireAdmin,
   asyncRoute(async (req, res) => {
     const result = await db.query(
-      "SELECT * FROM provider_requests WHERE status='pending' ORDER BY created_at DESC LIMIT 500",
+      req.query.all === "1" ? `SELECT r.*,
+        ARRAY(SELECT pd.doctor_id FROM provider_profiles p JOIN provider_doctors pd ON pd.provider_id=p.id WHERE p.request_id=r.id) AS doctor_ids,
+        ARRAY(SELECT ph.hospital_id FROM provider_profiles p JOIN provider_hospitals ph ON ph.provider_id=p.id WHERE p.request_id=r.id) AS hospital_ids
+        FROM provider_requests r ORDER BY created_at DESC, id DESC` : "SELECT * FROM provider_requests WHERE status='pending' ORDER BY created_at DESC LIMIT 500",
     );
     res.json(result.rows);
   }),
@@ -2036,7 +2052,7 @@ app.get(
   requireAdmin,
   asyncRoute(async (req, res) => {
     const r = await db.query(
-      "SELECT * FROM contacts ORDER BY created_at DESC LIMIT 500",
+      req.query.all === "1" ? "SELECT * FROM contacts ORDER BY created_at DESC, id DESC" : "SELECT * FROM contacts ORDER BY created_at DESC LIMIT 500",
     );
     res.json(r.rows);
   }),
@@ -2849,7 +2865,7 @@ app.get(
   requireAuth,
   requireAdmin,
   asyncRoute(async (req, res) => {
-    const r = await db.query("SELECT * FROM doctors ORDER BY id");
+    const r = await db.query("SELECT doctors.*, ARRAY(SELECT hospital_id FROM doctor_hospitals WHERE doctor_id=doctors.id) AS hospital_ids FROM doctors ORDER BY id");
     res.json(r.rows);
   }),
 );
